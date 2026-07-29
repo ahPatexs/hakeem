@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hakeem - AI-Powered Smart Healthcare Platform</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#d0e4ff",
+                        "background": "#fbf9f8",
+                        "surface-container-high": "#eae8e7",
+                        "surface-dim": "#dbd9d9",
+                        "on-background": "#1b1c1c",
+                        "inverse-on-surface": "#f2f0f0",
+                        "on-tertiary-fixed-variant": "#364a4d",
+                        "on-secondary-fixed": "#002204",
+                        "surface": "#fbf9f8",
+                        "secondary-container": "#98f994",
+                        "primary": "#00436f",
+                        "on-primary-fixed": "#001d34",
+                        "on-tertiary-container": "#bbd2d5",
+                        "outline-variant": "#c1c7d1",
+                        "on-secondary": "#ffffff",
+                        "on-surface": "#1b1c1c",
+                        "on-primary-fixed-variant": "#004a79",
+                        "secondary-fixed": "#98f994",
+                        "secondary": "#006e1c",
+                        "inverse-primary": "#9acbff",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#b4cbce",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#13629b",
+                        "surface-container-highest": "#e4e2e2",
+                        "primary-fixed-dim": "#9acbff",
+                        "on-primary": "#ffffff",
+                        "tertiary-container": "#465b5e",
+                        "surface-container": "#efeded",
+                        "surface-bright": "#fbf9f8",
+                        "primary-container": "#005b94",
+                        "tertiary": "#2f4446",
+                        "secondary-fixed-dim": "#7ddc7a",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#e4e2e2",
+                        "outline": "#717881",
+                        "on-primary-container": "#a9d2ff",
+                        "surface-container-low": "#f5f3f3",
+                        "on-secondary-fixed-variant": "#005313",
+                        "on-tertiary-fixed": "#091f21",
+                        "on-secondary-container": "#0c7521",
+                        "med-green": "#00A884"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "3xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "0.5rem",
+                        "xl": "2rem",
+                        "margin-desktop": "2.5rem",
+                        "md": "1rem",
+                        "xs": "0.25rem",
+                        "gutter": "1.5rem",
+                        "lg": "1.5rem",
+                        "2xl": "3rem",
+                        "margin-mobile": "1rem"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter", "sans-serif"],
+                        "label-md": ["Inter", "sans-serif"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "headline-xl": ["Lexend", "sans-serif"],
+                        "headline-md": ["Lexend", "sans-serif"],
+                        "body-sm": ["Inter", "sans-serif"],
+                        "headline-lg": ["Lexend", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .hero-gradient-overlay {
+            background: linear-gradient(to right, #fbf9f8 0%, #fbf9f8 35%, rgba(251, 249, 248, 0) 60%);
+        }
+        .floating-ui {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .step-line {
+            background: linear-gradient(to bottom, #00A884, #00A884 50%, transparent 50%, transparent 100%);
+            background-size: 1px 12px;
+        }
+    </style>
+</head>
+<body class="bg-white text-on-background font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-outline-variant/30 shadow-sm">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<img alt="Hakeem Logo" class="h-10 w-auto" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdIWHQphuZAKNTI7-Wri0Zftw4EyHSn7D9C-2mJGc5341Y857wB8ZvOrohWqzpgYv9soMfl_wzoKUSzlYMcl77tLsxzWUMcO30KIaYMYqchpeNRqwl77hp66I11vA_9oiKWccTah4nhkhQz1I3mpGmLR7FBipYTUC2NR0XB4Oua5Igp3eUa6oRWqRmhuc5DBM1cVPYZ0Cli4WtOCQFU3cXks6N7-zmL3AbywJaPO-WEj1NaHTTG1k7uG5aJN4oU3eExyVGrndM_QE"/>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="font-body-md text-primary font-semibold border-b-2 border-primary pb-1 transition-colors duration-200" href="#">Home</a>
+<a class="font-body-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#services">Our Services</a>
+<a class="font-body-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#doctors">Find Care</a>
+<a class="font-body-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#ai-features">AI Features</a>
+<a class="font-body-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#pricing">Physician Portal</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="hidden md:block font-label-md text-primary px-4 py-2 hover:bg-primary-fixed/30 rounded-lg transition-all">Login</button>
+<button class="bg-primary text-on-primary font-label-md px-6 py-2.5 rounded-full hover:shadow-lg hover:bg-primary-container transition-all active:scale-95">Get Started</button>
+<button class="md:hidden text-primary" id="mobile-menu-toggle">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</div>
+</header>
+<main>
+<!-- NEW IMMERSIVE HERO SECTION -->
+<section class="relative min-h-[90vh] flex items-center overflow-hidden bg-background">
+<!-- Background Image with Gradient Mask -->
+<div class="absolute inset-0 z-0"><img alt="Saudi doctor in telemedicine consultation" class="w-full h-full object-cover object-right" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-FaBB_R_vQ35LI2GmdGHv-JoNpVCkaXUk1H9444Bar9R-RH6kRnVk5VuHenIG6r0ZjH6GbMh9WcX8SMLFK4Jo9NA6qjvtKCgHDlokMMfsbiwPcxu_1mwx19f0IKileoWJ4ILC-op5_Er-jYzMRENZXTCOwH2VwR9XVZofKa-sg3A7UpFqzbokleYr1aU6sVpccsgCkWWPGzYOIL3IG6ZiRDKkawc9Owl3bEeYFc6XYrOI5P7U8nDvlzxYv540ggYcw1X3qoYlzVk"/>
+<div class="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent w-1/2"></div></div>
+<div class="relative z-10 w-full max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop grid lg:grid-cols-12 gap-8 items-center pt-20">
+<!-- Left Content Area (40%) -->
+<div class="lg:col-span-5 space-y-8 py-12 lg:pr-12">
+<div class="inline-flex items-center gap-2 bg-primary/5 border border-primary/10 px-3 py-1 rounded-full text-primary font-semibold text-xs tracking-wider">
+<span class="material-symbols-outlined text-[16px] animate-pulse">auto_awesome</span>
+                    AI-POWERED HEALTHCARE
+                </div>
+<h1 class="font-headline-xl text-primary leading-[1.1] text-5xl md:text-6xl">
+                    The doctor focuses on the patient. <br/>
+<span class="text-med-green">AI handles the rest.</span>
+</h1>
+<p class="font-body-lg text-on-surface-variant max-w-lg text-lg leading-relaxed">
+                    Hakeem automates documentation in real-time, allowing physicians to deliver undivided attention to patient care.
+                </p>
+<div class="flex flex-wrap gap-4 pt-2">
+<button class="bg-primary text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:bg-primary/90 transition-all active:scale-95 flex items-center gap-2">
+                        Start Consultation
+                    </button>
+<button class="border-2 border-primary/20 text-primary px-8 py-4 rounded-xl font-semibold hover:bg-primary/5 transition-all flex items-center gap-2">
+                        Explore AI Features
+                    </button>
+</div>
+</div>
+<!-- Center Workflow (Floating steps) -->
+<div class="hidden xl:flex lg:col-span-2 flex-col items-center justify-center gap-8 relative"><div class="flex flex-col items-center gap-6 relative">
+<div class="absolute top-0 bottom-0 w-px bg-gradient-to-b from-med-green/0 via-med-green/40 to-med-green/0 shadow-[0_0_15px_rgba(0,168,132,0.5)]"></div>
+<div class="glass-card px-3 py-1.5 rounded-full text-[9px] font-bold text-primary shadow-sm border-white/40 backdrop-blur-md relative z-10">Voice Conversation</div>
+<div class="glass-card px-3 py-1.5 rounded-full text-[9px] font-bold text-primary shadow-sm border-white/40 backdrop-blur-md relative z-10">Live Transcription</div>
+<div class="glass-card px-3 py-1.5 rounded-full text-[9px] font-bold text-primary shadow-sm border-white/40 backdrop-blur-md relative z-10">AI Analysis</div>
+<div class="glass-card px-3 py-1.5 rounded-full text-[9px] font-bold text-primary shadow-sm border-white/40 backdrop-blur-md relative z-10">Medical Summary</div>
+<div class="glass-card px-3 py-1.5 rounded-full text-[9px] font-bold text-primary shadow-sm border-white/40 backdrop-blur-md relative z-10">Saved to EMR</div>
+</div></div>
+<!-- Right Overlay (AI Panel) -->
+<div class="lg:col-span-7 xl:col-span-5 flex justify-center lg:justify-end py-12">
+<div class="glass-card rounded-[24px] p-6 w-full max-w-md shadow-2xl border-white/80 floating-ui scale-75 origin-right">
+<!-- Panel Header -->
+<div class="flex items-center justify-between mb-6 border-b border-on-surface/5 pb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-med-green rounded-xl flex items-center justify-center text-white">
+<span class="material-symbols-outlined">psychology</span>
+</div>
+<div>
+<h3 class="font-headline-md text-sm text-primary">Hakeem AI Assistant</h3>
+<p class="text-[10px] text-on-surface-variant flex items-center gap-1">
+<span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span> Analyzing Live Consultation
+                                </p>
+</div>
+</div>
+</div>
+<!-- Panel Modules -->
+<div class="space-y-4">
+<!-- Live Transcript Preview -->
+<div class="bg-white/40 rounded-xl p-3 border border-white/50">
+<p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-2">Live Transcript</p>
+<p class="text-[11px] text-on-surface leading-relaxed italic">"...pain in the lower back radiating to the left leg for 3 days..."</p>
+</div>
+<!-- Symptoms Grid -->
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-white/40 rounded-xl p-3 border border-white/50">
+<p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-2">Symptoms</p>
+<div class="flex flex-wrap gap-1.5">
+<span class="px-2 py-0.5 bg-med-green/10 text-med-green text-[9px] font-bold rounded-full">Lumbar Pain</span>
+<span class="px-2 py-0.5 bg-med-green/10 text-med-green text-[9px] font-bold rounded-full">Sciatica</span>
+</div>
+</div>
+<div class="bg-white/40 rounded-xl p-3 border border-white/50">
+<p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-2">Diagnosis</p>
+<p class="text-[10px] font-bold text-primary mb-1">Disc Herniation</p>
+<div class="h-1 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[82%]"></div>
+</div>
+<p class="text-[8px] text-right mt-1 font-bold text-primary">82% Match</p>
+</div>
+</div>
+<!-- Medications -->
+<div class="bg-white/40 rounded-xl p-3 border border-white/50">
+<p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-2">Suggested Meds</p>
+<div class="flex items-center justify-between text-[11px]">
+<span class="font-medium">Ibuprofen 400mg</span>
+<span class="text-on-surface-variant">2x Daily</span>
+</div>
+</div>
+<!-- SOAP Note Preview -->
+<div class="bg-primary/5 rounded-xl p-3 border border-primary/10">
+<div class="flex justify-between items-center mb-2">
+<p class="text-[10px] font-bold uppercase tracking-wider text-primary">SOAP Note Preview</p>
+<span class="material-symbols-outlined text-primary text-sm">visibility</span>
+</div>
+<div class="space-y-1">
+<div class="h-1.5 w-full bg-primary/10 rounded-full"></div>
+<div class="h-1.5 w-3/4 bg-primary/10 rounded-full"></div>
+</div>
+</div>
+<button class="w-full bg-primary text-white py-3 rounded-xl text-xs font-bold shadow-lg hover:shadow-xl transition-all">
+                            Review &amp; Save to EMR
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- NEW STATISTICS SECTION -->
+<section class="bg-white py-12 border-y border-outline-variant/10 relative z-20">
+<div class="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+<!-- Stat Card 1 -->
+<div class="bg-surface/50 p-6 rounded-2xl border border-outline-variant/20 hover:shadow-md transition-shadow">
+<div class="flex flex-col items-center text-center space-y-2">
+<div class="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center text-primary mb-2">
+<span class="material-symbols-outlined">medical_services</span>
+</div>
+<h4 class="font-headline-md text-2xl text-primary leading-tight">10,000+</h4>
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Registered Doctors</p>
+</div>
+</div>
+<!-- Stat Card 2 -->
+<div class="bg-surface/50 p-6 rounded-2xl border border-outline-variant/20 hover:shadow-md transition-shadow">
+<div class="flex flex-col items-center text-center space-y-2">
+<div class="w-10 h-10 rounded-full bg-med-green/5 flex items-center justify-center text-med-green mb-2">
+<span class="material-symbols-outlined">groups</span>
+</div>
+<h4 class="font-headline-md text-2xl text-primary leading-tight">250,000+</h4>
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Patients Served</p>
+</div>
+</div>
+<!-- Stat Card 3 -->
+<div class="bg-surface/50 p-6 rounded-2xl border border-outline-variant/20 hover:shadow-md transition-shadow">
+<div class="flex flex-col items-center text-center space-y-2">
+<div class="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center text-primary-container mb-2">
+<span class="material-symbols-outlined">description</span>
+</div>
+<h4 class="font-headline-md text-2xl text-primary leading-tight">1.2M+</h4>
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">AI Summaries</p>
+</div>
+</div>
+<!-- Stat Card 4 -->
+<div class="bg-surface/50 p-6 rounded-2xl border border-outline-variant/20 hover:shadow-md transition-shadow">
+<div class="flex flex-col items-center text-center space-y-2">
+<div class="w-10 h-10 rounded-full bg-secondary-container/10 flex items-center justify-center text-secondary mb-2">
+<span class="material-symbols-outlined">timer</span>
+</div>
+<h4 class="font-headline-md text-2xl text-primary leading-tight">18 min</h4>
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Avg. Consultation</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SERVICES SECTION -->
+<section class="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop py-2xl" id="services">
+<div class="text-center mb-16 space-y-4">
+<h2 class="font-headline-lg text-headline-lg text-primary">Precision Care, Redefined</h2>
+<p class="font-body-md text-on-surface-variant max-w-2xl mx-auto">Modern healthcare requires modern tools. Hakeem provides the surgical precision of AI with the empathy of professional care.</p>
+</div>
+<div class="grid md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<div class="glass-card p-8 rounded-2xl flex flex-col items-start gap-4 hover:translate-y-[-8px] transition-transform duration-300">
+<div class="w-12 h-12 rounded-xl bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">description</span>
+</div>
+<h3 class="font-headline-md text-primary">AI Documentation</h3>
+<p class="font-body-sm text-on-surface-variant">Automated SOAP notes and instant summaries generated from live consultations.</p>
+</div>
+<div class="glass-card p-8 rounded-2xl flex flex-col items-start gap-4 hover:translate-y-[-8px] transition-transform duration-300">
+<div class="w-12 h-12 rounded-xl bg-secondary-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">videocam</span>
+</div>
+<h3 class="font-headline-md text-primary">Secure Video</h3>
+<p class="font-body-sm text-on-surface-variant">HIPAA-compliant HD video conferencing designed specifically for medical use.</p>
+</div>
+<div class="glass-card p-8 rounded-2xl flex flex-col items-start gap-4 hover:translate-y-[-8px] transition-transform duration-300">
+<div class="w-12 h-12 rounded-xl bg-tertiary-fixed flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">event_available</span>
+</div>
+<h3 class="font-headline-md text-primary">Easy Booking</h3>
+<p class="font-body-sm text-on-surface-variant">Smart scheduling and automated reminders to minimize patient no-shows.</p>
+</div>
+<div class="glass-card p-8 rounded-2xl flex flex-col items-start gap-4 hover:translate-y-[-8px] transition-transform duration-300">
+<div class="w-12 h-12 rounded-xl bg-on-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined">verified</span>
+</div>
+<h3 class="font-headline-md text-primary">Saudi Compliance</h3>
+<p class="font-body-sm text-on-surface-variant">Fully compliant with KSA healthcare regulations and data privacy standards.</p>
+</div>
+</div>
+</section>
+<!-- AI SHOWCASE WORKFLOW -->
+<section class="bg-surface-container py-2xl" id="ai-features">
+<div class="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="grid lg:grid-cols-2 gap-16 items-center">
+<div class="space-y-8">
+<h2 class="font-headline-lg text-headline-lg text-primary">From Voice to Electronic Medical Record (EMR) in Seconds</h2>
+<div class="space-y-6">
+<div class="flex gap-4">
+<div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold">1</div>
+<div>
+<h4 class="font-headline-md text-primary">Live Speech-to-Text</h4>
+<p class="font-body-sm text-on-surface-variant">Real-time transcription of doctor-patient dialogue during consultations.</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold">2</div>
+<div>
+<h4 class="font-headline-md text-primary">AI Contextual Analysis</h4>
+<p class="font-body-sm text-on-surface-variant">Clinical entities and symptoms are identified and extracted by medical-grade AI.</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold">3</div>
+<div>
+<h4 class="font-headline-md text-primary">Auto SOAP Note</h4>
+<p class="font-body-sm text-on-surface-variant">A structured SOAP note is generated instantly for the doctor's review.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="relative bg-white rounded-3xl p-8 shadow-xl overflow-hidden border border-outline-variant/20">
+<div class="flex flex-col items-center gap-6 py-8">
+<div class="flex items-center gap-4 w-full">
+<div class="flex-1 bg-primary-fixed p-4 rounded-xl text-center font-label-md text-primary">Patient + Doctor</div>
+<span class="material-symbols-outlined text-outline">arrow_forward</span>
+<div class="flex-1 bg-secondary-container p-4 rounded-xl text-center font-label-md text-secondary">Live Video</div>
+</div>
+<span class="material-symbols-outlined text-primary text-4xl animate-bounce">keyboard_double_arrow_down</span>
+<div class="flex items-center gap-4 w-full justify-center">
+<div class="w-24 h-24 rounded-full border-4 border-dashed border-primary flex items-center justify-center animate-spin-slow">
+<span class="material-symbols-outlined text-primary text-4xl">psychology</span>
+</div>
+<div class="text-primary font-headline-md text-xl">AI Engine</div>
+</div>
+<span class="material-symbols-outlined text-primary text-4xl">keyboard_double_arrow_down</span>
+<div class="flex items-center gap-4 w-full">
+<div class="flex-1 bg-tertiary-fixed p-4 rounded-xl text-center font-label-md text-tertiary">SOAP Note</div>
+<span class="material-symbols-outlined text-outline">arrow_forward</span>
+<div class="flex-1 bg-primary text-white p-4 rounded-xl text-center font-label-md">EMR Entry</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- DOCTORS SECTION -->
+<section class="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop py-2xl" id="doctors">
+<div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
+<div class="space-y-2">
+<h2 class="font-headline-lg text-headline-lg text-primary">Featured Specialists</h2>
+<p class="font-body-md text-on-surface-variant">Connect with top-rated medical experts in minutes.</p>
+</div>
+<button class="text-primary font-semibold flex items-center gap-2 hover:underline">
+                View All Doctors <span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+<div class="grid md:grid-cols-3 gap-gutter">
+<div class="bg-white rounded-2xl border border-outline-variant/30 overflow-hidden shadow-sm hover:shadow-lg transition-all group">
+<div class="h-64 bg-surface-dim overflow-hidden relative">
+<img alt="Dr. Ahmed Al-Faisal" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuLe_dPZ3ERgxVryRo8kyK2Ol0hbQ4xIsXSoomyf4FqXU4LxWDJpfyosRBXjqVFbpC8v3OSVIE8Rnf7Z-7d5FcZG2950us8dnH_ZbXlNHWT4PdN1q7aSHqWvsjl8ZFcu2-n8Mask-IJPNB04hGnjO7bXh3SkIpq85ps7eR3DKa1PUtxnRl38cr1aifCGsC-SOkDlYoryctNd-MKiy2W4qFY2se09HKGvZYnq-KoFblUUu0Rkt-JALkMU0SKIQ59sqCMceRTjVChBBg"/>
+<div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-amber-400 text-[18px]" style='font-variation-settings: "FILL" 1;'>star</span>
+<span class="font-bold text-on-surface text-sm">4.9</span>
+</div>
+</div>
+<div class="p-6 space-y-4">
+<div>
+<h4 class="font-headline-md text-primary">Dr. Ahmed Al-Faisal</h4>
+<p class="font-body-sm text-med-green font-semibold">Senior Cardiologist</p>
+</div>
+<p class="font-body-sm text-on-surface-variant line-clamp-2">Specializing in minimally invasive cardiac procedures and preventive heart health.</p>
+<button class="w-full py-3 rounded-xl bg-primary-fixed text-primary font-bold hover:bg-primary hover:text-white transition-all active:scale-95">Book Consultation</button>
+</div>
+</div>
+<div class="bg-white rounded-2xl border border-outline-variant/30 overflow-hidden shadow-sm hover:shadow-lg transition-all group">
+<div class="h-64 bg-surface-dim overflow-hidden relative">
+<img alt="Dr. Sarah Mansour" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqQwqb8Xp_iPLl_zXnn3S4b1W2AjHMw7K5oldidY6POqVcXO2R2XiVGe2dEU1yvyhKafuABPkDJj5RA3GFSeOXjLGyJNo2Txij4fXE085w_Zi8MqTpJEd7yqrJGQrLAMU8Cbigt0NUGm6DsER669wm7IbY0sEtXq9lCRfW_wnidZQO4COdq_RBRxWEeTXUcCZgicSCisUpP82S7JaglowAvj1QZCH5jbk6XLOjBVjpWz72sGvnydexeutpUef1lbfUWpfVhP1JSq0"/>
+<div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-amber-400 text-[18px]" style='font-variation-settings: "FILL" 1;'>star</span>
+<span class="font-bold text-on-surface text-sm">5.0</span>
+</div>
+</div>
+<div class="p-6 space-y-4">
+<div>
+<h4 class="font-headline-md text-primary">Dr. Sarah Mansour</h4>
+<p class="font-body-sm text-med-green font-semibold">Neurology Specialist</p>
+</div>
+<p class="font-body-sm text-on-surface-variant line-clamp-2">Expert in neuro-diagnostics and advanced treatment for cognitive disorders.</p>
+<button class="w-full py-3 rounded-xl bg-primary-fixed text-primary font-bold hover:bg-primary hover:text-white transition-all active:scale-95">Book Consultation</button>
+</div>
+</div>
+<div class="bg-white rounded-2xl border border-outline-variant/30 overflow-hidden shadow-sm hover:shadow-lg transition-all group">
+<div class="h-64 bg-surface-dim overflow-hidden relative">
+<img alt="Dr. Khalid Jameel" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzWUV73K3kmJSGqRZ9xH8s3bL1jbn77GB1A58pg7DCW5sMXOd6reYLFGMCTGYOLPADasj7S070dKj872_TGwlVarmSqvCjHXmJqT49EsKvEtulY1aNyV5LtTpwgbco8TMXmsqodGBk7wRkuyFbG4P1bVckU37kwIZuyrfqFQ4CTJRuX2eryBwjnCW-O3bn15R9TBkfszaKe1upQSF1ccOO7eKtBXxNGHJpGPASJxdPsARVWiln8x_L-L2qD4ElibydlmYOTrVBz7A"/>
+<div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-amber-400 text-[18px]" style='font-variation-settings: "FILL" 1;'>star</span>
+<span class="font-bold text-on-surface text-sm">4.8</span>
+</div>
+</div>
+<div class="p-6 space-y-4">
+<div>
+<h4 class="font-headline-md text-primary">Dr. Khalid Jameel</h4>
+<p class="font-body-sm text-med-green font-semibold">Pediatric Specialist</p>
+</div>
+<p class="font-body-sm text-on-surface-variant line-clamp-2">Dedicated to child wellness and development with over 15 years of experience.</p>
+<button class="w-full py-3 rounded-xl bg-primary-fixed text-primary font-bold hover:bg-primary hover:text-white transition-all active:scale-95">Book Consultation</button>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA SECTION -->
+<section class="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop py-2xl">
+<div class="bg-primary rounded-3xl p-12 md:p-20 text-center space-y-8 relative overflow-hidden">
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary-container/40 via-transparent to-transparent opacity-40"></div>
+<h2 class="font-headline-xl text-white text-4xl md:text-5xl relative z-10">Ready to experience the future of healthcare?</h2>
+<p class="font-body-lg text-primary-fixed max-w-2xl mx-auto relative z-10 opacity-90">Join thousands of patients and doctors who are already using Hakeem to make healthcare more accessible and efficient.</p>
+<div class="flex flex-wrap justify-center gap-6 relative z-10">
+<button class="bg-white text-primary font-headline-md px-10 py-4 rounded-xl hover:shadow-xl transition-all active:scale-95">Find a Doctor</button>
+<button class="bg-med-green text-white font-headline-md px-10 py-4 rounded-xl hover:bg-on-secondary-container shadow-lg shadow-med-green/20 transition-all active:scale-95">Get Started Now</button>
+</div>
+</div>
+</section>
+</main>
+<!-- FOOTER -->
+<footer class="bg-surface-container-high border-t border-outline-variant/20 pt-20 pb-10">
+<div class="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop grid grid-cols-2 md:grid-cols-4 gap-gutter mb-20">
+<div class="col-span-2 md:col-span-1 space-y-6">
+<div class="font-headline-md text-2xl font-bold text-primary">Hakeem</div>
+<p class="font-body-sm text-on-surface-variant leading-relaxed">Empowering healthcare through precision AI. Bridging the gap between patient and provider.</p>
+<div class="flex gap-4">
+<a class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-sm" href="#">
+<span class="material-symbols-outlined text-[20px]">share</span>
+</a>
+<a class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-sm" href="#">
+<span class="material-symbols-outlined text-[20px]">public</span>
+</a>
+</div>
+</div>
+<div class="space-y-4">
+<h5 class="font-bold text-primary text-sm uppercase tracking-widest">Company</h5>
+<nav class="flex flex-col gap-2">
+<a class="font-body-sm text-on-surface-variant hover:text-med-green transition-colors" href="#">About Us</a>
+<a class="font-body-sm text-on-surface-variant hover:text-med-green transition-colors" href="#">Careers</a>
+<a class="font-body-sm text-on-surface-variant hover:text-med-green transition-colors" href="#">Newsroom</a>
+<a class="font-body-sm text-on-surface-variant hover:text-med-green transition-colors" href="#">Contact Support</a>
+</nav>
+</div>
+<div class="space-y-4">
+<h5 class="font-bold text-primary text-sm uppercase tracking-widest">Legal</h5>
+<nav class="flex flex-col gap-2">
+<a class="font-body-sm text-on-surface-variant hover:text-med-green transition-colors" href="#">Privacy Policy</a>
+<a class="font-body-sm text-on-surface-variant hover:text-med-green transition-colors" href="#">Terms of Service</a>
+<a class="font-body-sm text-on-surface-variant hover:text-med-green transition-colors" href="#">HIPAA Compliance</a>
+<a class="font-body-sm text-on-surface-variant hover:text-med-green transition-colors" href="#">KSA Regulations</a>
+</nav>
+</div>
+<div class="col-span-2 md:col-span-1 space-y-4">
+<h5 class="font-bold text-primary text-sm uppercase tracking-widest">Newsletter</h5>
+<p class="font-body-sm text-on-surface-variant">Stay updated on AI healthcare breakthroughs.</p>
+<form class="flex gap-2">
+<input class="flex-1 bg-white border border-outline-variant/30 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 outline-none" placeholder="Email Address" type="email"/>
+<button class="bg-primary text-white p-2.5 rounded-lg hover:bg-primary-container transition-all">
+<span class="material-symbols-outlined">send</span>
+</button>
+</form>
+</div>
+</div>
+<div class="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop border-t border-outline-variant/20 pt-8 text-center">
+<p class="font-body-sm text-on-surface-variant opacity-70">© 2024 Hakeem AI. Empowering healthcare through precision intelligence.</p>
+</div>
+</footer>
+</body></html>

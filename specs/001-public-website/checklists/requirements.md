@@ -32,6 +32,6 @@
 ## Notes
 
 - Validation passed on first review (2026-07-27).
-- Pricing treated as optional/toggleable per input; documented in FR-016, SC-011, and Assumptions.
-- Default languages assumed Arabic + English; AI full use and booking completion assumed auth-gated for guests.
-- Ready for `/speckit-clarify` (optional) or `/speckit-plan`.
+- Non-interactive `/speckit-clarify` (2026-07-27): enterprise assumptions documented for SEO, metadata, sitemap, robots, Schema.org, OpenGraph, Twitter Cards, EN/AR localization, RTL, blog/CMS contract, site search, doctor filters, analytics, newsletter, contact workflow, image/font optimization, WCAG 2.2 AA, performance, future CMS.
+- Spec Quality Checklist: 16/16 → 16/16 items passing (no regressions; coverage expanded in spec).
+- Ready for `/speckit-plan`.

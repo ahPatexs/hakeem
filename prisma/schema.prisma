@@ -1,0 +1,225 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum InquiryStatus {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+  SPAM
+}
+
+enum SubscriptionState {
+  PENDING
+  CONFIRMED
+  UNSUBSCRIBED
+}
+
+enum LocaleCode {
+  EN
+  AR
+}
+
+model Specialty {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  nameEn    String
+  nameAr    String
+  sortOrder Int      @default(0)
+  doctors   Doctor[]
+}
+
+model Doctor {
+  id               String        @id @default(cuid())
+  slug             String        @unique
+  status           PublishStatus @default(DRAFT)
+  nameEn           String
+  nameAr           String
+  titleEn          String?
+  titleAr          String?
+  bioEn            String?
+  bioAr            String?
+  photoUrl         String?
+  photoAltEn       String?
+  photoAltAr       String?
+  gender           Gender?
+  languages        String[]
+  yearsExperience  Int?
+  credentialsEn    String[]
+  credentialsAr    String[]
+  isAvailable      Boolean       @default(true)
+  metaDescEn       String?
+  metaDescAr       String?
+  specialtyId      String
+  specialty        Specialty     @relation(fields: [specialtyId], references: [id])
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  publishedAt      DateTime?
+
+  @@index([status, specialtyId])
+  @@index([status, isAvailable])
+}
+
+model Author {
+  id        String     @id @default(cuid())
+  nameEn    String
+  nameAr    String
+  roleEn    String?
+  roleAr    String?
+  avatarUrl String?
+  posts     BlogPost[]
+}
+
+model Category {
+  id        String     @id @default(cuid())
+  slug      String     @unique
+  nameEn    String
+  nameAr    String
+  sortOrder Int        @default(0)
+  posts     BlogPost[] @relation("PostCategories")
+}
+
+model Tag {
+  id        String     @id @default(cuid())
+  slug      String     @unique
+  nameEn    String
+  nameAr    String
+  sortOrder Int        @default(0)
+  posts     BlogPost[] @relation("PostTags")
+}
+
+model BlogPost {
+  id            String        @id @default(cuid())
+  slug          String        @unique
+  status        PublishStatus @default(DRAFT)
+  titleEn       String
+  titleAr       String
+  summaryEn     String
+  summaryAr     String
+  bodyEn        Json
+  bodyAr        Json
+  bodyPlainEn   String?
+  bodyPlainAr   String?
+  coverUrl      String?
+  coverAltEn    String?
+  coverAltAr    String?
+  authorId      String
+  author        Author        @relation(fields: [authorId], references: [id])
+  categories    Category[]    @relation("PostCategories")
+  tags          Tag[]         @relation("PostTags")
+  publishedAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([status, publishedAt])
+}
+
+model Service {
+  id             String        @id @default(cuid())
+  slug           String        @unique
+  status         PublishStatus @default(PUBLISHED)
+  nameEn         String
+  nameAr         String
+  descriptionEn  String
+  descriptionAr  String
+  iconKey        String
+  sortOrder      Int           @default(0)
+}
+
+model Testimonial {
+  id           String        @id @default(cuid())
+  status       PublishStatus @default(DRAFT)
+  authorNameEn String
+  authorNameAr String
+  contextEn    String?
+  contextAr    String?
+  quoteEn      String
+  quoteAr      String
+  rating       Int?
+  sortOrder    Int           @default(0)
+}
+
+model FaqItem {
+  id          String        @id @default(cuid())
+  status      PublishStatus @default(PUBLISHED)
+  sortOrder   Int           @default(0)
+  questionEn  String
+  questionAr  String
+  answerEn    String
+  answerAr    String
+  categoryEn  String?
+  categoryAr  String?
+}
+
+model PricingPlan {
+  id              String        @id @default(cuid())
+  status          PublishStatus @default(DRAFT)
+  nameEn          String
+  nameAr          String
+  descriptionEn   String
+  descriptionAr   String
+  priceLabelEn    String
+  priceLabelAr    String
+  featuresEn      String[]
+  featuresAr      String[]
+  isHighlighted   Boolean       @default(false)
+  sortOrder       Int           @default(0)
+}
+
+model LegalDocument {
+  id            String   @id @default(cuid())
+  kind          String   @unique
+  titleEn       String
+  titleAr       String
+  bodyEn        Json
+  bodyAr        Json
+  effectiveDate DateTime
+  updatedAt     DateTime @updatedAt
+}
+
+model ContactInquiry {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  topic     String
+  message   String
+  locale    LocaleCode
+  status    InquiryStatus @default(NEW)
+  ipHash    String?
+  createdAt DateTime      @default(now())
+}
+
+model NewsletterSubscription {
+  id              String            @id @default(cuid())
+  email           String            @unique
+  state           SubscriptionState @default(PENDING)
+  locale          LocaleCode
+  confirmedAt     DateTime?
+  unsubscribedAt  DateTime?
+  providerId      String?
+  createdAt       DateTime          @default(now())
+}
+
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}

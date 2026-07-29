@@ -1,0 +1,206 @@
+﻿[
+    {
+        "file":  "d-about.png",
+        "title":  "About Hakeem - Our Mission \u0026 Team",
+        "screenId":  "1f4400633fe44355a2ae5b165ec9f574",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "d-ai-assistant.png",
+        "title":  "Hakeem AI Medical Assistant",
+        "screenId":  "5ebba55e8ea947ed9aaffdea6ea20de1",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "d-blog-details.png",
+        "title":  "How AI Is Transforming Doctor Consultations - Hakeem Blog",
+        "screenId":  "8042dfeec01f4a648bf9236df0751a44",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "d-blog.png",
+        "title":  "Hakeem Health Blog - Insights \u0026 Innovation",
+        "screenId":  "9530156c535d485b8b9dcbcdc6d793f0",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "d-components.png",
+        "title":  "Hakeem Component Library",
+        "screenId":  "9622312ef9a04a91bcc0bfd3fffc58b6",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "d-contact.png",
+        "title":  "Contact Us - Hakeem Telemedicine",
+        "screenId":  "e926a937cd2343e5bd2b8748ce7c9456",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "d-doctor-profile.png",
+        "title":  "Hakeem Logo",
+        "screenId":  "bbc61d5ec2e34c68b95591ad34bc4f7f",
+        "type":  "IMAGE"
+    },
+    {
+        "file":  "d-doctor-profile-1.png",
+        "title":  "Doctor Profile - Dr. Ahmed Hassan",
+        "screenId":  "4ab9d53c90994eaeb659f483bc4df12d",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "d-doctors.png",
+        "title":  "Find Your Doctor - Hakeem Directory",
+        "screenId":  "aec441fd229d49119464b2abeda08b1f",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "d-faq.png",
+        "title":  "Frequently Asked Questions - Hakeem Telemedicine",
+        "screenId":  "b8c16f4788064a5cac3b943096314a9a",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "d-home.png",
+        "title":  "Hakeem Brand Logo",
+        "screenId":  "fb4103662a1040a28fee71a4193039f7",
+        "type":  "IMAGE"
+    },
+    {
+        "file":  "d-home-1.png",
+        "title":  "Hakeem - Healthcare at Your Fingertips",
+        "screenId":  "0c22b03a9bca46d1b39867ac44e2f90c",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "d-how-it-works.png",
+        "title":  "How Hakeem Works - Simple Steps to Care",
+        "screenId":  "419a82bf6aa64788b2e3f6fef9d9d249",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "d-privacy.png",
+        "title":  "Privacy Policy - Hakeem Telemedicine",
+        "screenId":  "0c8fa87189434031a7038acf44b7d7e3",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "d-services.png",
+        "title":  "Our Services - Hakeem Telemedicine",
+        "screenId":  "19ca5f50c1cd4e46b8ee21698471f6ca",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "d-terms.png",
+        "title":  "Terms \u0026 Conditions - Hakeem Telemedicine",
+        "screenId":  "7fb8d986d4034191a2ab77025cb59479",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "m-about.png",
+        "title":  "Hakeem Logo",
+        "screenId":  "542029d0d057499d90ba907e5d2d9601",
+        "type":  "IMAGE"
+    },
+    {
+        "file":  "m-about-1.png",
+        "title":  "About Hakeem - Mobile Experience",
+        "screenId":  "f91cbc1b7b254e7cb4f447471d5a98e9",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "m-ai-assistant.png",
+        "title":  "Hakeem AI Medical Assistant - Mobile",
+        "screenId":  "f8169f73ef46421e9c564b864b6f00c2",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "m-blog-details.png",
+        "title":  "How AI Is Transforming Doctor Consultations - Hakeem Mobile",
+        "screenId":  "6267609e209345bfac677a4faaa24ca6",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "m-blog.png",
+        "title":  "Hakeem Health Blog - Mobile",
+        "screenId":  "195f6de567f345c6a5c93f338d347ff6",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "m-components.png",
+        "title":  "Hakeem Mobile Component Library",
+        "screenId":  "f8bb3ca8edbe4970af9578437d817254",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "m-contact.png",
+        "title":  "Contact Us - Hakeem Mobile",
+        "screenId":  "30f5aca8496b4403923ef4bc4b57f89a",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "m-doctor-profile.png",
+        "title":  "Dr. Ahmed Hassan - Profile (Mobile)",
+        "screenId":  "aa1d9f136d564ef68f8c9b7ae55d822a",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "m-doctors.png",
+        "title":  "Find Your Doctor - Hakeem Mobile Directory",
+        "screenId":  "ab7bfcb548cd41239c523f1b2fddd93b",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "m-faq.png",
+        "title":  "Frequently Asked Questions - Hakeem Mobile",
+        "screenId":  "f843405eca594ab8887da1e22515cbff",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "m-home.png",
+        "title":  "Hakeem - Healthcare at Your Fingertips",
+        "screenId":  "0bff5baf98be4cceb6523dbd09b430fe",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "m-how-it-works.png",
+        "title":  "How It Works - Hakeem Mobile",
+        "screenId":  "ae7d5ea0a7664b19b581a71e96a527c0",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "m-privacy.png",
+        "title":  "Privacy Policy - Hakeem Mobile",
+        "screenId":  "c3c4957355cb4269afa739b0b07aecef",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "m-services.png",
+        "title":  "Our Services - Hakeem Telemedicine",
+        "screenId":  "76d355d1090d4a0b91a72960c559fb34",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "m-terms.png",
+        "title":  "Terms \u0026 Conditions - Hakeem Mobile",
+        "screenId":  "4bee9ad17e794e2995300be806e94e42",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "t-doctor-profile.png",
+        "title":  "Dr. Ahmed Hassan - Profile (Tablet)",
+        "screenId":  "78ec3e6bae424699b6a652cefba7544f",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "t-doctors.png",
+        "title":  "Find Your Doctor - Hakeem Directory (Tablet)",
+        "screenId":  "723141dd01cc46628618315e24d3381f",
+        "type":  "DESIGN"
+    },
+    {
+        "file":  "t-home.png",
+        "title":  "Hakeem - Healthcare at Your Fingertips (Tablet)",
+        "screenId":  "5a289b268e53441eb9de8af2a985debe",
+        "type":  "DESIGN"
+    }
+]

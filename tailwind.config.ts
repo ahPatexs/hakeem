@@ -1,0 +1,67 @@
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  darkMode: ["class"],
+  content: ["./src/**/*.{ts,tsx}"],
+  theme: {
+    extend: {
+      colors: {
+        background: "#fbf9f8",
+        surface: "#fbf9f8",
+        "surface-container": "#efeded",
+        "surface-container-high": "#eae8e7",
+        "surface-container-highest": "#e4e2e2",
+        "surface-dim": "#dbd9d9",
+        "on-background": "#1b1c1c",
+        "on-surface": "#1b1c1c",
+        "on-surface-variant": "#717881",
+        primary: "#00436f",
+        "primary-container": "#005b94",
+        "primary-fixed": "#d0e4ff",
+        "on-primary": "#ffffff",
+        "on-primary-container": "#a9d2ff",
+        secondary: "#006e1c",
+        "secondary-container": "#98f994",
+        "on-secondary": "#ffffff",
+        "on-secondary-container": "#0c7521",
+        tertiary: "#2f4446",
+        "tertiary-container": "#465b5e",
+        "tertiary-fixed": "#b4cbce",
+        "on-tertiary": "#ffffff",
+        "med-green": "#00A884",
+        outline: "#717881",
+        "outline-variant": "#c1c7d1",
+        error: "#ba1a1a",
+      },
+      borderRadius: {
+        lg: "0.5rem",
+        xl: "0.75rem",
+        "2xl": "1rem",
+        "3xl": "1.5rem",
+      },
+      spacing: {
+        xs: "0.25rem",
+        sm: "0.5rem",
+        md: "1rem",
+        lg: "1.5rem",
+        xl: "2rem",
+        "2xl": "3rem",
+        gutter: "1.5rem",
+        "margin-mobile": "1rem",
+        "margin-desktop": "2.5rem",
+      },
+      fontFamily: {
+        sans: ["var(--font-montserrat)", "system-ui", "sans-serif"],
+        headline: ["var(--font-montserrat)", "system-ui", "sans-serif"],
+        arabic: ["var(--font-noto-arabic)", "var(--font-montserrat)", "system-ui", "sans-serif"],
+      },
+      fontSize: {
+        "headline-lg": ["2rem", { lineHeight: "1.2", fontWeight: "700" }],
+        "headline-xl": ["3rem", { lineHeight: "1.1", fontWeight: "700" }],
+      },
+    },
+  },
+  plugins: [],
+};
+
+export default config;
