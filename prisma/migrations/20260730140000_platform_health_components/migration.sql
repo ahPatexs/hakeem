@@ -1,0 +1,4 @@
+-- AlterEnum
+ALTER TYPE "HealthComponentKey" ADD VALUE IF NOT EXISTS 'EMAIL';
+ALTER TYPE "HealthComponentKey" ADD VALUE IF NOT EXISTS 'SMS';
+ALTER TYPE "HealthComponentKey" ADD VALUE IF NOT EXISTS 'STORAGE';

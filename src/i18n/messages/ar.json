@@ -316,7 +316,12 @@
       "saving": "جارٍ الحفظ…",
       "saved": "تم حفظ الإعدادات",
       "error": "تعذّر الحفظ",
-      "loadError": "تعذّر تحميل الإعدادات"
+      "loadError": "تعذّر تحميل الإعدادات",
+      "pushTitle": "إشعارات الدفع",
+      "pushHint": "سجّل هذا المتصفح لاستعداد إشعارات الدفع على المنصة (يُخزَّن رمز الجهاز بشكل مشفّر).",
+      "pushRegister": "تفعيل الدفع على هذا الجهاز",
+      "pushRevoke": "إيقاف الدفع على هذا الجهاز",
+      "pushRegistered": "تم تسجيل هذا الجهاز لإشعارات الدفع."
     },
     "doctors": {
       "title": "البحث عن طبيب",
@@ -370,11 +375,14 @@
       "waitingRoom": "في انتظار مقدم الرعاية…",
       "stubNote": "طب عن بُعد تجريبي — سيتصل بالمحول الإنتاجي لاحقاً.",
       "joinStub": "انضم (تجريبي)",
+      "joinCall": "انضم للمكالمة",
       "windowClosed": "نافذة الانضمام لهذه الزيارة غير مفتوحة أو انتهت.",
       "loadError": "تعذّر تحميل الاستشارة"
     },
     "records": {
       "title": "السجلات الطبية",
+      "timelineTitle": "النشاط",
+      "openEvent": "فتح",
       "emptyTitle": "لا توجد سجلات",
       "emptyDescription": "ستظهر سجلاتك السريرية هنا عند توفرها.",
       "downloadDocument": "عرض المستند",
@@ -806,6 +814,282 @@
       "saved": "تم حفظ الإعدادات",
       "error": "تعذّر حفظ الإعدادات",
       "loadError": "تعذّر تحميل الإعدادات"
+    }
+  },
+  "admin": {
+    "shell": {
+      "portalLabel": "بوابة الإدارة",
+      "openMenu": "فتح القائمة",
+      "notifications": "الإشعارات",
+      "signOut": "تسجيل الخروج"
+    },
+    "nav": {
+      "dashboard": "لوحة التحكم",
+      "users": "المستخدمون",
+      "doctors": "الأطباء",
+      "appointments": "المواعيد",
+      "aiOps": "عمليات الذكاء الاصطناعي",
+      "billing": "الفوترة",
+      "revenue": "الإيرادات",
+      "analytics": "التحليلات",
+      "settings": "الإعدادات",
+      "health": "صحة النظام",
+      "audit": "سجل التدقيق",
+      "notifications": "الإشعارات",
+      "roles": "الأدوار"
+    },
+    "dashboard": {
+      "title": "لوحة تحكم الإدارة",
+      "subtitle": "نظرة عامة على المنصة وإجراءات سريعة",
+      "totalPatients": "المرضى النشطون",
+      "totalDoctors": "الأطباء المعتمدون",
+      "activeAppointments": "المواعيد النشطة",
+      "pendingApprovals": "موافقات معلّقة",
+      "pendingApprovalsHint": "أطباء بانتظار المراجعة",
+      "revenueSummary": "الإيرادات (30 يوماً)",
+      "gross": "الإجمالي",
+      "refunds": "المستردات",
+      "net": "الصافي",
+      "viewRevenue": "عرض الإيرادات",
+      "aiUsage": "استخدام الذكاء الاصطناعي (30 يوماً)",
+      "patientMessages": "رسائل المرضى",
+      "doctorMessages": "رسائل الأطباء",
+      "viewAiOps": "فتح عمليات الذكاء الاصطناعي",
+      "platformStatus": "حالة المنصة",
+      "viewHealth": "عرض الصحة",
+      "notifications": "الإشعارات",
+      "unreadCount": "{count} غير مقروءة",
+      "viewNotifications": "فتح المركز",
+      "recentActivities": "آخر نشاط إداري",
+      "viewAudit": "عرض سجل التدقيق",
+      "noActivities": "لا أحداث إدارية حديثة",
+      "quickActionsTitle": "إجراءات سريعة",
+      "quickActions": {
+        "approveDoctor": "اعتماد طبيب",
+        "suspendUser": "تعليق مستخدم",
+        "analytics": "التحليلات",
+        "settings": "الإعدادات",
+        "aiOps": "عمليات الذكاء الاصطناعي",
+        "audit": "سجل التدقيق"
+      }
+    },
+    "users": {
+      "title": "إدارة المستخدمين",
+      "subtitle": "بحث وتصفية وإدارة حسابات المنصة",
+      "searchPlaceholder": "بحث بالبريد أو الاسم",
+      "email": "البريد",
+      "name": "الاسم",
+      "role": "الدور",
+      "status": "الحالة",
+      "view": "عرض",
+      "empty": "لا مستخدمين مطابقين",
+      "failedLogins": "محاولات فاشلة",
+      "roleFilter": "تصفية حسب الدور",
+      "statusFilter": "تصفية حسب الحالة",
+      "allRoles": "كل الأدوار",
+      "allStatuses": "كل الحالات",
+      "applyFilters": "تطبيق",
+      "actions": {
+        "suspend": "تعليق",
+        "reinstate": "إعادة تفعيل",
+        "deactivate": "إلغاء تفعيل",
+        "unlock": "فتح القفل",
+        "revokeSessions": "إلغاء الجلسات",
+        "suspendTitle": "تعليق المستخدم",
+        "deactivateTitle": "إلغاء تفعيل المستخدم"
+      }
+    },
+    "doctors": {
+      "title": "إدارة الأطباء",
+      "subtitle": "مراجعة الطلبات وإدارة حسابات الأطباء",
+      "all": "كل الأطباء",
+      "pending": "بانتظار الموافقة",
+      "email": "البريد",
+      "name": "الاسم",
+      "approval": "الموافقة",
+      "status": "الحالة",
+      "actionsCol": "إجراءات",
+      "view": "عرض",
+      "empty": "لا أطباء في هذه القائمة",
+      "rejectionReason": "سبب الرفض",
+      "actions": {
+        "approve": "اعتماد",
+        "reject": "رفض",
+        "rejectTitle": "رفض طلب الطبيب",
+        "view": "عرض"
+      }
+    },
+    "appointments": {
+      "title": "متابعة المواعيد",
+      "detailTitle": "تفاصيل الموعد",
+      "patient": "المريض",
+      "doctor": "الطبيب",
+      "status": "الحالة",
+      "mode": "النوع",
+      "start": "البدء",
+      "reason": "السبب",
+      "view": "عرض",
+      "empty": "لا مواعيد",
+      "statusFilter": "تصفية حسب الحالة",
+      "allStatuses": "كل الحالات",
+      "fromDate": "من تاريخ",
+      "toDate": "إلى تاريخ",
+      "doctorIdPlaceholder": "معرّف الطبيب",
+      "applyFilters": "تطبيق",
+      "actions": {
+        "cancel": "إلغاء",
+        "flag": "تعليم",
+        "cancelTitle": "إلغاء الموعد",
+        "flagTitle": "تعليم الموعد"
+      }
+    },
+    "ai": {
+      "title": "عمليات الذكاء الاصطناعي",
+      "subtitle": "مراقبة الاستخدام والمفاتيح والمحادثات المُعلّمة",
+      "patientMessages": "رسائل مرضى الذكاء الاصطناعي",
+      "doctorMessages": "رسائل أطباء الذكاء الاصطناعي",
+      "flagged": "تنبيهات مفتوحة",
+      "togglesTitle": "مفاتيح الذكاء الاصطناعي العامة",
+      "enable": "تفعيل",
+      "disable": "تعطيل",
+      "flaggedTitle": "محادثات مُعلّمة",
+      "noFlags": "لا تنبيهات مفتوحة",
+      "reviewFlag": "تعليم كمراجع",
+      "reviewFlagTitle": "مراجعة محادثة مُعلّمة",
+      "disableUserTitle": "تعطيل الذكاء الاصطناعي للمستخدم",
+      "disableUserSubmit": "تعطيل الذكاء الاصطناعي",
+      "disableUserConfirmTitle": "تعطيل الذكاء الاصطناعي للمستخدم",
+      "userId": "معرّف المستخدم",
+      "userIdPlaceholder": "أدخل معرّف المستخدم"
+    },
+    "billing": {
+      "title": "الفوترة والمعاملات",
+      "detailTitle": "تفاصيل المعاملة",
+      "description": "الوصف",
+      "amount": "المبلغ",
+      "refunded": "المسترد",
+      "refundable": "الرصيد القابل للاسترداد",
+      "status": "الحالة",
+      "patient": "المريض",
+      "view": "عرض",
+      "actions": {
+        "refund": "استرداد",
+        "dispute": "تعليم نزاع",
+        "refundTitle": "معالجة الاسترداد",
+        "disputeTitle": "تسجيل نزاع"
+      }
+    },
+    "revenue": {
+      "title": "المدفوعات والإيرادات",
+      "subtitle": "الإجمالي والمستردات والصافي حسب الفترة",
+      "gross": "إجمالي الإيرادات",
+      "refunds": "المستردات",
+      "net": "صافي الإيرادات",
+      "fromDate": "من تاريخ",
+      "toDate": "إلى تاريخ",
+      "applyRange": "تطبيق النطاق",
+      "period": {
+        "today": "اليوم",
+        "7d": "7 أيام",
+        "30d": "30 يوماً",
+        "custom": "مخصص"
+      }
+    },
+    "analytics": {
+      "title": "التقارير والتحليلات",
+      "subtitle": "مقاييس المنصة حسب الفترة",
+      "newUsers": "مرضى جدد",
+      "newDoctors": "أطباء جدد",
+      "appointments": "المواعيد",
+      "revenueNet": "صافي الإيرادات",
+      "aiMessages": "رسائل الذكاء الاصطناعي",
+      "exportCsv": "تصدير CSV",
+      "appointmentsView": "تحليلات المواعيد",
+      "revenueView": "تحليلات الإيرادات",
+      "aiView": "تحليلات الذكاء الاصطناعي",
+      "period": {
+        "7d": "7 أيام",
+        "30d": "30 يوماً",
+        "90d": "90 يوماً"
+      }
+    },
+    "settings": {
+      "title": "إعدادات المنصة",
+      "subtitle": "وضع الصيانة ودعم العملاء ومفاتيح الميزات",
+      "turnOn": "تشغيل",
+      "turnOff": "إيقاف"
+    },
+    "health": {
+      "title": "صحة النظام",
+      "subtitle": "فحص المكونات والحالة العامة",
+      "refresh": "تحديث الفحص",
+      "lastChecked": "آخر فحص"
+    },
+    "audit": {
+      "title": "سجل التدقيق",
+      "subtitle": "سجل أحداث الأمان والإدارة غير القابل للتعديل",
+      "type": "الحدث",
+      "outcome": "النتيجة",
+      "actor": "الفاعل",
+      "target": "الهدف",
+      "when": "الوقت",
+      "exportCsv": "تصدير CSV",
+      "typeFilter": "نوع الحدث",
+      "outcomeFilter": "النتيجة",
+      "allOutcomes": "كل النتائج",
+      "fromDate": "من تاريخ",
+      "toDate": "إلى تاريخ",
+      "applyFilters": "تطبيق"
+    },
+    "notifications": {
+      "title": "مركز الإشعارات",
+      "subtitle": "الموافقات والفوترة والصحة والأمان",
+      "allCaughtUp": "لا جديد",
+      "allCaughtUpHint": "لا إشعارات إدارية غير مقروءة",
+      "markAllRead": "تعليم الكل كمقروء"
+    },
+    "roles": {
+      "title": "الأدوار والصلاحيات",
+      "subtitle": "عرض مصفوفة الصلاحيات وحسابات المسؤولين",
+      "admins": "المسؤولون",
+      "email": "البريد",
+      "name": "الاسم",
+      "status": "الحالة",
+      "matrix": "صلاحيات ADMIN",
+      "adminPermissionCount": "{count} صلاحية ممنوحة للمسؤول النشط",
+      "inviteTitle": "دعوة مسؤول",
+      "inviteSubmit": "إرسال الدعوة",
+      "assignTitle": "تعيين دور",
+      "assignSubmit": "تعيين الدور",
+      "assignConfirmTitle": "تأكيد تغيير الدور",
+      "assignConfirmBody": "تعيين الدور {role} للمستخدم {userId}؟ سيتم إلغاء الجلسات.",
+      "assignConfirm": "تأكيد",
+      "cancel": "إلغاء",
+      "role": "الدور",
+      "userId": "معرّف المستخدم",
+      "userIdPlaceholder": "الصق معرّف المستخدم",
+      "success": "تمت العملية بنجاح."
+    },
+    "maintenance": {
+      "title": "صيانة جارية",
+      "body": "المنصة غير متاحة مؤقتاً. يرجى المحاولة لاحقاً."
+    }
+  },
+  "platform": {
+    "empty": {
+      "title": "لا يوجد محتوى بعد",
+      "description": "سيظهر المحتوى عند توفره."
+    },
+    "error": {
+      "generic": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+      "unavailable": "الخدمة غير متاحة مؤقتاً."
+    },
+    "upload": {
+      "label": "رفع ملف",
+      "uploading": "جاري الرفع…",
+      "scanPending": "جاري فحص الملف…",
+      "ready": "الملف جاهز.",
+      "rejected": "تم رفض الملف أثناء الفحص الأمني."
     }
   }
 }

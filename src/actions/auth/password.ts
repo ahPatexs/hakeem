@@ -54,6 +54,7 @@ export async function requestPasswordReset(input: unknown): Promise<ActionResult
         to: email,
         subject: "Reset your Hakeem password",
         text: `Reset password (expires in 1 hour): ${url}`,
+        purpose: "auth.password_reset",
       });
     }
     await auditLog({ type: "auth.password_reset.request", outcome: "SUCCESS", ...(await meta()) });

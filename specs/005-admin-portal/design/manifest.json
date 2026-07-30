@@ -1,0 +1,65 @@
+{
+  "projectId": "2408493713147971043",
+  "projectTitle": "Hakeem AI Healthcare Landing Page",
+  "module": "005-admin-portal",
+  "exported": true,
+  "note": "Approved admin Stitch screens exported as desktop PNGs. Do not redesign.",
+  "screens": [
+    {
+      "id": "2021a1fce3214dcdb7166930e4dc2c7b",
+      "title": "Admin Dashboard - Hakeem Platform Control",
+      "route": "/admin",
+      "device": "DESKTOP",
+      "file": "d-admin-dashboard.png"
+    },
+    {
+      "id": "dbb65fd3ed5d472a86eefdb9d6e6f750",
+      "title": "User Management - Hakeem Admin",
+      "route": "/admin/users",
+      "device": "DESKTOP",
+      "file": "d-admin-users.png"
+    },
+    {
+      "id": "957069ed6b0a45af9b7d654be61eae82",
+      "title": "Doctor Management - Hakeem Admin",
+      "route": "/admin/doctors",
+      "device": "DESKTOP",
+      "file": "d-admin-doctors.png"
+    },
+    {
+      "id": "ad8436f648ed41f18b5c8588249372c5",
+      "title": "AI Operations & Platform Health - Hakeem Admin",
+      "route": "/admin/ai",
+      "device": "DESKTOP",
+      "file": "d-admin-ai.png"
+    },
+    {
+      "id": "58eef7a7942a42e1badc0691b45c7a8f",
+      "title": "Billing & Transactions - Hakeem",
+      "route": "/admin/billing",
+      "device": "DESKTOP",
+      "file": "d-admin-billing.png"
+    },
+    {
+      "id": "3a2b410376554f0782356d493a8b1b9b",
+      "title": "Payment & Revenue Management - Hakeem Admin",
+      "route": "/admin/revenue",
+      "device": "DESKTOP",
+      "file": "d-admin-revenue.png"
+    },
+    {
+      "id": "6fe9b62f9d6d49f2a1852e475558f326",
+      "title": "Platform Settings - Hakeem Admin",
+      "route": "/admin/settings",
+      "device": "DESKTOP",
+      "file": "d-admin-settings.png"
+    },
+    {
+      "id": "d428b14b7f044ff5a71f1e6590733fe3",
+      "title": "System Health & Audit Logs - Hakeem Admin",
+      "route": "/admin/health|/admin/audit",
+      "device": "DESKTOP",
+      "file": "d-admin-health-audit.png"
+    }
+  ]
+}

@@ -56,6 +56,54 @@ export default async function DoctorsPage({
     specialty: specialtySlugs.length ? specialtySlugs.join(",") : undefined,
   });
 
+  // Align public discovery with platform bookable membership (SearchDoctorProjection).
+  const { searchDoctors: platformSearch, refreshDoctorProjection } = await import(
+    "@/lib/platform/search"
+  );
+  const { prisma } = await import("@/lib/prisma");
+
+  let bookable = await platformSearch({
+    q: q || undefined,
+    specialty: specialtySlugs[0],
+    locale: locale === "en" ? "en" : "ar",
+    bookableOnly: true,
+  });
+
+  // Empty projection index → hydrate from DB bookable rules, then re-query (FR-018).
+  const projectionCount = await prisma.searchDoctorProjection.count();
+  if (bookable.ok && bookable.data.items.length === 0 && projectionCount === 0) {
+    const candidates = await prisma.doctor.findMany({
+      where: { status: "PUBLISHED", isAvailable: true },
+      select: { id: true },
+      take: 50,
+    });
+    for (const c of candidates) {
+      await refreshDoctorProjection(c.id);
+    }
+    bookable = await platformSearch({
+      q: q || undefined,
+      specialty: specialtySlugs[0],
+      locale: locale === "en" ? "en" : "ar",
+      bookableOnly: true,
+    });
+  }
+
+  const bookableIds = new Set(bookable.ok ? bookable.data.items.map((h) => h.doctorId) : []);
+
+  let items = result.items;
+  if (bookable.ok) {
+    if (bookable.data.items.length === 0) {
+      items = [];
+    } else {
+      const doctors = await prisma.doctor.findMany({
+        where: { id: { in: [...bookableIds] } },
+        select: { slug: true },
+      });
+      const bookableSlugs = new Set(doctors.map((d) => d.slug));
+      items = result.items.filter((d) => bookableSlugs.has(d.slug));
+    }
+  }
+
   return (
     <div className="mx-auto grid max-w-7xl gap-8 px-margin-mobile pb-20 pt-28 md:grid-cols-[280px_1fr] md:px-margin-desktop">
       <SearchFilters
@@ -74,7 +122,7 @@ export default async function DoctorsPage({
           clearAll: tFilters("clearAll"),
         }}
       />
-      {result.items.length === 0 ? (
+      {items.length === 0 ? (
         <div className="rounded-2xl border border-outline-variant/30 bg-white p-10 text-center">
           <h2 className="font-headline text-headline-lg text-primary">{t("doctorsTitle")}</h2>
           <p className="mt-2 text-on-surface-variant">{tFilters("noResults")}</p>
@@ -85,7 +133,7 @@ export default async function DoctorsPage({
           subtitle={t("doctorsSub")}
           viewAllLabel={t("viewAllDoctors")}
           bookLabel={tCommon("bookConsultation")}
-          doctors={result.items}
+          doctors={items}
           locale={locale}
         />
       )}

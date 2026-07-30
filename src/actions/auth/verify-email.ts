@@ -94,6 +94,7 @@ export async function resendVerificationEmail(input: unknown): Promise<ActionRes
         to: email,
         subject: "Verify your Hakeem account",
         text: `Verify your email: ${verifyUrl}`,
+        purpose: "auth.verify_email_resend",
       });
     }
     return { ok: true, message: "If an account needs verification, a new email was sent." };

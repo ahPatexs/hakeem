@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
-import { getChart } from "@/actions/doctor/patients";
+import { getChart, getPatientActivityTimeline } from "@/actions/doctor/patients";
 import { ErrorState, StatusBadge, AllergyBanner } from "@/components/doctor/shared";
 
 export default async function DoctorPatientChartPage({
@@ -13,12 +13,16 @@ export default async function DoctorPatientChartPage({
   const t = await getTranslations("doctor.chart");
   const ts = await getTranslations("doctor.status");
 
-  const result = await getChart({ patientUserId: id });
+  const [result, timelineResult] = await Promise.all([
+    getChart({ patientUserId: id }),
+    getPatientActivityTimeline({ patientUserId: id }),
+  ]);
   if (!result.ok) {
     return <ErrorState title={t("title")} message={t("accessDenied")} />;
   }
 
   const chart = result.data;
+  const timeline = timelineResult.ok ? timelineResult.data : [];
   const isAr = locale === "ar";
   const fmtDate = (d: Date | string) =>
     new Date(d).toLocaleDateString(isAr ? "ar-SA" : "en-US", { dateStyle: "medium" });
@@ -98,10 +102,21 @@ export default async function DoctorPatientChartPage({
         {/* Timeline */}
         <section className="glass-card rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5 lg:col-span-2">
           <h2 className="font-headline text-lg text-primary">{t("timeline")}</h2>
-          {chart.records.length === 0 ? (
+          {timeline.length === 0 && chart.records.length === 0 ? (
             <p className="mt-3 text-sm text-on-surface-variant">{t("emptyTimeline")}</p>
           ) : (
             <ul className="mt-3 divide-y divide-outline-variant/15">
+              {timeline.map((ev) => (
+                <li key={ev.id} className="py-3 first:pt-0 last:pb-0">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-medium text-primary">{ev.title}</p>
+                    <p className="shrink-0 text-xs text-on-surface-variant">{fmtDate(ev.occurredAt)}</p>
+                  </div>
+                  <p className="mt-1 text-xs uppercase tracking-wide text-on-surface-variant">
+                    {ev.kind}
+                  </p>
+                </li>
+              ))}
               {chart.records.map((r) => (
                 <li key={r.id} className="py-3 first:pt-0 last:pb-0">
                   <div className="flex items-center justify-between gap-3">

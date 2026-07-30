@@ -4,7 +4,6 @@ import { createUserSession } from "@/auth/session";
 import { prisma } from "@/lib/prisma";
 import { REFRESH_COOKIE, SESSION_COOKIE, refreshCookieOptions, sessionCookieOptions } from "@/auth/cookies";
 import { assertSameOriginMutation, isCsrfError } from "@/auth/csrf";
-import { AuthDomainError } from "@/auth/errors";
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,7 +17,11 @@ export async function POST(req: NextRequest) {
 
   const raw = req.cookies.get(REFRESH_COOKIE)?.value;
   if (!raw) {
-    return NextResponse.json({ ok: false, code: "UNAUTHENTICATED" }, { status: 401 });
+    const res = NextResponse.json({ ok: false, code: "UNAUTHENTICATED" }, { status: 401 });
+    // Stale session cookie alone must not trap the user in a login↔expired loop.
+    res.cookies.delete(SESSION_COOKIE);
+    res.cookies.delete(REFRESH_COOKIE);
+    return res;
   }
 
   const rotated = await rotateRefreshCredential(raw);
@@ -31,7 +34,10 @@ export async function POST(req: NextRequest) {
 
   const user = await prisma.user.findUnique({ where: { id: rotated.userId } });
   if (!user || user.status !== "ACTIVE") {
-    throw new AuthDomainError("ACCOUNT_INACTIVE");
+    const res = NextResponse.json({ ok: false, code: "ACCOUNT_INACTIVE" }, { status: 403 });
+    res.cookies.delete(SESSION_COOKIE);
+    res.cookies.delete(REFRESH_COOKIE);
+    return res;
   }
 
   const session = await createUserSession({

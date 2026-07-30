@@ -47,3 +47,18 @@ export async function getRecord(id: string) {
     return record;
   });
 }
+
+/** Patient-facing care activity timeline (platform FR-021). */
+export async function getMyActivityTimeline() {
+  return withPatient(async (userId) => {
+    const { getPatientTimeline } = await import("@/lib/platform/timeline");
+    const result = await getPatientTimeline({
+      patientUserId: userId,
+      viewerUserId: userId,
+      viewerRole: "PATIENT",
+      limit: 30,
+    });
+    if (!result.ok) throw new AuthDomainError("FORBIDDEN", result.message);
+    return result.data;
+  });
+}

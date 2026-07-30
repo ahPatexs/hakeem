@@ -6,9 +6,10 @@ import { DomainRuleError } from "@/domain/doctor/errors";
 import { AI_RATE_LIMIT_PER_HOUR } from "@/domain/doctor/dashboard";
 import { hasCareRelationship } from "@/domain/doctor/care-relationship";
 import { doctorAiSendSchema, cuidSchema } from "@/lib/doctor/schemas";
-import { stubAiAssistantAdapter } from "@/adapters/stub-ai";
 import { auditDoctorEvent } from "@/lib/doctor/phi-audit";
 import { getLocale } from "next-intl/server";
+import { chat as platformAiChat, assertAiAllowed } from "@/lib/platform/ai";
+import { AdminDomainError } from "@/domain/admin/errors";
 import type { z } from "zod";
 
 const MODE_PROMPTS: Record<string, string> = {
@@ -48,6 +49,15 @@ export async function getAiConversation(raw: { conversationId: string }) {
 export async function sendAiMessage(raw: z.input<typeof doctorAiSendSchema>) {
   const input = doctorAiSendSchema.parse(raw);
   return withDoctor(async (ctx) => {
+    const scope =
+      input.mode === "PRESCRIPTION"
+        ? "doctorPrescription"
+        : input.mode === "DOCUMENTATION"
+          ? "doctorDocumentation"
+          : "doctorDocumentation";
+    if (!(await assertAiAllowed(ctx.userId, scope))) {
+      throw new AdminDomainError("AI_DISABLED");
+    }
     const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
     const recentCount = await prisma.doctorAiMessage.count({
       where: {
@@ -98,14 +108,20 @@ export async function sendAiMessage(raw: z.input<typeof doctorAiSendSchema>) {
       { role: "user" as const, content: input.content },
     ];
 
-    const result = await stubAiAssistantAdapter.chat({
+    const result = await platformAiChat({
       conversationId: conversation.id,
       messages: history,
       locale,
+      userId: ctx.userId,
+      feature: scope,
     });
+    if (!result.ok) {
+      if (result.code === "FORBIDDEN") throw new AdminDomainError("AI_DISABLED");
+      throw new DomainRuleError("INVALID_STATUS");
+    }
 
     const assistantMessage = await prisma.doctorAiMessage.create({
-      data: { conversationId: conversation.id, role: "assistant", content: result.content },
+      data: { conversationId: conversation.id, role: "assistant", content: result.data.content },
     });
     await prisma.doctorAiConversation.update({
       where: { id: conversation.id },
@@ -126,7 +142,7 @@ export async function sendAiMessage(raw: z.input<typeof doctorAiSendSchema>) {
         content: assistantMessage.content,
         createdAt: assistantMessage.createdAt.toISOString(),
       },
-      disclaimer: result.disclaimer,
+      disclaimer: result.data.disclaimer,
     };
   });
 }

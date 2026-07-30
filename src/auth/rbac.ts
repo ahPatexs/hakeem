@@ -12,10 +12,21 @@ export type Permission =
   | "doctor:rx:sign"
   | "doctor:video:host"
   | "doctor:ai:use"
+  | "admin:portal:access"
   | "admin:users:read"
   | "admin:users:write"
   | "admin:doctors:provision"
   | "admin:doctors:approve"
+  | "admin:appointments:read"
+  | "admin:appointments:write"
+  | "admin:billing:read"
+  | "admin:billing:refund"
+  | "admin:ai:ops"
+  | "admin:settings:write"
+  | "admin:health:read"
+  | "admin:analytics:read"
+  | "admin:notifications:write"
+  | "admin:roles:write"
   | "admin:audit:read";
 
 const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
@@ -40,10 +51,21 @@ const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     "account:read_self",
     "account:change_password",
     "account:manage_sessions_self",
+    "admin:portal:access",
     "admin:users:read",
     "admin:users:write",
     "admin:doctors:provision",
     "admin:doctors:approve",
+    "admin:appointments:read",
+    "admin:appointments:write",
+    "admin:billing:read",
+    "admin:billing:refund",
+    "admin:ai:ops",
+    "admin:settings:write",
+    "admin:health:read",
+    "admin:analytics:read",
+    "admin:notifications:write",
+    "admin:roles:write",
     "admin:audit:read",
   ],
 };

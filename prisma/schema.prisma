@@ -277,6 +277,9 @@ model User {
   localePreference       LocaleCode?
   doctorProfileId        String?
   createdByAdminId       String?
+  aiDisabledAt           DateTime?
+  aiDisabledReason         String?
+  aiDisabledByUserId       String?
   createdAt              DateTime              @default(now())
   updatedAt              DateTime              @updatedAt
 
@@ -306,6 +309,7 @@ model User {
   doctorAiConversations DoctorAiConversation[]
   panelAsPatient     DoctorPatientPanel[] @relation("PanelPatient")
   doctorProfileExtras DoctorProfileExtras?
+  pushDevices        PushDeviceRegistration[]
 
   @@index([role, status])
   @@index([doctorApproval])
@@ -473,6 +477,8 @@ enum PaymentStatus {
   PAID
   FAILED
   REFUNDED
+  PARTIALLY_REFUNDED
+  DISPUTED
 }
 
 enum NotificationCategory {
@@ -484,6 +490,39 @@ enum NotificationCategory {
   PRESCRIPTION
   PAYMENT
   SYSTEM
+  SECURITY
+  HEALTH
+  AI_GOVERNANCE
+  ADMIN_OPS
+}
+
+enum HealthOverallStatus {
+  HEALTHY
+  DEGRADED
+  DOWN
+}
+
+enum HealthComponentKey {
+  APP
+  DATABASE
+  PAYMENTS
+  AI
+  TELEMEDICINE
+  EMAIL
+  SMS
+  STORAGE
+}
+
+enum AnnouncementSegment {
+  PATIENT
+  DOCTOR
+  ALL
+}
+
+enum PlatformSettingValueType {
+  BOOLEAN
+  STRING
+  JSON
 }
 
 enum UploadScanStatus {
@@ -699,6 +738,13 @@ model PaymentObligation {
   providerRef        String?
   idempotencyKey     String        @unique
   receiptDocumentId  String?
+  refundedAmountCents Int          @default(0)
+  refundReason       String?
+  refundedAt         DateTime?
+  refundedByUserId   String?
+  disputeNote        String?
+  disputedAt         DateTime?
+  disputedByUserId   String?
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
   patient            User          @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
@@ -708,6 +754,7 @@ model PaymentObligation {
 
   @@index([patientUserId, createdAt])
   @@index([patientUserId, status])
+  @@index([status, createdAt])
 }
 
 model PaymentAttempt {
@@ -876,4 +923,158 @@ model DoctorProfileExtras {
   timezone          String?
   updatedAt         DateTime @updatedAt
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ── Admin Portal (Module 4) ───────────────────────────────────────────────
+
+model PlatformSetting {
+  id              String                   @id @default(cuid())
+  key             String                   @unique
+  valueType       PlatformSettingValueType
+  value           String
+  updatedAt       DateTime                 @updatedAt
+  updatedByUserId String?
+
+  @@index([key])
+}
+
+model SystemHealthSnapshot {
+  id         String              @id @default(cuid())
+  overall    HealthOverallStatus
+  checkedAt  DateTime            @default(now())
+  components Json
+
+  @@index([checkedAt])
+}
+
+model AiFlaggedConversation {
+  id               String    @id @default(cuid())
+  source           String
+  conversationId   String
+  reason           String
+  createdAt        DateTime  @default(now())
+  reviewedAt       DateTime?
+  reviewedByUserId String?
+  reviewNote       String?
+
+  @@index([reviewedAt, createdAt])
+}
+
+model PlatformAnnouncement {
+  id                String              @id @default(cuid())
+  title             String
+  body              String
+  segment           AnnouncementSegment
+  publishedAt       DateTime            @default(now())
+  publishedByUserId String
+  locale            LocaleCode?
+}
+
+// ── Platform Services (Module 5) ──────────────────────────────────────────
+
+enum BackgroundJobState {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+enum OutboundChannel {
+  EMAIL
+  SMS
+  PUSH
+}
+
+enum OutboundMessageStatus {
+  QUEUED
+  SENT
+  FAILED
+  SKIPPED
+}
+
+enum PushDevicePlatform {
+  WEB
+  IOS
+  ANDROID
+}
+
+model BackgroundJob {
+  id             String             @id @default(cuid())
+  type           String
+  idempotencyKey String
+  payload        Json
+  state          BackgroundJobState @default(QUEUED)
+  attempts       Int                @default(0)
+  maxAttempts    Int                @default(5)
+  runAfter       DateTime           @default(now())
+  lastError      String?
+  lockedAt       DateTime?
+  lockedBy       String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@unique([type, idempotencyKey])
+  @@index([state, runAfter])
+}
+
+model WebhookReceipt {
+  id              String    @id @default(cuid())
+  provider        String
+  providerEventId String
+  eventType       String
+  signatureValid  Boolean
+  processedAt     DateTime?
+  obligationId    String?
+  rawHash         String
+  createdAt       DateTime  @default(now())
+
+  @@unique([provider, providerEventId])
+  @@index([createdAt])
+}
+
+model OutboundMessage {
+  id                    String                @id @default(cuid())
+  channel               OutboundChannel
+  purpose               String
+  recipientUserId       String?
+  toAddress             String
+  locale                LocaleCode            @default(AR)
+  templateKey           String?
+  status                OutboundMessageStatus @default(QUEUED)
+  idempotencyKey        String                @unique
+  providerMessageId     String?
+  relatedNotificationId String?
+  createdAt             DateTime              @default(now())
+  sentAt                DateTime?
+
+  @@index([recipientUserId, createdAt])
+  @@index([status, createdAt])
+}
+
+model SearchDoctorProjection {
+  doctorId     String   @id
+  nameEn       String
+  nameAr       String
+  specialtyKeys String[] @default([])
+  city         String?
+  isBookable   Boolean  @default(false)
+  isPublished  Boolean  @default(false)
+  searchText   String
+  indexedAt    DateTime @default(now())
+
+  @@index([isBookable, isPublished])
+}
+
+model PushDeviceRegistration {
+  id         String             @id @default(cuid())
+  userId     String
+  tokenHash  String
+  platform   PushDevicePlatform @default(WEB)
+  lastSeenAt DateTime           @default(now())
+  revokedAt  DateTime?
+  createdAt  DateTime           @default(now())
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tokenHash])
+  @@index([userId, revokedAt])
 }

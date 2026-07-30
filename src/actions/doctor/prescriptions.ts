@@ -92,6 +92,13 @@ export async function savePrescriptionDraft(raw: z.input<typeof savePrescription
 
     let rxId: string;
     if (input.prescriptionId) {
+      const { assertSignedArtifactMutable } = await import("@/lib/platform/documents");
+      const mutable = await assertSignedArtifactMutable({
+        kind: "prescription",
+        id: input.prescriptionId,
+      });
+      if (!mutable.ok) throw new DomainRuleError("CONFLICT");
+
       const existing = await prisma.prescription.findFirst({
         where: { id: input.prescriptionId, doctorId: ctx.doctorId, status: "DRAFT" },
       });

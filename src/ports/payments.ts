@@ -23,8 +23,25 @@ export interface PaymentWebhookEvent {
   status: "paid" | "failed";
 }
 
+export interface RefundPaymentInput {
+  obligationId: string;
+  providerRef?: string | null;
+  amountCents: number;
+  reason: string;
+}
+
+export interface RefundPaymentResult {
+  ok: boolean;
+  providerRefundId?: string;
+  /** When false, caller should mark manual settlement */
+  providerHandled: boolean;
+  message?: string;
+}
+
 export interface PaymentsPort {
   createPaymentIntent(input: CreatePaymentIntentInput): Promise<PaymentIntentResult>;
   verifyWebhookSignature(payload: string | Buffer, signature: string): boolean;
   parseWebhookEvent(payload: string | Buffer): PaymentWebhookEvent;
+  /** Optional; stub adapters may return providerHandled:false for manual ops */
+  refund?(input: RefundPaymentInput): Promise<RefundPaymentResult>;
 }

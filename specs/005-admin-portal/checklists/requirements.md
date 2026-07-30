@@ -33,4 +33,5 @@
 
 - Validation iteration 1 (2026-07-30): All checklist items pass.
 - Clarifications encoded as session defaults (ADMIN-only access, Stitch SoT, EN/AR+RTL) — no open [NEEDS CLARIFICATION] markers.
-- Spec is ready for `/speckit-clarify` (optional polish) or `/speckit-plan`.
+- Non-interactive `/speckit-clarify` (2026-07-30): enterprise assumptions applied for RBAC, user lifecycle, doctor approval, audit, platform monitoring, billing, AI governance, analytics, reporting, notifications, settings, security monitoring, backup & recovery. Spec Quality Checklist: 16/16 → 16/16 items passing (no state changes).
+- Spec is ready for `/speckit-plan`.

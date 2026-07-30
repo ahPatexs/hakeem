@@ -3,6 +3,8 @@ import type {
   PaymentIntentResult,
   PaymentWebhookEvent,
   PaymentsPort,
+  RefundPaymentInput,
+  RefundPaymentResult,
 } from "@/ports/payments";
 
 export class StubPaymentsAdapter implements PaymentsPort {
@@ -26,6 +28,16 @@ export class StubPaymentsAdapter implements PaymentsPort {
       obligationId: String(data.obligationId),
       providerIntentId: String(data.providerIntentId ?? `stub_pi_${data.obligationId}`),
       status: data.status === "failed" ? "failed" : "paid",
+    };
+  }
+
+  async refund(input: RefundPaymentInput): Promise<RefundPaymentResult> {
+    // Stub: no live provider — caller records refund in DB (manual settlement).
+    return {
+      ok: true,
+      providerHandled: false,
+      providerRefundId: `stub_rf_${input.obligationId}_${input.amountCents}`,
+      message: "Manual settlement — provider refund not executed in stub",
     };
   }
 }

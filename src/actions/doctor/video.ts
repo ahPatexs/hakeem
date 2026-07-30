@@ -6,7 +6,6 @@ import { getOwnedAppointment } from "@/lib/doctor/schedule";
 import { assertDoctorCanJoinVideo } from "@/domain/doctor/video";
 import { DomainRuleError } from "@/domain/doctor/errors";
 import { appointmentIdSchema } from "@/lib/doctor/schemas";
-import { stubTelemedicineAdapter } from "@/adapters/stub-telemedicine";
 import { auditDoctorEvent } from "@/lib/doctor/phi-audit";
 
 /** Doctor joins as host within the join window (FR-024..FR-026). */
@@ -17,35 +16,27 @@ export async function joinVideoAsHost(raw: { appointmentId: string }) {
     if (!appointment) throw new DomainRuleError("NOT_FOUND");
     assertDoctorCanJoinVideo(appointment);
 
-    let roomId = appointment.videoRoomId;
-    if (!roomId) {
-      const room = await stubTelemedicineAdapter.createRoom({
-        appointmentId: appointment.id,
-        patientUserId: appointment.patientUserId,
-        doctorId: ctx.doctorId,
-      });
-      roomId = room.roomId;
-      await prisma.appointment.update({
-        where: { id: appointment.id },
-        data: { videoRoomId: roomId },
-      });
-    }
-
-    const token = await stubTelemedicineAdapter.createJoinToken({
-      roomId,
-      participantId: ctx.userId,
-      participantName: ctx.displayName,
-      role: "doctor",
+    const { createConsultationSession, getJoinCredentials } = await import("@/lib/platform/video");
+    const session = await createConsultationSession({
+      appointmentId: appointment.id,
+      actorUserId: ctx.userId,
     });
+    if (!session.ok) throw new DomainRuleError("INVALID_STATUS");
+
+    const creds = await getJoinCredentials({
+      appointmentId: appointment.id,
+      actorUserId: ctx.userId,
+    });
+    if (!creds.ok) throw new DomainRuleError("JOIN_WINDOW_CLOSED");
 
     await auditDoctorEvent(
       "doctor.video.join",
       ctx.userId,
-      { appointmentId: appointment.id, roomId },
+      { appointmentId: appointment.id, roomId: session.data.roomId },
       appointment.patientUserId,
     );
 
-    return { url: token.url, expiresAt: token.expiresAt.toISOString() };
+    return { url: creds.data.url, expiresAt: creds.data.expiresAt };
   });
 }
 

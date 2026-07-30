@@ -1,14 +1,8 @@
 import { NextResponse } from "next/server";
-import { randomUUID } from "node:crypto";
 import { requireRole } from "@/auth/guards";
 import { isAuthDomainError } from "@/auth/errors";
-import { prisma } from "@/lib/prisma";
-import { localStorageAdapter } from "@/adapters/local-storage";
-import { stubMalwareScanAdapter } from "@/adapters/stub-malware";
+import { uploadPatientFile } from "@/lib/platform/storage";
 import { auditPhiAccess } from "@/lib/patient/phi-audit";
-
-const MAX_BYTES = 10 * 1024 * 1024;
-const ALLOWED_TYPES = new Set(["application/pdf", "image/jpeg", "image/png"]);
 
 export async function POST(request: Request) {
   try {
@@ -20,48 +14,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "VALIDATION_ERROR" }, { status: 400 });
     }
 
-    if (!ALLOWED_TYPES.has(file.type)) {
-      return NextResponse.json({ error: "INVALID_TYPE" }, { status: 400 });
-    }
-
-    if (file.size > MAX_BYTES) {
-      return NextResponse.json({ error: "FILE_TOO_LARGE" }, { status: 400 });
-    }
-
     const buffer = Buffer.from(await file.arrayBuffer());
-    const scan = await stubMalwareScanAdapter.scan({
-      buffer,
+    const purpose = (form.get("purpose") as string) || "other";
+
+    const result = await uploadPatientFile({
+      userId: user.id,
+      file: buffer,
       fileName: file.name,
       contentType: file.type,
+      purpose,
     });
 
-    if (scan.status === "rejected") {
-      return NextResponse.json({ error: "MALWARE_REJECTED" }, { status: 400 });
+    if (!result.ok) {
+      const status =
+        result.code === "VALIDATION_ERROR"
+          ? 400
+          : result.code === "FORBIDDEN"
+            ? 403
+            : 500;
+      return NextResponse.json({ error: result.code, message: result.message }, { status });
     }
 
-    const storageKey = `patient/${user.id}/${randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-    await localStorageAdapter.upload({
-      key: storageKey,
-      body: buffer,
-      contentType: file.type,
+    await auditPhiAccess("phi.upload", user.id, { uploadId: result.data.uploadId });
+
+    return NextResponse.json({
+      ok: true,
+      uploadId: result.data.uploadId,
+      scanStatus: result.data.scanStatus,
     });
-
-    const purpose = (form.get("purpose") as string) || "other";
-    const upload = await prisma.patientUpload.create({
-      data: {
-        patientUserId: user.id,
-        fileName: file.name,
-        contentType: file.type,
-        sizeBytes: file.size,
-        storageKey,
-        scanStatus: "CLEAN",
-        purpose,
-      },
-    });
-
-    await auditPhiAccess("phi.upload", user.id, { uploadId: upload.id });
-
-    return NextResponse.json({ ok: true, uploadId: upload.id });
   } catch (error) {
     if (isAuthDomainError(error)) {
       return NextResponse.json({ error: error.code }, { status: error.code === "FORBIDDEN" ? 403 : 401 });

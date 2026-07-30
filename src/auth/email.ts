@@ -78,6 +78,24 @@ export function getEmailSender(): EmailSender {
   return sender;
 }
 
-export async function sendAuthEmail(input: SendEmailInput) {
-  await getEmailSender().send(input);
+export async function sendAuthEmail(input: SendEmailInput & { purpose?: string; idempotencyKey?: string }) {
+  const { createHash } = await import("node:crypto");
+  const { sendEmail } = await import("@/lib/platform/email");
+  const purpose = input.purpose ?? "auth.transactional";
+  const digest = createHash("sha256").update(`${input.to}|${input.subject}|${input.text}`).digest("hex").slice(0, 24);
+  const result = await sendEmail({
+    to: input.to,
+    subject: input.subject,
+    text: input.text,
+    html: input.html,
+    purpose,
+    idempotencyKey: input.idempotencyKey ?? `auth:${purpose}:${digest}`,
+  });
+  if (!result.ok) {
+    if (result.code === "RATE_LIMITED") {
+      const { AuthDomainError } = await import("@/auth/errors");
+      throw new AuthDomainError("RATE_LIMITED", result.message);
+    }
+    throw new Error(result.code);
+  }
 }

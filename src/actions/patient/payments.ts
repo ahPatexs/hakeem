@@ -4,7 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { withPatient, withPatientMutation } from "@/actions/patient/_helpers";
 import { assertCanPay, PaymentDomainError } from "@/domain/patient/payments";
-import { stubPaymentsAdapter } from "@/adapters/stub-payments";
+import { createPaymentIntent as platformCreatePaymentIntent } from "@/lib/platform/payments";
 import { createNotification } from "@/lib/patient/notifications";
 import { AuthDomainError } from "@/auth/errors";
 import { randomUUID } from "node:crypto";
@@ -63,24 +63,24 @@ export async function createPaymentIntent(input: unknown) {
     }
 
     const idempotencyKey = randomUUID();
-    const intent = await stubPaymentsAdapter.createPaymentIntent({
+    const result = await platformCreatePaymentIntent({
       obligationId: obligation.id,
-      amountCents: obligation.amountCents,
-      currency: obligation.currency,
-      idempotencyKey,
-      description: obligation.description,
       patientUserId: userId,
+      idempotencyKey,
     });
+    if (!result.ok) {
+      throw new AuthDomainError("VALIDATION_ERROR", result.message ?? result.code);
+    }
 
-    await prisma.paymentAttempt.create({
-      data: {
-        obligationId: obligation.id,
-        providerIntentId: intent.providerIntentId,
-        status: "PENDING",
+    return {
+      intent: {
+        providerIntentId: result.data.providerIntentId,
+        clientSecret: result.data.clientSecret,
+        redirectUrl: result.data.redirectUrl,
+        status: "pending" as const,
       },
-    });
-
-    return { intent, idempotencyKey };
+      idempotencyKey: result.data.idempotencyKey,
+    };
   });
 }
 

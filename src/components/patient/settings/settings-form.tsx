@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter, Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { updatePortalSettings } from "@/actions/patient/settings";
+import { PushDeviceRegistration } from "@/components/patient/settings/push-device-registration";
 import type { PortalSettings } from "@prisma/client";
 
 export function SettingsForm({ settings }: { settings: PortalSettings | null }) {
@@ -73,6 +74,8 @@ export function SettingsForm({ settings }: { settings: PortalSettings | null }) 
           {pending ? t("saving") : t("save")}
         </Button>
       </form>
+
+      <PushDeviceRegistration />
 
       <section className="glass-card space-y-3 rounded-2xl border border-outline-variant/20 p-6">
         <h2 className="font-headline text-lg text-primary">{t("security")}</h2>

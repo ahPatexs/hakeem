@@ -2,6 +2,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { RoleLayoutGate } from "@/auth/role-layout";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { DoctorShell } from "@/components/doctor/shell/doctor-shell";
+import { MaintenanceGate } from "@/components/admin/maintenance-gate";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 
@@ -55,7 +56,7 @@ async function DoctorShellGate({
 
   return (
     <DoctorShell unreadCount={unreadCount} displayName={displayName} specialty={specialty}>
-      {children}
+      <MaintenanceGate>{children}</MaintenanceGate>
     </DoctorShell>
   );
 }

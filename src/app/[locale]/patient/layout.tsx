@@ -2,6 +2,7 @@ import { setRequestLocale } from "next-intl/server";
 import { PortalShell } from "@/components/patient/shell/portal-shell";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { RoleLayoutGate } from "@/auth/role-layout";
+import { MaintenanceGate } from "@/components/admin/maintenance-gate";
 
 export default async function PatientLayout({
   children,
@@ -15,7 +16,9 @@ export default async function PatientLayout({
   return (
     <RoleLayoutGate role="PATIENT" locale={locale}>
       <QueryProvider>
-        <PortalShell>{children}</PortalShell>
+        <PortalShell>
+          <MaintenanceGate>{children}</MaintenanceGate>
+        </PortalShell>
       </QueryProvider>
     </RoleLayoutGate>
   );

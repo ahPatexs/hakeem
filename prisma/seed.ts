@@ -301,6 +301,70 @@ async function main() {
     },
   });
 
+  await prisma.paymentObligation.upsert({
+    where: { idempotencyKey: `seed-paid-${patient.id}` },
+    update: { status: "PAID" },
+    create: {
+      patientUserId: patient.id,
+      description: "Completed consultation (demo paid)",
+      amountCents: 20000,
+      currency: "SAR",
+      status: "PAID",
+      idempotencyKey: `seed-paid-${patient.id}`,
+    },
+  });
+
+  const adminUser = await prisma.user.findUnique({ where: { email: adminEmail } });
+  if (adminUser) {
+    await prisma.securityAuditEvent.create({
+      data: {
+        type: "admin.bootstrap",
+        outcome: "SUCCESS",
+        actorUserId: adminUser.id,
+        meta: { source: "seed" },
+      },
+    }).catch(() => undefined);
+  }
+
+  await prisma.user.upsert({
+    where: { email: "pending-doctor@hakeem.local" },
+    update: { doctorApproval: "PENDING_APPROVAL", role: "DOCTOR", status: "PENDING_VERIFICATION" },
+    create: {
+      email: "pending-doctor@hakeem.local",
+      name: "Pending Doctor Applicant",
+      role: "DOCTOR",
+      status: "PENDING_VERIFICATION",
+      doctorApproval: "PENDING_APPROVAL",
+    },
+  });
+
+  const platformDefaults: Array<{ key: string; valueType: "BOOLEAN" | "STRING"; value: string }> = [
+    { key: "maintenanceMode", valueType: "BOOLEAN", value: "false" },
+    { key: "maintenanceMessage", valueType: "STRING", value: "Platform is under maintenance." },
+    { key: "supportEmail", valueType: "STRING", value: "support@hakeem.example" },
+    { key: "supportPhone", valueType: "STRING", value: "+966500000000" },
+    { key: "ai.patientEnabled", valueType: "BOOLEAN", value: "true" },
+    { key: "ai.doctorDocumentationEnabled", valueType: "BOOLEAN", value: "true" },
+    { key: "ai.doctorPrescriptionEnabled", valueType: "BOOLEAN", value: "true" },
+  ];
+  for (const s of platformDefaults) {
+    await prisma.platformSetting.upsert({
+      where: { key: s.key },
+      update: {},
+      create: { key: s.key, valueType: s.valueType, value: s.value },
+    });
+  }
+
+  await prisma.systemHealthSnapshot.create({
+    data: {
+      overall: "HEALTHY",
+      components: [
+        { key: "APP", ok: true, message: "Seed healthy" },
+        { key: "DATABASE", ok: true, message: "Connected" },
+      ],
+    },
+  }).catch(() => undefined);
+
   console.log(
     "Seed complete (admin@hakeem.local / patient@hakeem.local / doctor@hakeem.local Doctor!Pass1234)",
   );

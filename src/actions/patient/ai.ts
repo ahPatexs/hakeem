@@ -4,6 +4,8 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { withPatient } from "@/actions/patient/_helpers";
 import { AuthDomainError } from "@/auth/errors";
+import { assertAiAllowed } from "@/domain/admin/ai-governance";
+import { AdminDomainError } from "@/domain/admin/errors";
 
 const localeSchema = z.enum(["EN", "AR"]).default("AR");
 
@@ -11,6 +13,9 @@ export async function ensureConversation(localeInput?: unknown) {
   const locale = localeSchema.parse(localeInput ?? "AR");
 
   return withPatient(async (userId) => {
+    if (!(await assertAiAllowed(userId, "patient"))) {
+      throw new AdminDomainError("AI_DISABLED");
+    }
     let conversation = await prisma.aiConversation.findFirst({
       where: { patientUserId: userId },
       orderBy: { updatedAt: "desc" },
@@ -53,6 +58,9 @@ export async function saveMessage(input: unknown) {
   if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
 
   return withPatient(async (userId) => {
+    if (!(await assertAiAllowed(userId, "patient"))) {
+      throw new AdminDomainError("AI_DISABLED");
+    }
     const conversation = await prisma.aiConversation.findFirst({
       where: { id: parsed.data.conversationId, patientUserId: userId },
     });

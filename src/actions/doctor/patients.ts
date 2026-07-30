@@ -20,3 +20,20 @@ export async function getChart(raw: { patientUserId: string }) {
     return chart;
   });
 }
+
+/** Care-facing activity timeline (platform FR-021) — distinct from security audit. */
+export async function getPatientActivityTimeline(raw: { patientUserId: string }) {
+  const input = patientIdSchema.parse(raw);
+  return withDoctor(async (ctx) => {
+    const { getPatientTimeline } = await import("@/lib/platform/timeline");
+    const result = await getPatientTimeline({
+      patientUserId: input.patientUserId,
+      viewerUserId: ctx.userId,
+      viewerRole: "DOCTOR",
+      doctorId: ctx.doctorId,
+      limit: 30,
+    });
+    if (!result.ok) throw new DomainRuleError("NOT_FOUND");
+    return result.data;
+  });
+}

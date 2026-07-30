@@ -4,7 +4,6 @@ import { requireRole } from "@/auth/guards";
 import { isAuthDomainError } from "@/auth/errors";
 import { assertSameOriginMutation, isCsrfError } from "@/auth/csrf";
 import { prisma } from "@/lib/prisma";
-import { stubAiAssistantAdapter } from "@/adapters/stub-ai";
 
 const bodySchema = z.object({
   conversationId: z.string().min(1),
@@ -21,6 +20,12 @@ export async function POST(request: Request) {
   try {
     await assertSameOriginMutation();
     const user = await requireRole("PATIENT");
+
+    const { assertAiAllowed, chat } = await import("@/lib/platform/ai");
+    if (!(await assertAiAllowed(user.id, "patient"))) {
+      return NextResponse.json({ error: "AI_DISABLED" }, { status: 403 });
+    }
+
     const json = await request.json();
     const parsed = bodySchema.safeParse(json);
     if (!parsed.success) {
@@ -34,15 +39,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
     }
 
-    const result = await stubAiAssistantAdapter.chat({
+    const result = await chat({
       conversationId: parsed.data.conversationId,
       messages: parsed.data.messages,
       locale: parsed.data.locale,
+      userId: user.id,
+      feature: "patient",
     });
 
+    if (!result.ok) {
+      const status =
+        result.code === "FORBIDDEN" ? 403 : result.code === "VALIDATION_ERROR" ? 400 : 503;
+      return NextResponse.json({ error: result.code, message: result.message }, { status });
+    }
+
     return NextResponse.json({
-      content: result.content,
-      disclaimer: result.disclaimer,
+      content: result.data.content,
+      disclaimer: result.data.disclaimer,
     });
   } catch (error) {
     if (isCsrfError(error)) {

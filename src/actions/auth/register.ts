@@ -93,6 +93,7 @@ export async function registerPatient(input: unknown): Promise<ActionResult> {
       subject: "Verify your Hakeem account",
       text: `Verify your email: ${verifyUrl}`,
       html: `<p>Verify your email:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p>`,
+      purpose: "auth.verify_email",
     });
 
     await auditLog({

@@ -54,6 +54,13 @@ export async function createDoctorUser(input: unknown): Promise<ActionResult> {
       targetUserId: user.id,
       ...(await meta()),
     });
+    const { notifyAdmins } = await import("@/lib/admin/notify-admins");
+    await notifyAdmins({
+      category: "ADMIN_OPS",
+      title: "Pending doctor approval",
+      body: `${user.email} is awaiting doctor approval.`,
+      href: "/admin/doctors?pending=1",
+    });
     return { ok: true, message: "Doctor created (pending approval)." };
   } catch (error) {
     if (isAuthDomainError(error)) return { ok: false, code: error.code };
@@ -68,7 +75,66 @@ export async function approveDoctor(input: unknown): Promise<ActionResult> {
     if (!parsed.success) return { ok: false, code: "VALIDATION_ERROR" };
 
     const user = await prisma.user.findUnique({ where: { id: parsed.data.userId } });
-    if (!user || user.role !== "DOCTOR") return { ok: false, code: "VALIDATION_ERROR" };
+    if (!user || user.role !== "DOCTOR") return { ok: false, code: "NOT_FOUND" };
+
+    // Idempotent: already approved → success without re-invite
+    if (user.doctorApproval === "APPROVED" && user.status === "ACTIVE" && user.doctorProfileId) {
+      const { setDoctorBookable } = await import("@/domain/admin/doctor-approval");
+      await setDoctorBookable(user.doctorProfileId, true);
+      return { ok: true, message: "Doctor already approved." };
+    }
+
+    const { assertCanApprove, setDoctorBookable } = await import("@/domain/admin/doctor-approval");
+    try {
+      assertCanApprove(user.doctorApproval);
+    } catch {
+      // APPROVED already handled above; REJECTED etc. → treat as not pending
+      if (user.doctorApproval === "APPROVED") {
+        return { ok: true, message: "Doctor already approved." };
+      }
+      return { ok: false, code: "VALIDATION_ERROR" };
+    }
+
+    let doctorProfileId = user.doctorProfileId;
+    if (!doctorProfileId) {
+      const specialty =
+        (await prisma.specialty.findFirst({ orderBy: { sortOrder: "asc" } })) ??
+        (await prisma.specialty.create({
+          data: { slug: "general", nameEn: "General", nameAr: "عام", sortOrder: 0 },
+        }));
+      const baseSlug = (user.name ?? user.email.split("@")[0] ?? "doctor")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 40);
+      let slug = `dr-${baseSlug || "doctor"}`;
+      let n = 0;
+      while (await prisma.doctor.findUnique({ where: { slug } })) {
+        n += 1;
+        slug = `dr-${baseSlug}-${n}`;
+      }
+      const displayName = user.name ?? user.email;
+      const doctor = await prisma.doctor.create({
+        data: {
+          slug,
+          status: "PUBLISHED",
+          nameEn: displayName,
+          nameAr: displayName,
+          titleEn: "Physician",
+          titleAr: "طبيب",
+          languages: ["ar", "en"],
+          isAvailable: true,
+          specialtyId: specialty.id,
+          publishedAt: new Date(),
+        },
+      });
+      doctorProfileId = doctor.id;
+    } else {
+      await prisma.doctor.update({
+        where: { id: doctorProfileId },
+        data: { status: "PUBLISHED", isAvailable: true, publishedAt: new Date() },
+      });
+    }
 
     await prisma.user.update({
       where: { id: user.id },
@@ -77,8 +143,11 @@ export async function approveDoctor(input: unknown): Promise<ActionResult> {
         status: "ACTIVE",
         emailVerified: user.emailVerified ?? new Date(),
         mustChangePassword: true,
+        doctorProfileId,
+        doctorRejectionReason: null,
       },
     });
+    await setDoctorBookable(doctorProfileId, true);
 
     const { rawToken } = await createChallenge({
       email: user.email,
@@ -92,6 +161,7 @@ export async function approveDoctor(input: unknown): Promise<ActionResult> {
       to: user.email,
       subject: "Your Hakeem doctor account is approved",
       text: `Set your password: ${url}`,
+      purpose: "auth.doctor_invite",
     });
 
     await auditLog({
@@ -99,6 +169,7 @@ export async function approveDoctor(input: unknown): Promise<ActionResult> {
       outcome: "SUCCESS",
       actorUserId: admin.id,
       targetUserId: user.id,
+      meta: { doctorProfileId },
       ...(await meta()),
     });
     return { ok: true, message: "Doctor approved. Invite sent.", inviteToken: rawToken };
@@ -112,9 +183,23 @@ export async function rejectDoctor(input: unknown): Promise<ActionResult> {
   try {
     const admin = await requirePermission("admin:doctors:approve");
     const parsed = z
-      .object({ userId: z.string().min(1), reason: z.string().min(2).max(500) })
+      .object({ userId: z.string().min(1), reason: z.string().min(10).max(500) })
       .safeParse(input);
     if (!parsed.success) return { ok: false, code: "VALIDATION_ERROR" };
+
+    const existing = await prisma.user.findUnique({ where: { id: parsed.data.userId } });
+    if (!existing || existing.role !== "DOCTOR") return { ok: false, code: "NOT_FOUND" };
+
+    const { assertCanReject, setDoctorBookable } = await import("@/domain/admin/doctor-approval");
+    if (existing.doctorApproval === "REJECTED") {
+      return { ok: true, message: "Doctor already rejected." };
+    }
+    try {
+      assertCanReject(existing.doctorApproval);
+    } catch {
+      return { ok: false, code: "VALIDATION_ERROR" };
+    }
+
     const user = await prisma.user.update({
       where: { id: parsed.data.userId },
       data: {
@@ -123,6 +208,7 @@ export async function rejectDoctor(input: unknown): Promise<ActionResult> {
         status: "DEACTIVATED",
       },
     });
+    await setDoctorBookable(user.doctorProfileId, false);
     await revokeAllUserSessions(user.id);
     await revokeRefreshFamiliesForUser(user.id);
     await auditLog({
@@ -130,6 +216,7 @@ export async function rejectDoctor(input: unknown): Promise<ActionResult> {
       outcome: "SUCCESS",
       actorUserId: admin.id,
       targetUserId: user.id,
+      meta: { reason: parsed.data.reason },
       ...(await meta()),
     });
     return { ok: true, message: "Doctor rejected." };
@@ -155,9 +242,13 @@ export async function setUserStatus(input: unknown): Promise<ActionResult> {
 
     if (target.role === "ADMIN" && parsed.data.status !== "ACTIVE") {
       const activeAdmins = await prisma.user.count({
-        where: { role: "ADMIN", status: "ACTIVE" },
+        where: { role: "ADMIN", status: "ACTIVE", id: { not: target.id } },
       });
-      if (activeAdmins <= 1) throw new AuthDomainError("LAST_ADMIN");
+      if (activeAdmins < 1) throw new AuthDomainError("LAST_ADMIN");
+    }
+
+    if (admin.id === target.id && parsed.data.status !== "ACTIVE") {
+      throw new AuthDomainError("FORBIDDEN");
     }
 
     await prisma.user.update({
@@ -167,6 +258,10 @@ export async function setUserStatus(input: unknown): Promise<ActionResult> {
     if (parsed.data.status !== "ACTIVE") {
       await revokeAllUserSessions(target.id);
       await revokeRefreshFamiliesForUser(target.id);
+    }
+    if (target.role === "DOCTOR" && target.doctorProfileId) {
+      const { enqueueDoctorSearchRefresh } = await import("@/lib/platform/search");
+      await enqueueDoctorSearchRefresh(target.doctorProfileId);
     }
     await auditLog({
       type: "admin.user.status_change",
@@ -219,6 +314,7 @@ export async function inviteAdmin(input: unknown): Promise<ActionResult> {
       to: email,
       subject: "Hakeem administrator invite",
       text: `Verify: ${site}/${locale}/verify-email?token=${rawToken}`,
+      purpose: "auth.admin_invite",
     });
     await auditLog({
       type: "admin.invite",

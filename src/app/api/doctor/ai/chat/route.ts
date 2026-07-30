@@ -8,7 +8,6 @@ import { doctorAiSendSchema } from "@/lib/doctor/schemas";
 import { AI_RATE_LIMIT_PER_HOUR } from "@/domain/doctor/dashboard";
 import { hasCareRelationship } from "@/domain/doctor/care-relationship";
 import { DomainRuleError } from "@/domain/doctor/errors";
-import { stubAiAssistantAdapter } from "@/adapters/stub-ai";
 import { auditDoctorEvent } from "@/lib/doctor/phi-audit";
 
 const MODE_PROMPTS: Record<string, string> = {
@@ -23,12 +22,24 @@ export async function POST(request: Request) {
     await requireRole("DOCTOR");
     const ctx = await requireDoctorContext();
 
+    const { assertAiAllowed, chat } = await import("@/lib/platform/ai");
+
     const json = await request.json();
     const parsed = doctorAiSendSchema.safeParse(json);
     if (!parsed.success) {
       return NextResponse.json({ error: "VALIDATION_ERROR" }, { status: 400 });
     }
     const input = parsed.data;
+
+    const aiFeature =
+      input.mode === "PRESCRIPTION"
+        ? "doctorPrescription"
+        : input.mode === "DOCUMENTATION"
+          ? "doctorDocumentation"
+          : "doctorDocumentation";
+    if (!(await assertAiAllowed(ctx.userId, aiFeature))) {
+      return NextResponse.json({ error: "AI_DISABLED" }, { status: 403 });
+    }
 
     const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
     const recentCount = await prisma.doctorAiMessage.count({
@@ -87,14 +98,22 @@ export async function POST(request: Request) {
       { role: "user" as const, content: input.content },
     ];
 
-    const result = await stubAiAssistantAdapter.chat({
+    const result = await chat({
       conversationId: conversation.id,
       messages: history,
       locale,
+      userId: ctx.userId,
+      feature: aiFeature,
     });
 
+    if (!result.ok) {
+      const status =
+        result.code === "FORBIDDEN" ? 403 : result.code === "RATE_LIMITED" ? 429 : 503;
+      return NextResponse.json({ error: result.code, message: result.message }, { status });
+    }
+
     await prisma.doctorAiMessage.create({
-      data: { conversationId: conversation.id, role: "assistant", content: result.content },
+      data: { conversationId: conversation.id, role: "assistant", content: result.data.content },
     });
     await prisma.doctorAiConversation.update({
       where: { id: conversation.id },
@@ -111,7 +130,7 @@ export async function POST(request: Request) {
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       start(controller) {
-        controller.enqueue(encoder.encode(result.content));
+        controller.enqueue(encoder.encode(result.data.content));
         controller.close();
       },
     });
@@ -122,7 +141,7 @@ export async function POST(request: Request) {
         "Content-Type": "text/plain; charset=utf-8",
         "Cache-Control": "no-store",
         "X-Conversation-Id": conversation.id,
-        ...(result.disclaimer ? { "X-Ai-Disclaimer": result.disclaimer } : {}),
+        ...(result.data.disclaimer ? { "X-Ai-Disclaimer": result.data.disclaimer } : {}),
       },
     });
   } catch (error) {

@@ -316,7 +316,12 @@
       "saving": "Saving…",
       "saved": "Settings saved",
       "error": "Could not save settings",
-      "loadError": "Could not load settings"
+      "loadError": "Could not load settings",
+      "pushTitle": "Push notifications",
+      "pushHint": "Register this browser for platform push readiness (device token stored securely hashed).",
+      "pushRegister": "Enable push on this device",
+      "pushRevoke": "Disable push on this device",
+      "pushRegistered": "This device is registered for push."
     },
     "doctors": {
       "title": "Find a doctor",
@@ -370,11 +375,14 @@
       "waitingRoom": "Waiting for your provider…",
       "stubNote": "Stub telemedicine — video join will connect to the production adapter.",
       "joinStub": "Join call (stub)",
+      "joinCall": "Join call",
       "windowClosed": "The join window for this visit is not open yet or has closed.",
       "loadError": "Could not load consultation"
     },
     "records": {
       "title": "Medical records",
+      "timelineTitle": "Activity",
+      "openEvent": "Open",
       "emptyTitle": "No records",
       "emptyDescription": "Your clinical records will appear here when available.",
       "downloadDocument": "View document",
@@ -807,6 +815,282 @@
       "saved": "Settings saved",
       "error": "Could not save settings",
       "loadError": "Could not load settings"
+    }
+  },
+  "admin": {
+    "shell": {
+      "portalLabel": "Administration Portal",
+      "openMenu": "Open menu",
+      "notifications": "Notifications",
+      "signOut": "Sign out"
+    },
+    "nav": {
+      "dashboard": "Dashboard",
+      "users": "Users",
+      "doctors": "Doctors",
+      "appointments": "Appointments",
+      "aiOps": "AI Operations",
+      "billing": "Billing",
+      "revenue": "Revenue",
+      "analytics": "Analytics",
+      "settings": "Settings",
+      "health": "System Health",
+      "audit": "Audit Logs",
+      "notifications": "Notifications",
+      "roles": "Roles"
+    },
+    "dashboard": {
+      "title": "Admin Dashboard",
+      "subtitle": "Platform overview and quick actions",
+      "totalPatients": "Active Patients",
+      "totalDoctors": "Approved Doctors",
+      "activeAppointments": "Active Appointments",
+      "pendingApprovals": "Pending Approvals",
+      "pendingApprovalsHint": "Doctors awaiting review",
+      "revenueSummary": "Revenue (30d)",
+      "gross": "Gross",
+      "refunds": "Refunds",
+      "net": "Net",
+      "viewRevenue": "View revenue",
+      "aiUsage": "AI Usage (30d)",
+      "patientMessages": "Patient messages",
+      "doctorMessages": "Doctor messages",
+      "viewAiOps": "Open AI ops",
+      "platformStatus": "Platform Status",
+      "viewHealth": "View health",
+      "notifications": "Notifications",
+      "unreadCount": "{count} unread",
+      "viewNotifications": "Open center",
+      "recentActivities": "Recent Admin Activity",
+      "viewAudit": "View audit log",
+      "noActivities": "No recent admin events",
+      "quickActionsTitle": "Quick Actions",
+      "quickActions": {
+        "approveDoctor": "Approve Doctor",
+        "suspendUser": "Suspend User",
+        "analytics": "Analytics",
+        "settings": "Settings",
+        "aiOps": "AI Operations",
+        "audit": "Audit Logs"
+      }
+    },
+    "users": {
+      "title": "User Management",
+      "subtitle": "Search, filter, and manage platform accounts",
+      "searchPlaceholder": "Search by email or name",
+      "email": "Email",
+      "name": "Name",
+      "role": "Role",
+      "status": "Status",
+      "view": "View",
+      "empty": "No users match your filters",
+      "failedLogins": "Failed logins",
+      "roleFilter": "Filter by role",
+      "statusFilter": "Filter by status",
+      "allRoles": "All roles",
+      "allStatuses": "All statuses",
+      "applyFilters": "Apply",
+      "actions": {
+        "suspend": "Suspend",
+        "reinstate": "Reinstate",
+        "deactivate": "Deactivate",
+        "unlock": "Unlock",
+        "revokeSessions": "Revoke sessions",
+        "suspendTitle": "Suspend user",
+        "deactivateTitle": "Deactivate user"
+      }
+    },
+    "doctors": {
+      "title": "Doctor Management",
+      "subtitle": "Review applications and manage clinician accounts",
+      "all": "All doctors",
+      "pending": "Pending approval",
+      "email": "Email",
+      "name": "Name",
+      "approval": "Approval",
+      "status": "Status",
+      "actionsCol": "Actions",
+      "view": "View",
+      "empty": "No doctors in this queue",
+      "rejectionReason": "Rejection reason",
+      "actions": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "rejectTitle": "Reject doctor application",
+        "view": "View"
+      }
+    },
+    "appointments": {
+      "title": "Appointment Oversight",
+      "detailTitle": "Appointment detail",
+      "patient": "Patient",
+      "doctor": "Doctor",
+      "status": "Status",
+      "mode": "Mode",
+      "start": "Start",
+      "reason": "Reason",
+      "view": "View",
+      "empty": "No appointments found",
+      "statusFilter": "Filter by status",
+      "allStatuses": "All statuses",
+      "fromDate": "From date",
+      "toDate": "To date",
+      "doctorIdPlaceholder": "Doctor ID",
+      "applyFilters": "Apply",
+      "actions": {
+        "cancel": "Cancel",
+        "flag": "Flag",
+        "cancelTitle": "Cancel appointment",
+        "flagTitle": "Flag appointment"
+      }
+    },
+    "ai": {
+      "title": "AI Operations",
+      "subtitle": "Monitor usage, toggles, and flagged conversations",
+      "patientMessages": "Patient AI messages",
+      "doctorMessages": "Doctor AI messages",
+      "flagged": "Open flags",
+      "togglesTitle": "Global AI toggles",
+      "enable": "Enable",
+      "disable": "Disable",
+      "flaggedTitle": "Flagged conversations",
+      "noFlags": "No open flags",
+      "reviewFlag": "Mark reviewed",
+      "reviewFlagTitle": "Review flagged conversation",
+      "disableUserTitle": "Disable user AI",
+      "disableUserSubmit": "Disable AI",
+      "disableUserConfirmTitle": "Disable AI for user",
+      "userId": "User ID",
+      "userIdPlaceholder": "Enter user ID"
+    },
+    "billing": {
+      "title": "Billing & Transactions",
+      "detailTitle": "Transaction detail",
+      "description": "Description",
+      "amount": "Amount",
+      "refunded": "Refunded",
+      "refundable": "Refundable balance",
+      "status": "Status",
+      "patient": "Patient",
+      "view": "View",
+      "actions": {
+        "refund": "Refund",
+        "dispute": "Mark disputed",
+        "refundTitle": "Process refund",
+        "disputeTitle": "Record dispute"
+      }
+    },
+    "revenue": {
+      "title": "Payment & Revenue",
+      "subtitle": "Gross, refunds, and net by period",
+      "gross": "Gross revenue",
+      "refunds": "Refunds",
+      "net": "Net revenue",
+      "fromDate": "From date",
+      "toDate": "To date",
+      "applyRange": "Apply range",
+      "period": {
+        "today": "Today",
+        "7d": "7 days",
+        "30d": "30 days",
+        "custom": "Custom"
+      }
+    },
+    "analytics": {
+      "title": "Reports & Analytics",
+      "subtitle": "Platform metrics by period",
+      "newUsers": "New patients",
+      "newDoctors": "New doctors",
+      "appointments": "Appointments",
+      "revenueNet": "Net revenue",
+      "aiMessages": "AI messages",
+      "exportCsv": "Export CSV",
+      "appointmentsView": "Appointment analytics",
+      "revenueView": "Revenue analytics",
+      "aiView": "AI analytics",
+      "period": {
+        "7d": "7 days",
+        "30d": "30 days",
+        "90d": "90 days"
+      }
+    },
+    "settings": {
+      "title": "Platform Settings",
+      "subtitle": "Maintenance mode, support contacts, and feature toggles",
+      "turnOn": "Turn on",
+      "turnOff": "Turn off"
+    },
+    "health": {
+      "title": "System Health",
+      "subtitle": "Component checks and overall platform status",
+      "refresh": "Refresh checks",
+      "lastChecked": "Last checked"
+    },
+    "audit": {
+      "title": "Audit Logs",
+      "subtitle": "Immutable security and admin event history",
+      "type": "Event",
+      "outcome": "Outcome",
+      "actor": "Actor",
+      "target": "Target",
+      "when": "When",
+      "exportCsv": "Export CSV",
+      "typeFilter": "Event type",
+      "outcomeFilter": "Outcome",
+      "allOutcomes": "All outcomes",
+      "fromDate": "From date",
+      "toDate": "To date",
+      "applyFilters": "Apply"
+    },
+    "notifications": {
+      "title": "Notification Center",
+      "subtitle": "Approvals, billing, health, and security alerts",
+      "allCaughtUp": "All caught up",
+      "allCaughtUpHint": "No unread admin notifications",
+      "markAllRead": "Mark all read"
+    },
+    "roles": {
+      "title": "Roles & Permissions",
+      "subtitle": "View the permission matrix and administrator accounts",
+      "admins": "Administrators",
+      "email": "Email",
+      "name": "Name",
+      "status": "Status",
+      "matrix": "ADMIN permissions",
+      "adminPermissionCount": "{count} permissions granted to Active ADMIN",
+      "inviteTitle": "Invite administrator",
+      "inviteSubmit": "Send invite",
+      "assignTitle": "Assign role",
+      "assignSubmit": "Assign role",
+      "assignConfirmTitle": "Confirm role change",
+      "assignConfirmBody": "Assign role {role} to user {userId}? Sessions will be revoked.",
+      "assignConfirm": "Confirm",
+      "cancel": "Cancel",
+      "role": "Role",
+      "userId": "User ID",
+      "userIdPlaceholder": "Paste user ID",
+      "success": "Action completed."
+    },
+    "maintenance": {
+      "title": "Maintenance in progress",
+      "body": "The platform is temporarily unavailable. Please try again later."
+    }
+  },
+  "platform": {
+    "empty": {
+      "title": "Nothing here yet",
+      "description": "Content will appear when available."
+    },
+    "error": {
+      "generic": "Something went wrong. Please try again.",
+      "unavailable": "This service is temporarily unavailable."
+    },
+    "upload": {
+      "label": "Upload file",
+      "uploading": "Uploading…",
+      "scanPending": "Scanning file for safety…",
+      "ready": "File is ready.",
+      "rejected": "File was rejected during safety scan."
     }
   }
 }

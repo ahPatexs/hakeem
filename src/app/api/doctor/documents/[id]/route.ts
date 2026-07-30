@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/auth/guards";
 import { isAuthDomainError } from "@/auth/errors";
-import { prisma } from "@/lib/prisma";
-import { localStorageAdapter } from "@/adapters/local-storage";
 import { requireDoctorContext, isDoctorContextError } from "@/lib/doctor/context";
-import { assertCareRelationship } from "@/domain/doctor/care-relationship";
 import { DomainRuleError } from "@/domain/doctor/errors";
 import { auditDoctorEvent } from "@/lib/doctor/phi-audit";
+import { assertFileAccess, resolveStoredFile, streamStoredFile } from "@/lib/platform/documents";
 
 export async function GET(
   _request: Request,
@@ -17,31 +15,36 @@ export async function GET(
     const ctx = await requireDoctorContext();
     const { id } = await params;
 
-    const document = await prisma.clinicalDocument.findFirst({
-      where: { id },
-    });
-
-    if (!document) {
+    const file = await resolveStoredFile(id);
+    if (!file) {
       return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
     }
 
-    await assertCareRelationship(ctx.doctorId, document.patientUserId);
+    const allowed = await assertFileAccess(ctx.userId, "DOCTOR", file, ctx.doctorId);
+    if (!allowed) {
+      return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+    }
 
-    const file = await localStorageAdapter.download(document.storageKey);
+    const streamed = await streamStoredFile(id);
+    if (!streamed.ok) {
+      const status = streamed.code === "NOT_FOUND" ? 404 : 403;
+      return NextResponse.json({ error: streamed.code }, { status });
+    }
+
     await auditDoctorEvent(
       "doctor.doc.download",
       ctx.userId,
       { documentId: id },
-      document.patientUserId,
+      file.patientUserId,
     );
 
-    return new NextResponse(new Uint8Array(file.body), {
+    return new NextResponse(new Uint8Array(streamed.data.body), {
       status: 200,
       headers: {
-        "Content-Type": file.contentType,
-        "Content-Length": String(file.byteSize),
+        "Content-Type": streamed.data.contentType,
+        "Content-Length": String(streamed.data.body.byteLength),
         "Cache-Control": "private, no-store",
-        "Content-Disposition": `inline; filename="${encodeURIComponent(document.title)}"`,
+        "Content-Disposition": `inline; filename="${encodeURIComponent(streamed.data.fileName)}"`,
       },
     });
   } catch (error) {

@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
-import { Link } from "@/i18n/routing";
 
 /**
  * If a refresh cookie exists, silently mint a new session and send the user home.
- * Otherwise show the sign-in CTA.
+ * Otherwise clear stale auth cookies and navigate to login (avoids login↔expired loop).
  */
 export function SessionExpiredActions({
   signInLabel,
@@ -18,6 +17,7 @@ export function SessionExpiredActions({
 }) {
   const router = useRouter();
   const [status, setStatus] = useState<"checking" | "failed">("checking");
+  const [pending, startTransition] = useTransition();
 
   useEffect(() => {
     let cancelled = false;
@@ -33,6 +33,11 @@ export function SessionExpiredActions({
           router.replace(homeHref);
           return;
         }
+        // Failed refresh responses clear cookies; ensure a second clear for safety.
+        await fetch("/api/auth/clear-session", {
+          method: "POST",
+          credentials: "same-origin",
+        }).catch(() => undefined);
       } catch {
         /* fall through */
       }
@@ -43,13 +48,27 @@ export function SessionExpiredActions({
     };
   }, [homeHref, router]);
 
+  function goToLogin() {
+    startTransition(async () => {
+      try {
+        await fetch("/api/auth/clear-session", {
+          method: "POST",
+          credentials: "same-origin",
+        });
+      } catch {
+        /* still navigate */
+      }
+      router.replace("/login");
+    });
+  }
+
   if (status === "checking") {
     return <p className="text-center text-sm text-muted-foreground">…</p>;
   }
 
   return (
-    <Button asChild className="w-full">
-      <Link href="/login">{signInLabel}</Link>
+    <Button type="button" className="w-full" disabled={pending} onClick={goToLogin}>
+      {signInLabel}
     </Button>
   );
 }

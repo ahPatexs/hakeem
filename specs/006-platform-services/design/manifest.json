@@ -1,0 +1,41 @@
+{
+  "projectId": "2408493713147971043",
+  "projectTitle": "Hakeem AI Healthcare Landing Page",
+  "module": "006-platform-services",
+  "exported": false,
+  "note": "Stitch MCP auth unavailable. Placeholder 1×1 PNGs removed from claims. Shared UI SoT remains existing portal components listed in source paths; re-export when Stitch is authenticated.",
+  "screens": [
+    {
+      "id": "shared-dialog",
+      "title": "Shared Confirm / Reason Dialog",
+      "route": "platform/dialogs",
+      "device": "DESKTOP",
+      "file": null,
+      "source": "src/components/platform/dialogs/confirm-reason-dialog.tsx"
+    },
+    {
+      "id": "shared-notifications",
+      "title": "Shared Notification List",
+      "route": "platform/notifications",
+      "device": "DESKTOP",
+      "file": null,
+      "source": "src/components/platform/notifications/notification-list.tsx"
+    },
+    {
+      "id": "shared-empty-error",
+      "title": "Shared Empty / Error / Loading States",
+      "route": "platform/feedback",
+      "device": "DESKTOP",
+      "file": null,
+      "source": "src/components/platform/empty-state.tsx"
+    },
+    {
+      "id": "shared-payment-badge",
+      "title": "Payment Status Badge",
+      "route": "platform/payments",
+      "device": "DESKTOP",
+      "file": null,
+      "source": "src/components/platform/payments/payment-status-badge.tsx"
+    }
+  ]
+}

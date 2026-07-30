@@ -1,4 +1,4 @@
-export type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
+export type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED" | "PARTIALLY_REFUNDED" | "DISPUTED";
 
 export type PaymentDomainErrorCode = "NOT_FOUND" | "PAYMENT_CONFLICT" | "PAYMENT_FAILED" | "FORBIDDEN";
 

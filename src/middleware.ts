@@ -2,11 +2,8 @@ import createMiddleware from "next-intl/middleware";
 import { NextRequest, NextResponse } from "next/server";
 import { routing } from "./i18n/routing";
 import { SESSION_COOKIE, REFRESH_COOKIE } from "./auth/cookies";
-import { AUTH_SHELL_SEGMENTS } from "./lib/auth-routes";
 
 const intlMiddleware = createMiddleware(routing);
-
-const AUTH_PUBLIC = AUTH_SHELL_SEGMENTS;
 
 function stripLocale(pathname: string): { locale: string; rest: string[] } {
   const parts = pathname.split("/").filter(Boolean);
@@ -24,15 +21,8 @@ export default async function middleware(req: NextRequest) {
   const { locale, rest } = stripLocale(pathname);
   const section = rest[0] ?? "";
 
-  const hasSid = hasCookie(req, SESSION_COOKIE);
-  const hasRefresh = hasCookie(req, REFRESH_COOKIE);
-  const isAuthed = hasSid || hasRefresh;
-
-  if (AUTH_PUBLIC.has(section) && hasSid && (section === "login" || section === "register")) {
-    // Role-specific home resolved after full auth() on the client/server page;
-    // send to patient as safe default; layouts will bounce if wrong role.
-    return NextResponse.redirect(new URL(`/${locale}/patient`, req.url));
-  }
+  const isAuthed =
+    hasCookie(req, SESSION_COOKIE) || hasCookie(req, REFRESH_COOKIE);
 
   const needsAuth =
     section === "patient" ||
@@ -52,6 +42,7 @@ export default async function middleware(req: NextRequest) {
   }
 
   // Role gates are enforced in layouts/pages (DB-backed). Middleware only ensures a cookie exists.
+  // Login/register must NOT bounce on cookie presence alone (stale sid → expired loop).
   return intlMiddleware(req);
 }
 

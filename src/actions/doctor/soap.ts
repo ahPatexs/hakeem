@@ -52,6 +52,10 @@ export async function saveSoapDraft(raw: SaveSoapInput) {
 
     let note;
     if (input.noteId) {
+      const { assertSignedArtifactMutable } = await import("@/lib/platform/documents");
+      const mutable = await assertSignedArtifactMutable({ kind: "soap", id: input.noteId });
+      if (!mutable.ok) throw new DomainRuleError("CONFLICT");
+
       const updated = await prisma.soapNote.updateMany({
         where: {
           id: input.noteId,
