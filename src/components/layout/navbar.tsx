@@ -3,7 +3,6 @@ import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { LocaleSwitcher } from "@/components/layout/locale-switcher";
 import { MobileNav } from "@/components/layout/mobile-nav";
-import { buildAppCtaUrl } from "@/lib/cta";
 import type { Locale } from "@/content/types";
 
 const links = [
@@ -38,15 +37,15 @@ export async function Navbar({ locale }: { locale: Locale }) {
 
         <div className="flex items-center gap-2 md:gap-4">
           <LocaleSwitcher />
-          <a
-            href={buildAppCtaUrl("login", { locale, page: "nav" })}
+          <Link
+            href="/login"
             className="hidden rounded-lg px-4 py-2 font-medium text-primary transition-all hover:bg-primary-fixed/30 md:inline-block"
           >
             {t("login")}
-          </a>
-          <a href={buildAppCtaUrl("register", { locale, page: "nav" })} className="hidden md:inline-block">
+          </Link>
+          <Link href="/register" className="hidden md:inline-block">
             <Button className="rounded-full px-6">{t("getStarted")}</Button>
-          </a>
+          </Link>
           <MobileNav locale={locale} />
         </div>
       </div>

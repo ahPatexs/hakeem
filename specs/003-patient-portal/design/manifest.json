@@ -1,0 +1,30 @@
+{
+  "projectId": "2408493713147971043",
+  "projectTitle": "Hakeem AI Healthcare Landing Page",
+  "exportedAt": "2026-07-29",
+  "note": "Stitch MCP get_screen/download_assets returned 401 during implement despite mcp_auth. Screen IDs listed for manual export. UI uses Hakeem design tokens (primary #00436f, med-green #00A884) matching public site / auth until PNGs land.",
+  "screens": [
+    { "id": "330233ce8459436b854b605a5d357d86", "title": "Patient Dashboard", "route": "/patient" },
+    { "id": "8a2955dbd74a480e801b5d41f173a586", "title": "Manage Profile", "route": "/patient/profile" },
+    { "id": "1055dfccd7a3416bb424359d58292119", "title": "Appointments & Records", "route": "/patient/appointments" },
+    { "id": "9563dadf50fc41ec8403d23356609ab7", "title": "Doctor Search", "route": "/patient/doctors" },
+    { "id": "cdb22296c73748489cd745a8741ff48f", "title": "Doctor Profile", "route": "/patient/doctors/[slug]" },
+    { "id": "1aab871b8eea483a9f2a4c2c10e77951", "title": "Doctor Profile & Schedule", "route": "/patient/doctors/[slug]" },
+    { "id": "1c5c978a703e44ee9e26bd7a351b7fe8", "title": "Book Appointment: Select Doctor", "route": "/patient/appointments/book" },
+    { "id": "51a5431ed111491f83b9e3847804acc5", "title": "Book Appointment: Type & Date", "route": "/patient/appointments/book" },
+    { "id": "3ced9a372cc04c8f9a91b53b9bafa338", "title": "Book Appointment: Confirm", "route": "/patient/appointments/book" },
+    { "id": "23e2ff03e87743689eca094c5dc15bfd", "title": "Booking Confirmed", "route": "/patient/appointments/[id]" },
+    { "id": "9080503b14604d4d87a29236ae9c5990", "title": "Appointment Details", "route": "/patient/appointments/[id]" },
+    { "id": "6640999033b747e292dc65ea54e533b5", "title": "Appointment Dashboard", "route": "/patient/appointments/upcoming" },
+    { "id": "ffe9017517f742e8ada9e99066819875", "title": "Appointment Management", "route": "/patient/appointments" },
+    { "id": "67bd1790016743d8a85f9606c00d31f7", "title": "Waiting Room", "route": "/patient/consultations/[id]" },
+    { "id": "7a05e9f864e34a6387f501c4e5dc3c81", "title": "Video Consultation", "route": "/patient/consultations/[id]" },
+    { "id": "3fe6d0f795074528ac6712456239b3fa", "title": "Consultation Completed", "route": "/patient/consultations/[id]" },
+    { "id": "10acb5ff2d9143319d6ac0882486efd8", "title": "Prescriptions & Documents", "route": "/patient/prescriptions" },
+    { "id": "69b4fdeafa9d4bafbd82b9d1349c988a", "title": "Consultation Workspace", "route": "/patient/consultations/[id]" },
+    { "id": "2c30a553a345420c81197addaf1d79b4", "title": "Search Results", "route": "/patient/doctors" },
+    { "id": "8243761deb0846b790a18c526d005fe2", "title": "Favorite Doctors", "route": "/patient/doctors" },
+    { "id": "dedb538282544081a59ff9567472089f", "title": "Doctor Dashboard", "route": "/doctor", "module": "out-of-scope-patient" },
+    { "id": "ddd0bed7973c488d9ee666f3985981b1", "title": "Patient Management", "route": "/admin", "module": "out-of-scope-patient" }
+  ]
+}

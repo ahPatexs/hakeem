@@ -5,6 +5,7 @@
  * Run: npm run prisma:seed
  */
 import { PrismaClient, PublishStatus } from "@prisma/client";
+import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -41,7 +42,159 @@ async function main() {
     create: { key: "pricing.enabled", value: false },
   });
 
-  console.log("Seed complete");
+  const adminEmail = "admin@hakeem.local";
+  const passwordHash = await hash("Admin!Pass1234", 12);
+  await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {
+      passwordHash,
+      role: "ADMIN",
+      status: "ACTIVE",
+      emailVerified: new Date(),
+    },
+    create: {
+      email: adminEmail,
+      name: "Bootstrap Admin",
+      passwordHash,
+      role: "ADMIN",
+      status: "ACTIVE",
+      emailVerified: new Date(),
+    },
+  });
+
+  const patientEmail = "patient@hakeem.local";
+  const patientHash = await hash("Patient!Pass1234", 12);
+  const patient = await prisma.user.upsert({
+    where: { email: patientEmail },
+    update: {
+      passwordHash: patientHash,
+      status: "ACTIVE",
+      emailVerified: new Date(),
+      name: "Demo Patient",
+    },
+    create: {
+      email: patientEmail,
+      name: "Demo Patient",
+      passwordHash: patientHash,
+      role: "PATIENT",
+      status: "ACTIVE",
+      emailVerified: new Date(),
+    },
+  });
+
+  await prisma.patientProfile.upsert({
+    where: { userId: patient.id },
+    update: { phone: "+966500000001", city: "Riyadh" },
+    create: {
+      userId: patient.id,
+      phone: "+966500000001",
+      city: "Riyadh",
+      emergencyContactName: "Family Contact",
+      emergencyContactPhone: "+966500000002",
+      insuranceProvider: "Demo Insurance",
+    },
+  });
+
+  await prisma.medicalProfile.upsert({
+    where: { userId: patient.id },
+    update: {},
+    create: {
+      userId: patient.id,
+      allergies: ["Penicillin"],
+      conditions: ["Mild asthma"],
+      currentMedications: ["Inhaler as needed"],
+    },
+  });
+
+  await prisma.portalSettings.upsert({
+    where: { userId: patient.id },
+    update: {},
+    create: { userId: patient.id, locale: "EN" },
+  });
+
+  const publishedDoctor = await prisma.doctor.findFirst({
+    where: { status: "PUBLISHED" },
+  });
+  if (publishedDoctor) {
+    const startAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+    startAt.setHours(10, 0, 0, 0);
+    const endAt = new Date(startAt.getTime() + 30 * 60 * 1000);
+    const existing = await prisma.appointment.findFirst({
+      where: { patientUserId: patient.id, status: "CONFIRMED" },
+    });
+    if (!existing) {
+      await prisma.appointment.create({
+        data: {
+          patientUserId: patient.id,
+          doctorId: publishedDoctor.id,
+          mode: "VIDEO",
+          status: "CONFIRMED",
+          startAt,
+          endAt,
+          reason: "General consultation",
+        },
+      });
+    }
+
+    await prisma.prescription.create({
+      data: {
+        patientUserId: patient.id,
+        medicationName: "Vitamin D3",
+        instructions: "1 tablet daily",
+        status: "ACTIVE",
+        prescribedAt: new Date(),
+        endsAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+        doctorId: publishedDoctor.id,
+      },
+    }).catch(() => undefined);
+
+    await prisma.labResult.create({
+      data: {
+        patientUserId: patient.id,
+        title: "Complete Blood Count",
+        releaseStatus: "RELEASED",
+        phase: "FINAL",
+        resultedAt: new Date(),
+        summary: "Within normal limits (demo)",
+      },
+    }).catch(() => undefined);
+
+    await prisma.medicalRecord.create({
+      data: {
+        patientUserId: patient.id,
+        title: "Initial consultation summary",
+        recordType: "encounter",
+        summary: "Demo medical record for portal QA.",
+        recordedAt: new Date(),
+        doctorId: publishedDoctor.id,
+      },
+    }).catch(() => undefined);
+  }
+
+  await prisma.notification.create({
+    data: {
+      patientUserId: patient.id,
+      category: "SYSTEM",
+      title: "Welcome to Hakeem Patient Portal",
+      body: "Your dashboard is ready. Book an appointment anytime.",
+      href: "/patient/appointments/book",
+    },
+  }).catch(() => undefined);
+
+  await prisma.paymentObligation.upsert({
+    where: { idempotencyKey: `seed-pending-${patient.id}` },
+    update: {},
+    create: {
+      patientUserId: patient.id,
+      description: "Consultation fee (demo)",
+      amountCents: 15000,
+      currency: "SAR",
+      status: "PENDING",
+      idempotencyKey: `seed-pending-${patient.id}`,
+    },
+  });
+
+  console.log("Seed complete (includes admin@hakeem.local / patient@hakeem.local + portal demo data)");
 }
 
 main()

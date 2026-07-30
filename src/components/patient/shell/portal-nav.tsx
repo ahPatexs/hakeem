@@ -1,0 +1,97 @@
+"use client";
+
+import {
+  Bot,
+  CalendarDays,
+  CreditCard,
+  FileText,
+  FlaskConical,
+  LayoutDashboard,
+  Bell,
+  Pill,
+  Settings,
+  Stethoscope,
+  User,
+} from "lucide-react";
+import { Link, usePathname } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
+
+export interface PortalNavItem {
+  href: string;
+  labelKey: keyof typeof NAV_KEYS;
+  icon: React.ComponentType<{ className?: string }>;
+  exact?: boolean;
+}
+
+const NAV_KEYS = {
+  dashboard: true,
+  appointments: true,
+  doctors: true,
+  records: true,
+  labs: true,
+  prescriptions: true,
+  payments: true,
+  notifications: true,
+  ai: true,
+  profile: true,
+  settings: true,
+} as const;
+
+export const PORTAL_NAV_ITEMS: PortalNavItem[] = [
+  { href: "/patient", labelKey: "dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/patient/appointments", labelKey: "appointments", icon: CalendarDays },
+  { href: "/patient/doctors", labelKey: "doctors", icon: Stethoscope },
+  { href: "/patient/records", labelKey: "records", icon: FileText },
+  { href: "/patient/labs", labelKey: "labs", icon: FlaskConical },
+  { href: "/patient/prescriptions", labelKey: "prescriptions", icon: Pill },
+  { href: "/patient/payments", labelKey: "payments", icon: CreditCard },
+  { href: "/patient/notifications", labelKey: "notifications", icon: Bell },
+  { href: "/patient/ai", labelKey: "ai", icon: Bot },
+  { href: "/patient/profile", labelKey: "profile", icon: User },
+  { href: "/patient/settings", labelKey: "settings", icon: Settings },
+];
+
+function isActive(pathname: string, href: string, exact?: boolean): boolean {
+  if (exact) return pathname === href;
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+export function PortalNav({
+  items = PORTAL_NAV_ITEMS,
+  onNavigate,
+  className,
+}: {
+  items?: PortalNavItem[];
+  onNavigate?: () => void;
+  className?: string;
+}) {
+  const pathname = usePathname();
+  const t = useTranslations("patient.nav");
+
+  return (
+    <nav className={cn("flex flex-col gap-1", className)} aria-label="Patient portal">
+      {items.map((item) => {
+        const active = isActive(pathname, item.href, item.exact);
+        const Icon = item.icon;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onNavigate}
+            className={cn(
+              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+              active
+                ? "bg-primary text-on-primary shadow-sm"
+                : "text-on-surface-variant hover:bg-surface-container-high hover:text-primary",
+            )}
+            aria-current={active ? "page" : undefined}
+          >
+            <Icon className="h-5 w-5 shrink-0" aria-hidden />
+            <span>{t(item.labelKey)}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}

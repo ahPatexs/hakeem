@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: hakeem-db
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: hakeem
+      POSTGRES_PASSWORD: hakeem
+      POSTGRES_DB: hakeem
+    volumes:
+      - hakeem_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hakeem -d hakeem"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  hakeem_pgdata:

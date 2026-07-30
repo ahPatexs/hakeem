@@ -72,6 +72,9 @@ model Doctor {
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   publishedAt      DateTime?
+  appointments     Appointment[]
+  medicalRecords   MedicalRecord[]
+  prescriptions    Prescription[]
 
   @@index([status, specialtyId])
   @@index([status, isAvailable])
@@ -222,4 +225,477 @@ model SiteSetting {
   key       String   @id
   value     Json
   updatedAt DateTime @updatedAt
+}
+
+// ─── Auth & RBAC (002-auth-rbac) ─────────────────────────────────────────────
+
+enum UserRole {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+enum AccountStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
+enum DoctorApprovalStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+}
+
+enum AuthChallengeKind {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+  INVITE_SET_PASSWORD
+}
+
+enum AuditOutcome {
+  SUCCESS
+  FAILURE
+  DENIED
+}
+
+model User {
+  id                     String                @id @default(cuid())
+  name                   String?
+  email                  String                @unique
+  emailVerified          DateTime?
+  image                  String?
+  passwordHash           String?
+  role                   UserRole              @default(PATIENT)
+  status                 AccountStatus         @default(PENDING_VERIFICATION)
+  doctorApproval         DoctorApprovalStatus?
+  doctorRejectionReason  String?
+  failedLoginCount       Int                   @default(0)
+  lockedUntil            DateTime?
+  mustChangePassword     Boolean               @default(false)
+  localePreference       LocaleCode?
+  doctorProfileId        String?
+  createdByAdminId       String?
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+
+  accounts           Account[]
+  sessions           Session[]
+  refreshCredentials RefreshCredential[]
+  challenges         AuthChallenge[]
+  passwordHistories  PasswordHistory[]
+  mfaFactors         MfaFactor[]
+  auditEventsActor   SecurityAuditEvent[] @relation("AuditActor")
+  auditEventsTarget  SecurityAuditEvent[] @relation("AuditTarget")
+  patientProfile     PatientProfile?
+  medicalProfile     MedicalProfile?
+  portalSettings     PortalSettings?
+  patientUploads     PatientUpload[]
+  appointments       Appointment[]        @relation("PatientAppointments")
+  clinicalDocuments  ClinicalDocument[]
+  medicalRecords     MedicalRecord[]
+  labResults         LabResult[]
+  prescriptions      Prescription[]
+  paymentObligations PaymentObligation[]
+  notifications      Notification[]
+  aiConversations    AiConversation[]
+
+  @@index([role, status])
+  @@index([doctorApproval])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id             String   @id @default(cuid())
+  sessionToken   String   @unique
+  userId         String
+  expires        DateTime
+  lastActiveAt   DateTime @default(now())
+  idleExpiresAt  DateTime
+  userAgent      String?
+  ipHash         String?
+  rememberMe     Boolean  @default(false)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, lastActiveAt])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model AuthChallenge {
+  id         String            @id @default(cuid())
+  userId     String?
+  email      String
+  kind       AuthChallengeKind
+  tokenHash  String            @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime          @default(now())
+  user       User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email, kind, createdAt])
+}
+
+model RefreshCredential {
+  id             String    @id @default(cuid())
+  userId         String
+  tokenHash      String    @unique
+  familyId       String
+  expiresAt      DateTime
+  rotatedFromId  String?
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([familyId])
+  @@index([userId])
+}
+
+model PasswordHistory {
+  id           String   @id @default(cuid())
+  userId       String
+  passwordHash String
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model SecurityAuditEvent {
+  id           String       @id @default(cuid())
+  type         String
+  actorUserId  String?
+  targetUserId String?
+  outcome      AuditOutcome
+  ipHash       String?
+  userAgent    String?
+  meta         Json?
+  createdAt    DateTime     @default(now())
+  actor        User?        @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  target       User?        @relation("AuditTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([type, createdAt])
+}
+
+model MfaFactor {
+  id               String    @id @default(cuid())
+  userId           String
+  type             String    @default("TOTP")
+  secretEncrypted  String?
+  enabledAt        DateTime?
+  createdAt        DateTime  @default(now())
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum AppointmentStatus {
+  HELD
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+  IN_PROGRESS
+}
+
+enum AppointmentMode {
+  IN_PERSON
+  VIDEO
+}
+
+enum LabReleaseStatus {
+  PENDING_REVIEW
+  RELEASED
+  RETRACTED
+  SUPERSEDED
+}
+
+enum LabResultPhase {
+  PRELIMINARY
+  FINAL
+}
+
+enum PrescriptionStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum NotificationCategory {
+  APPOINTMENT
+  CLINICAL
+  PRESCRIPTION
+  PAYMENT
+  SYSTEM
+}
+
+enum UploadScanStatus {
+  PENDING
+  CLEAN
+  REJECTED
+}
+
+enum ClinicalDocumentKind {
+  RECORD_ATTACHMENT
+  LAB_ATTACHMENT
+  PATIENT_UPLOAD
+  RECEIPT
+}
+
+model PatientProfile {
+  userId               String   @id
+  phone                String?
+  dateOfBirth          DateTime?
+  sexAtBirth           String?
+  addressLine1         String?
+  city                 String?
+  region               String?
+  emergencyContactName String?
+  emergencyContactPhone String?
+  insuranceProvider    String?
+  insurancePolicyNumber String?
+  updatedAt            DateTime @updatedAt
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MedicalProfile {
+  userId             String   @id
+  bloodType          String?
+  allergies          String[] @default([])
+  conditions         String[] @default([])
+  currentMedications String[] @default([])
+  notes              String?
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PortalSettings {
+  userId                   String     @id
+  locale                   LocaleCode @default(AR)
+  theme                    String     @default("system")
+  notifyAppointmentEmail   Boolean    @default(true)
+  notifyClinicalEmail      Boolean    @default(true)
+  notifyPrescriptionEmail  Boolean    @default(true)
+  notifyPaymentEmail       Boolean    @default(true)
+  notifySystemEmail        Boolean    @default(true)
+  user                     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PatientUpload {
+  id           String           @id @default(cuid())
+  patientUserId String
+  fileName     String
+  contentType  String
+  sizeBytes    Int
+  storageKey   String
+  scanStatus   UploadScanStatus @default(PENDING)
+  purpose      String           @default("other")
+  createdAt    DateTime         @default(now())
+  patient      User             @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+
+  @@index([patientUserId, createdAt])
+}
+
+model Appointment {
+  id                String            @id @default(cuid())
+  patientUserId     String
+  doctorId          String
+  mode              AppointmentMode
+  status            AppointmentStatus @default(HELD)
+  startAt           DateTime
+  endAt             DateTime
+  holdExpiresAt     DateTime?
+  locationText      String?
+  reason            String?
+  cancellationReason String?
+  rescheduledFromId String?
+  videoRoomId       String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  patient           User              @relation("PatientAppointments", fields: [patientUserId], references: [id], onDelete: Cascade)
+  doctor            Doctor            @relation(fields: [doctorId], references: [id])
+  paymentObligations PaymentObligation[]
+
+  @@index([patientUserId, startAt])
+  @@index([doctorId, startAt])
+  @@index([status, holdExpiresAt])
+}
+
+model ClinicalDocument {
+  id            String               @id @default(cuid())
+  patientUserId String
+  kind          ClinicalDocumentKind
+  title         String
+  contentType   String
+  storageKey    String
+  byteSize      Int
+  createdAt     DateTime             @default(now())
+  patient       User                 @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+  medicalRecords MedicalRecord[]
+  labResults    LabResult[]
+  prescriptions Prescription[]
+  paymentReceipts PaymentObligation[]
+
+  @@index([patientUserId, createdAt])
+}
+
+model MedicalRecord {
+  id            String            @id @default(cuid())
+  patientUserId String
+  title         String
+  recordType    String
+  summary       String?
+  recordedAt    DateTime
+  doctorId      String?
+  documentId    String?
+  createdAt     DateTime          @default(now())
+  patient       User              @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+  doctor        Doctor?           @relation(fields: [doctorId], references: [id])
+  document      ClinicalDocument? @relation(fields: [documentId], references: [id])
+
+  @@index([patientUserId, recordedAt])
+}
+
+model LabResult {
+  id             String           @id @default(cuid())
+  patientUserId  String
+  title          String
+  panelCode      String?
+  releaseStatus  LabReleaseStatus @default(PENDING_REVIEW)
+  phase          LabResultPhase   @default(FINAL)
+  criticalFlag   Boolean          @default(false)
+  resultedAt     DateTime
+  summary        String?
+  documentId     String?
+  supersededById String?
+  patient        User             @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+  document       ClinicalDocument? @relation(fields: [documentId], references: [id])
+
+  @@index([patientUserId, resultedAt])
+  @@index([patientUserId, releaseStatus])
+}
+
+model Prescription {
+  id             String             @id @default(cuid())
+  patientUserId  String
+  medicationName String
+  instructions   String
+  status         PrescriptionStatus @default(ACTIVE)
+  prescribedAt   DateTime
+  startsAt       DateTime?
+  endsAt         DateTime?
+  doctorId       String?
+  documentId     String?
+  patient        User               @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+  doctor         Doctor?            @relation(fields: [doctorId], references: [id])
+  document       ClinicalDocument?  @relation(fields: [documentId], references: [id])
+
+  @@index([patientUserId, status])
+  @@index([patientUserId, prescribedAt])
+}
+
+model PaymentObligation {
+  id                 String        @id @default(cuid())
+  patientUserId      String
+  appointmentId      String?
+  description        String
+  amountCents        Int
+  currency           String        @default("SAR")
+  status             PaymentStatus @default(PENDING)
+  providerRef        String?
+  idempotencyKey     String        @unique
+  receiptDocumentId  String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  patient            User          @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+  appointment        Appointment?  @relation(fields: [appointmentId], references: [id])
+  receiptDocument    ClinicalDocument? @relation(fields: [receiptDocumentId], references: [id])
+  attempts           PaymentAttempt[]
+
+  @@index([patientUserId, createdAt])
+  @@index([patientUserId, status])
+}
+
+model PaymentAttempt {
+  id               String        @id @default(cuid())
+  obligationId     String
+  providerIntentId String
+  status           PaymentStatus @default(PENDING)
+  rawEventId       String?
+  createdAt        DateTime      @default(now())
+  obligation       PaymentObligation @relation(fields: [obligationId], references: [id], onDelete: Cascade)
+
+  @@index([obligationId, createdAt])
+}
+
+model Notification {
+  id            String               @id @default(cuid())
+  patientUserId String
+  category      NotificationCategory
+  title         String
+  body          String
+  href          String?
+  readAt        DateTime?
+  dismissedAt   DateTime?
+  createdAt     DateTime             @default(now())
+  patient       User                 @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+
+  @@index([patientUserId, createdAt])
+  @@index([patientUserId, readAt])
+}
+
+model AiConversation {
+  id            String      @id @default(cuid())
+  patientUserId String
+  locale        LocaleCode  @default(AR)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  patient       User        @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+  messages      AiMessage[]
+
+  @@index([patientUserId, updatedAt])
+}
+
+model AiMessage {
+  id             String         @id @default(cuid())
+  conversationId String
+  role           String
+  content        String
+  createdAt      DateTime       @default(now())
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
 }

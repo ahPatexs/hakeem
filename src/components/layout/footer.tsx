@@ -42,6 +42,12 @@ export async function Footer() {
             <Link href="/blog" className="text-sm text-on-surface-variant hover:text-med-green">
               {t("newsroom")}
             </Link>
+            <Link href="/login" className="text-sm text-on-surface-variant hover:text-med-green">
+              {t("login")}
+            </Link>
+            <Link href="/register" className="text-sm text-on-surface-variant hover:text-med-green">
+              {t("register")}
+            </Link>
           </nav>
         </div>
 

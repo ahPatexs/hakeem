@@ -5,7 +5,6 @@ import { Menu } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { buildAppCtaUrl } from "@/lib/cta";
 import type { Locale } from "@/content/types";
 
 const links = [
@@ -37,12 +36,12 @@ export function MobileNav({ locale }: { locale: Locale }) {
               {t(link.key)}
             </Link>
           ))}
-          <a href={buildAppCtaUrl("login", { locale, page: "nav" })} className="text-primary">
+          <Link href="/login" className="text-primary">
             {t("login")}
-          </a>
-          <a href={buildAppCtaUrl("register", { locale, page: "nav" })}>
+          </Link>
+          <Link href="/register">
             <Button className="w-full rounded-full">{t("getStarted")}</Button>
-          </a>
+          </Link>
         </nav>
       </SheetContent>
     </Sheet>

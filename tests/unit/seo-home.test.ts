@@ -16,6 +16,6 @@ describe("buildMetadata home", () => {
     expect(meta.alternates?.languages?.ar).toContain("/ar");
     expect(meta.alternates?.languages?.["x-default"]).toContain("/ar");
     expect(meta.openGraph?.title).toBeTruthy();
-    expect(meta.twitter?.card).toBe("summary_large_image");
+    expect((meta.twitter as { card?: string } | undefined)?.card).toBe("summary_large_image");
   });
 });

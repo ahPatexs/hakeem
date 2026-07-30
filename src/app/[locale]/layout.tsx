@@ -5,6 +5,7 @@ import { Montserrat, Noto_Sans_Arabic } from "next/font/google";
 import { routing } from "@/i18n/routing";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
+import { ChromeGate } from "@/components/layout/chrome-gate";
 import type { Locale } from "@/content/types";
 
 const montserrat = Montserrat({
@@ -50,9 +51,12 @@ export default async function LocaleLayout({
           >
             Skip to content
           </a>
-          <Navbar locale={locale as Locale} />
-          <main id="main-content">{children}</main>
-          <Footer />
+          <ChromeGate
+            nav={<Navbar locale={locale as Locale} />}
+            footer={<Footer />}
+          >
+            {children}
+          </ChromeGate>
         </NextIntlClientProvider>
       </body>
     </html>
