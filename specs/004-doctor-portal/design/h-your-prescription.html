@@ -1,0 +1,347 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>My Prescription | Clinical Intelligence AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "background": "#f8f9ff",
+                    "surface-tint": "#0053db",
+                    "surface": "#f8f9ff",
+                    "outline": "#737686",
+                    "surface-container-low": "#eff4ff",
+                    "surface-container-highest": "#d3e4fe",
+                    "on-tertiary-fixed": "#07006c",
+                    "primary-fixed": "#dbe1ff",
+                    "on-primary-container": "#eeefff",
+                    "on-error": "#ffffff",
+                    "error": "#ba1a1a",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "on-background": "#0b1c30",
+                    "surface-container": "#e5eeff",
+                    "primary": "#004ac6",
+                    "tertiary-container": "#585be6",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-fixed-variant": "#005236",
+                    "on-secondary-fixed": "#002113",
+                    "on-tertiary-container": "#f1eeff",
+                    "secondary": "#006c49",
+                    "surface-container-high": "#dce9ff",
+                    "tertiary": "#3e3fcc",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-fixed-variant": "#2f2ebe",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "secondary-fixed-dim": "#4edea3",
+                    "surface-variant": "#d3e4fe",
+                    "secondary-fixed": "#6ffbbe",
+                    "inverse-primary": "#b4c5ff",
+                    "primary-container": "#2563eb",
+                    "on-surface-variant": "#434655",
+                    "inverse-surface": "#213145"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "container-max": "1440px",
+                    "margin-mobile": "16px",
+                    "stack-sm": "8px",
+                    "stack-md": "16px",
+                    "margin-desktop": "48px",
+                    "gutter": "24px",
+                    "unit": "4px",
+                    "stack-lg": "32px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Lexend"],
+                    "headline-md": ["Lexend"],
+                    "display-lg": ["Lexend"],
+                    "body-md": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "label-md": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .prescription-pattern {
+            background-color: #f8f9ff;
+            background-image: radial-gradient(#d3e4fe 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen prescription-pattern">
+<!-- TopNavBar (Shared Component Guide) -->
+<header class="bg-surface-container-lowest border-b border-outline-variant flex justify-between items-center w-full px-margin-desktop h-16 sticky top-0 z-50 shadow-sm">
+<div class="flex items-center gap-stack-lg"><div class="flex items-center gap-3">
+    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8JvQXMjbkyOAYoebGnC1c76v7bsgnvZgeSkQT1l5WocXyxJV3H1ajQZKv9oV7D7djvSqbtrDkHCnDAsflMBl7mwSi8z57Qqf-AtOa16qYTpQ_owLRhpXgeyc0hYo41VJpeCFgYO2StoHlYLlrfLUUnmG4BxccEfMidlPgQ6CbeshhTxj-CnsB4xtd0ieEFq7H0vP_dsmcZaKctyF2-0JH-SWjtmGmZlyeu8gorJFmXX82D29_DFQLtTHa3enmnZwQaQ" alt="Hakeem Logo" class="h-10 w-auto">
+    <div class="flex flex-col">
+        <span class="font-display-lg text-[20px] font-bold text-primary leading-none">Hakeem AI</span>
+        <span class="font-headline-md text-[12px] font-medium text-on-surface-variant leading-tight">Precision Care</span>
+    </div>
+</div>
+<nav class="hidden md:flex items-center space-x-6">
+    <a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Patients</a>
+    <a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Dashboard</a>
+    <a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Schedule</a>
+    <a class="text-primary border-b-2 border-primary pb-1 font-bold font-label-md text-label-md" href="#">Records</a>
+</nav></div>
+<div class="flex items-center gap-stack-md">
+<button class="hidden lg:flex items-center px-4 py-2 border border-outline-variant rounded-lg text-primary hover:bg-surface-container-low transition-all font-label-md">
+                Review EMR
+            </button>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant p-2 hover:bg-surface-variant rounded-full cursor-pointer">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant p-2 hover:bg-surface-variant rounded-full cursor-pointer">settings</span>
+<div class="w-8 h-8 rounded-full overflow-hidden ml-2 ring-2 ring-primary-container ring-offset-2">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a female doctor with a kind expression, wearing a white clinical coat. The background is a soft-focus medical office with light-mode blue and white tones, matching a clean healthcare aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdokeYNJhl4-x8tEHoXHDodwz9xCCvLQ_zn-c4v2wmA7OGCen952mHe1ES4AMEBmz94LQ4Cnq5DhLWsVv8c-Dl1hKYh4zuxVOGdIYo6SFe5ITN5yeGweYMSHEe7WTxvwixbC9bIxDNanxrjGLPj-kEW0gRDjWP8O2wTe7Be6rtY_PHPvLEuV8iS-d5yuscLvyRudqcrdtq7tExrGWfisKs3YXCMSO4B7T63IOCtHwUJ8w6QycV_sv9f7HWwjLofYGpTncmG3UooSA">
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto px-margin-desktop py-stack-lg animate-in fade-in duration-700">
+<!-- Breadcrumbs & Actions -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-stack-md mb-8">
+<div>
+<nav class="flex items-center text-on-surface-variant font-label-md mb-2">
+<a class="hover:text-primary" href="#">Dashboard</a>
+<span class="material-symbols-outlined text-[18px] mx-1">chevron_right</span>
+<a class="hover:text-primary" href="#">Medical Records</a>
+<span class="material-symbols-outlined text-[18px] mx-1">chevron_right</span>
+<span class="text-primary font-bold">Current Prescription</span>
+</nav>
+<h1 class="font-headline-lg text-headline-lg text-on-background">Prescription Details</h1>
+</div>
+<div class="flex flex-wrap gap-stack-md">
+<button class="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl shadow-md hover:translate-y-[-2px] transition-all active:scale-95">
+<span class="material-symbols-outlined">download</span>
+<span class="font-label-md">Download PDF</span>
+</button>
+<button class="flex items-center gap-2 px-6 py-3 border border-outline-variant bg-white text-on-surface hover:bg-surface-container-low rounded-xl transition-all">
+<span class="material-symbols-outlined">location_on</span>
+<span class="font-label-md">Find Nearby Pharmacy</span>
+</button>
+</div>
+</div>
+<!-- Main Content Layout: Bento Grid Style -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Prescription Card (Large) -->
+<div class="lg:col-span-8 space-y-gutter">
+<div class="glass-card border border-outline-variant rounded-xl overflow-hidden shadow-sm relative transition-all duration-500 opacity-100 translate-y-0">
+<!-- Prescription Header -->
+<div class="bg-primary text-white p-8 flex justify-between items-start">
+<div class="space-y-1">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-[32px]">medication</span>
+<h2 class="font-headline-md text-headline-md">Lisinopril 10mg</h2>
+</div>
+<p class="font-body-md opacity-90">Prescribed by Dr. Julianne Rivers</p>
+</div>
+<div class="text-right">
+<span class="inline-block px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full font-label-md text-sm mb-2">Active</span>
+<p class="font-label-md opacity-80">Issued: Oct 24, 2023</p>
+</div>
+</div>
+<!-- Clear Dosage Instructions -->
+<div class="p-8">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-stack-lg mb-8">
+<div class="bg-surface-container-low p-6 rounded-xl border border-surface-variant flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-primary text-[40px] mb-2">schedule</span>
+<h3 class="font-label-md text-on-surface-variant uppercase text-xs tracking-wider mb-1">When to take</h3>
+<p class="font-headline-md text-primary">Every Morning</p>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border border-surface-variant flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-primary text-[40px] mb-2">vaccines</span>
+<h3 class="font-label-md text-on-surface-variant uppercase text-xs tracking-wider mb-1">Dosage</h3>
+<p class="font-headline-md text-primary">1 Tablet</p>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border border-surface-variant flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-primary text-[40px] mb-2">restaurant</span>
+<h3 class="font-label-md text-on-surface-variant uppercase text-xs tracking-wider mb-1">With Food?</h3>
+<p class="font-headline-md text-primary">Optional</p>
+</div>
+</div>
+<div class="bg-error-container/20 border border-error/20 p-6 rounded-xl flex gap-4">
+<span class="material-symbols-outlined text-error text-[28px]" style="font-variation-settings: 'FILL' 1;">warning</span>
+<div>
+<h4 class="font-label-md text-on-error-container">Important Note</h4>
+<p class="font-body-sm text-on-surface-variant">Do not skip doses. If you miss a dose, take it as soon as you remember unless it is almost time for your next dose.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Medication Details (Accordion Style Cards) -->
+<div class="space-y-4">
+<!-- Card 1: Purpose -->
+<details class="group glass-card border border-outline-variant rounded-xl overflow-hidden cursor-pointer transition-all duration-500 opacity-100 translate-y-0" open="">
+<summary class="flex justify-between items-center p-6 list-none hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">info</span>
+<span class="font-headline-md text-[20px]">Purpose of Medication</span>
+</div>
+<span class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+</summary>
+<div class="p-6 pt-0 border-t border-outline-variant/30 text-on-surface-variant">
+<p class="font-body-md leading-relaxed">
+                                Lisinopril is used to treat high blood pressure (hypertension). Lowering high blood pressure helps prevent strokes, heart attacks, and kidney problems. It is also used to treat heart failure and to improve survival after a heart attack. It works by relaxing blood vessels so blood can flow more easily.
+                            </p>
+</div>
+</details>
+<!-- Card 2: Side Effects -->
+<details class="group glass-card border border-outline-variant rounded-xl overflow-hidden cursor-pointer transition-all duration-500 opacity-100 translate-y-0">
+<summary class="flex justify-between items-center p-6 list-none hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary">report_problem</span>
+<span class="font-headline-md text-[20px]">Potential Side Effects</span>
+</div>
+<span class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+</summary>
+<div class="p-6 pt-0 border-t border-outline-variant/30 text-on-surface-variant">
+<ul class="space-y-3 font-body-md">
+<li class="flex items-start gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></span>
+<span class="">Common: Dizziness, lightheadedness, tiredness, or dry cough.</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></span>
+<span class="">Rare but Serious: Fainting, symptoms of high potassium (muscle weakness, slow heart rate), or signs of kidney problems.</span>
+</li>
+</ul>
+</div>
+</details>
+</div>
+</div>
+<!-- Sidebar Info -->
+<div class="lg:col-span-4 space-y-gutter">
+<!-- Patient Info Card -->
+<div class="bg-surface-container-highest border border-outline-variant rounded-xl p-6 shadow-sm">
+<h3 class="font-label-md text-on-surface-variant uppercase text-xs tracking-widest mb-6">Patient Context</h3>
+<div class="flex items-center gap-4 mb-6">
+<div class="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center text-white font-bold text-xl">SJ</div>
+<div>
+<h4 class="font-headline-md text-[18px]">Sarah Jenkins</h4>
+<p class="font-body-sm opacity-70">ID: 992-04-12</p>
+</div>
+</div>
+<div class="space-y-4 pt-4 border-t border-outline-variant/30">
+<div class="flex justify-between">
+<span class="font-body-sm text-on-surface-variant">Last Refill:</span>
+<span class="font-label-md">None</span>
+</div>
+<div class="flex justify-between">
+<span class="font-body-sm text-on-surface-variant">Refills Remaining:</span>
+<span class="font-label-md">3</span>
+</div>
+</div>
+</div>
+<!-- Doctor Insight -->
+<div class="bg-white border border-outline-variant rounded-xl p-6 shadow-sm overflow-hidden relative">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12"></div>
+<h3 class="font-label-md text-primary uppercase text-xs tracking-widest mb-4">Doctor's Insight</h3>
+<p class="font-body-md italic text-on-surface-variant mb-4">
+                        "Sarah, we are monitoring your blood pressure closely. This medication is the first step in our management plan. Please track your morning readings for our next check-in."
+                    </p>
+<div class="flex items-center gap-2">
+<img class="w-8 h-8 rounded-full object-cover" data-alt="Close up portrait of Dr. Julianne Rivers, a professional female doctor in her 40s with a warm and focused expression. Soft indoor medical lighting with high-end aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkHoeTlhr7P2Z6F3eeJvXhM3anbfcPdF-BOTO_IK8YKbNr_mcx7ZwgcrSWXae0J8lAqPhohtExhjnqcj9epbUD8DGq3r8Ee1QbDolFonfj6_8OQFSM1giCeAoXRd5-ozAx--I_pTvU0nAJwhYhrqQy5rgnVVmr845gmy_oRnoIawOZTiYlkNl7XHaMGj58kTKCOIuCB9pM93ZZnu6K5yjCE6Enb4jgwvWtg3sJjInejYwaofpfweNei93A5uoB1pLak_YHIvFPnSo">
+<span class="font-label-md text-sm">Dr. Julianne Rivers</span>
+</div>
+</div>
+<!-- Call Support -->
+<div class="bg-inverse-surface text-inverse-on-surface rounded-xl p-6 shadow-lg">
+<span class="material-symbols-outlined text-[32px] mb-4 text-primary-fixed">support_agent</span>
+<h3 class="font-headline-md text-[18px] mb-2">Need Assistance?</h3>
+<p class="font-body-sm opacity-80 mb-6">If you have questions about this prescription or are experiencing severe side effects, contact our 24/7 clinical team.</p>
+<button class="w-full py-3 bg-primary-fixed text-on-primary-fixed font-bold rounded-lg hover:bg-primary-fixed-dim transition-colors">
+                        Call Clinician
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Action Bar (Mobile Only) -->
+<div class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-outline-variant p-4 flex gap-2 z-50">
+<button class="flex-1 flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-label-md">Home</span>
+</button>
+<button class="flex-1 flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">description</span>
+<span class="text-[10px] font-label-md">Records</span>
+</button>
+<button class="flex-1 flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">event</span>
+<span class="text-[10px] font-label-md">Schedule</span>
+</button>
+<button class="flex-1 flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">chat</span>
+<span class="text-[10px] font-label-md">Chat</span>
+</button>
+</div>
+<script>
+        // Micro-interaction for buttons
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mousedown', () => {
+                button.style.transform = 'scale(0.98)';
+            });
+            button.addEventListener('mouseup', () => {
+                button.style.transform = 'scale(1)';
+            });
+            button.addEventListener('mouseleave', () => {
+                button.style.transform = 'scale(1)';
+            });
+        });
+
+        // Simple smooth entrance for cards
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-4');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.classList.add('transition-all', 'duration-500', 'opacity-0', 'translate-y-4');
+            observer.observe(card);
+        });
+    </script>
+
+
+
+</body></html>

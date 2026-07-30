@@ -126,7 +126,7 @@ export async function confirmAppointment(input: unknown) {
     });
 
     await createNotification({
-      patientUserId: userId,
+      recipientUserId: userId,
       category: "APPOINTMENT",
       title: "Appointment confirmed",
       body: `Your appointment on ${updated.startAt.toLocaleString()} is confirmed.`,
@@ -157,7 +157,7 @@ export async function cancelAppointment(input: unknown) {
     });
 
     await createNotification({
-      patientUserId: userId,
+      recipientUserId: userId,
       category: "APPOINTMENT",
       title: "Appointment cancelled",
       body: `Your appointment on ${updated.startAt.toLocaleString()} was cancelled.`,
@@ -206,7 +206,7 @@ export async function rescheduleAppointment(input: unknown) {
     ]);
 
     await createNotification({
-      patientUserId: userId,
+      recipientUserId: userId,
       category: "APPOINTMENT",
       title: "Appointment rescheduled",
       body: `Your appointment was moved to ${start.toLocaleString()}.`,

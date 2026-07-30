@@ -1,10 +1,12 @@
 export type AppointmentStatus =
   | "HELD"
   | "CONFIRMED"
+  | "CHECKED_IN"
   | "CANCELLED"
   | "COMPLETED"
   | "NO_SHOW"
-  | "IN_PROGRESS";
+  | "IN_PROGRESS"
+  | "RESCHEDULED";
 
 /** Duration a held slot remains reserved before expiring. */
 export const HOLD_MS = 10 * 60 * 1000;

@@ -16,6 +16,8 @@ const APPOINTMENT_TONES: Record<string, string> = {
   COMPLETED: "bg-primary/10 text-primary border-primary/20",
   NO_SHOW: "bg-red-100 text-red-800 border-red-200",
   IN_PROGRESS: "bg-blue-100 text-blue-800 border-blue-200",
+  CHECKED_IN: "bg-teal-100 text-teal-800 border-teal-200",
+  RESCHEDULED: "bg-surface-container-highest text-on-surface-variant border-outline-variant/30",
 };
 
 const PAYMENT_TONES: Record<string, string> = {
@@ -35,6 +37,7 @@ const LAB_TONES: Record<string, string> = {
 };
 
 const PRESCRIPTION_TONES: Record<string, string> = {
+  DRAFT: "bg-amber-100 text-amber-800 border-amber-200",
   ACTIVE: "bg-med-green/10 text-med-green border-med-green/20",
   COMPLETED: "bg-primary/10 text-primary border-primary/20",
   CANCELLED: "bg-surface-container-highest text-on-surface-variant border-outline-variant/30",

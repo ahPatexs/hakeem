@@ -1,0 +1,143 @@
+{
+  "projectId": "2408493713147971043",
+  "downloadedAt": "2026-07-30",
+  "screens": [
+    {
+      "id": "ddd0bed7973c488d9ee666f3985981b1",
+      "name": "Patient Management - Hakeem",
+      "slug": "patient-management",
+      "route": "/doctor/patients",
+      "desktop": "d-patient-management.png",
+      "html": "h-patient-management.html"
+    },
+    {
+      "id": "dedb538282544081a59ff9567472089f",
+      "name": "Doctor Dashboard - Hakeem",
+      "slug": "doctor-dashboard",
+      "route": "/doctor",
+      "desktop": "d-doctor-dashboard.png",
+      "html": "h-doctor-dashboard.html"
+    },
+    {
+      "id": "69b4fdeafa9d4bafbd82b9d1349c988a",
+      "name": "Consultation Workspace - Hakeem",
+      "slug": "consultation-workspace",
+      "route": "/doctor/consultations/[appointmentId]",
+      "desktop": "d-consultation-workspace.png",
+      "html": "h-consultation-workspace.html"
+    },
+    {
+      "id": "1aab871b8eea483a9f2a4c2c10e77951",
+      "name": "Doctor Profile & Schedule - Hakeem",
+      "slug": "doctor-profile-schedule",
+      "route": "/doctor/schedule",
+      "desktop": "d-doctor-profile-schedule.png",
+      "html": "h-doctor-profile-schedule.html"
+    },
+    {
+      "id": "9563dadf50fc41ec8403d23356609ab7",
+      "name": "Doctor Search - Hakeem",
+      "slug": "doctor-search",
+      "route": "/doctors",
+      "desktop": "d-doctor-search.png",
+      "html": "h-doctor-search.html"
+    },
+    {
+      "id": "cdb22296c73748489cd745a8741ff48f",
+      "name": "Doctor Profile - Hakeem",
+      "slug": "doctor-profile",
+      "route": "/doctors/[id]",
+      "desktop": "d-doctor-profile.png",
+      "html": "h-doctor-profile.html"
+    },
+    {
+      "id": "2c30a553a345420c81197addaf1d79b4",
+      "name": "Search Results - Hakeem",
+      "slug": "search-results",
+      "route": "/search",
+      "desktop": "d-search-results.png",
+      "html": "h-search-results.html"
+    },
+    {
+      "id": "ac4afd4af5e9453f84d0169d8728772e",
+      "name": "Hakeem Workspace - Module Organization",
+      "slug": "workspace-module-org",
+      "route": "/doctor/workspace",
+      "desktop": null,
+      "html": "h-workspace-module-org.html",
+      "note": "Screenshot downloadUrl missing from Stitch get_screen response"
+    },
+    {
+      "id": "a58a8f29bbb7483bb494938dcbb4a1f8",
+      "name": "Prescription Dashboard - Hakeem AI",
+      "slug": "prescription-dashboard",
+      "route": "/doctor/prescriptions",
+      "desktop": "d-prescription-dashboard.png",
+      "html": "h-prescription-dashboard.html"
+    },
+    {
+      "id": "07acd86d7e22449691a61bcbe6cc9863",
+      "name": "Create Prescription - Hakeem AI",
+      "slug": "create-prescription",
+      "route": "/doctor/prescriptions/new",
+      "desktop": "d-create-prescription.png",
+      "html": "h-create-prescription.html"
+    },
+    {
+      "id": "154c7abb0a84445f9d7356a777998383",
+      "name": "AI Prescription Draft - Hakeem AI",
+      "slug": "ai-prescription-draft",
+      "route": "/doctor/ai/prescription",
+      "desktop": "d-ai-prescription-draft.png",
+      "html": "h-ai-prescription-draft.html"
+    },
+    {
+      "id": "99146c2d20f44eaf9f77db23bbe415ee",
+      "name": "Review & Sign Prescription - Hakeem AI",
+      "slug": "review-sign-prescription",
+      "route": "/doctor/prescriptions/[id]",
+      "desktop": "d-review-sign-prescription.png",
+      "html": "h-review-sign-prescription.html"
+    },
+    {
+      "id": "55ea7b4f0e0a42e099e8e62eac7b2632",
+      "name": "Your Prescription - Hakeem AI",
+      "slug": "your-prescription",
+      "route": "/prescriptions/[id]",
+      "desktop": "d-your-prescription.png",
+      "html": "h-your-prescription.html"
+    },
+    {
+      "id": "d5cb724385e54f55a36856880f89837b",
+      "name": "Lab Results & Radiology - Hakeem EMR",
+      "slug": "lab-results-radiology",
+      "route": "/doctor/patients/[id]/labs",
+      "desktop": "d-lab-results-radiology.png",
+      "html": "h-lab-results-radiology.html"
+    },
+    {
+      "id": "ee6a1f7890c74fc3bb4db886e194ccd9",
+      "name": "AI Documentation & Medical History - Hakeem EMR",
+      "slug": "ai-documentation",
+      "route": "/doctor/ai/documentation",
+      "desktop": "d-ai-documentation.png",
+      "html": "h-ai-documentation.html"
+    },
+    {
+      "id": "92528525cec94828a7add25ed36d6a7c",
+      "name": "Medical Timeline & Consultations - Hakeem EMR",
+      "slug": "medical-timeline",
+      "route": "/doctor/patients/[id]/records",
+      "desktop": "d-medical-timeline.png",
+      "html": "h-medical-timeline.html"
+    },
+    {
+      "id": "3ed6dd36d1b44f3e96c166e19a2a3aa1",
+      "name": "Patient Overview & Medical Record - Hakeem EMR",
+      "slug": "patient-overview",
+      "route": "/doctor/patients/[patientId]",
+      "desktop": "d-patient-overview.png",
+      "html": "h-patient-overview.html"
+    }
+  ]
+}

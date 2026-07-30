@@ -1,28 +1,33 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
-import { Link } from "@/i18n/routing";
-import { Button } from "@/components/ui/button";
+import { getDoctorDashboard } from "@/actions/doctor/dashboard";
+import { DashboardWidgets } from "@/components/doctor/dashboard/widgets";
+import { ErrorState } from "@/components/doctor/shared";
 
-export default async function DoctorHome({
+export default async function DoctorDashboardPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("auth");
+  const t = await getTranslations("doctor.dashboard");
+
+  const result = await getDoctorDashboard();
+  if (!result.ok) {
+    return <ErrorState title={t("loadErrorTitle")} message={t("loadError")} />;
+  }
+
   const session = await auth();
-  const user = session!.user;
+  const name = session?.user?.name ?? session?.user?.email ?? "";
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 px-margin-mobile py-28 md:px-margin-desktop">
-      <h1 className="font-headline text-3xl text-primary">{t("doctorHomeTitle")}</h1>
-      <p className="text-on-surface-variant">
-        {t("welcomeUser", { name: user.name ?? user.email })}
-      </p>
-      <Button asChild variant="outline">
-        <Link href="/account/sessions">{t("manageSessions")}</Link>
-      </Button>
+    <div className="space-y-6">
+      <div>
+        <h1 className="font-headline text-2xl text-primary md:text-3xl">{t("welcome", { name })}</h1>
+        <p className="mt-1 text-on-surface-variant">{t("subtitle")}</p>
+      </div>
+      <DashboardWidgets bundle={result.data} />
     </div>
   );
 }

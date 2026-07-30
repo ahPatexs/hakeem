@@ -7,6 +7,11 @@ export type Permission =
   | "account:manage_sessions_self"
   | "patient:portal"
   | "doctor:portal"
+  | "doctor:chart:read"
+  | "doctor:note:write"
+  | "doctor:rx:sign"
+  | "doctor:video:host"
+  | "doctor:ai:use"
   | "admin:users:read"
   | "admin:users:write"
   | "admin:doctors:provision"
@@ -25,6 +30,11 @@ const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     "account:change_password",
     "account:manage_sessions_self",
     "doctor:portal",
+    "doctor:chart:read",
+    "doctor:note:write",
+    "doctor:rx:sign",
+    "doctor:video:host",
+    "doctor:ai:use",
   ],
   ADMIN: [
     "account:read_self",

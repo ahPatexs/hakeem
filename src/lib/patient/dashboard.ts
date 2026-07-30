@@ -114,10 +114,10 @@ async function loadRecentRecords(userId: string): Promise<MedicalRecord[]> {
 async function loadNotificationSummary(userId: string): Promise<{ unreadCount: number; items: Notification[] }> {
   const [unreadCount, items] = await Promise.all([
     prisma.notification.count({
-      where: { patientUserId: userId, readAt: null, dismissedAt: null },
+      where: { recipientUserId: userId, readAt: null, dismissedAt: null },
     }),
     prisma.notification.findMany({
-      where: { patientUserId: userId, dismissedAt: null },
+      where: { recipientUserId: userId, dismissedAt: null },
       orderBy: { createdAt: "desc" },
       take: DASHBOARD_CAPS.notificationPreview,
     }),

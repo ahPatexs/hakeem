@@ -115,6 +115,92 @@ async function main() {
   const publishedDoctor = await prisma.doctor.findFirst({
     where: { status: "PUBLISHED" },
   });
+
+  // Linked doctor account for portal QA (Module 4)
+  const doctorEmail = "doctor@hakeem.local";
+  const doctorHash = await hash("Doctor!Pass1234", 12);
+  if (publishedDoctor) {
+    await prisma.user.upsert({
+      where: { email: doctorEmail },
+      update: {
+        passwordHash: doctorHash,
+        role: "DOCTOR",
+        status: "ACTIVE",
+        emailVerified: new Date(),
+        name: "Demo Doctor",
+        doctorProfileId: publishedDoctor.id,
+        doctorApproval: "APPROVED",
+      },
+      create: {
+        email: doctorEmail,
+        name: "Demo Doctor",
+        passwordHash: doctorHash,
+        role: "DOCTOR",
+        status: "ACTIVE",
+        emailVerified: new Date(),
+        doctorProfileId: publishedDoctor.id,
+        doctorApproval: "APPROVED",
+      },
+    });
+
+    const doctorUser = await prisma.user.findUnique({ where: { email: doctorEmail } });
+    if (doctorUser) {
+      await prisma.portalSettings.upsert({
+        where: { userId: doctorUser.id },
+        update: {},
+        create: { userId: doctorUser.id, locale: "EN" },
+      });
+
+      const todayStart = new Date();
+      todayStart.setHours(9, 0, 0, 0);
+      const todayEnd = new Date(todayStart.getTime() + 30 * 60 * 1000);
+      const existingToday = await prisma.appointment.findFirst({
+        where: {
+          patientUserId: patient.id,
+          doctorId: publishedDoctor.id,
+          status: { in: ["CHECKED_IN", "CONFIRMED", "IN_PROGRESS"] },
+          startAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
+        },
+      });
+      if (!existingToday) {
+        await prisma.appointment.create({
+          data: {
+            patientUserId: patient.id,
+            doctorId: publishedDoctor.id,
+            mode: "VIDEO",
+            status: "CHECKED_IN",
+            startAt: todayStart,
+            endAt: todayEnd,
+            checkedInAt: new Date(),
+            reason: "Follow-up consultation (demo)",
+          },
+        });
+      }
+
+      await prisma.notification.create({
+        data: {
+          recipientUserId: doctorUser.id,
+          category: "QUEUE",
+          title: "Patient checked in",
+          body: "Demo Patient is waiting in your queue.",
+          href: "/doctor/queue",
+        },
+      }).catch(() => undefined);
+
+      await prisma.labResult.create({
+        data: {
+          patientUserId: patient.id,
+          title: "Lipid Panel (preliminary)",
+          releaseStatus: "PENDING_REVIEW",
+          phase: "PRELIMINARY",
+          criticalFlag: false,
+          resultedAt: new Date(),
+          summary: "Awaiting physician review (demo)",
+        },
+      }).catch(() => undefined);
+    }
+  }
+
   if (publishedDoctor) {
     const startAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
     startAt.setHours(10, 0, 0, 0);
@@ -148,6 +234,27 @@ async function main() {
       },
     }).catch(() => undefined);
 
+    await prisma.prescription.create({
+      data: {
+        patientUserId: patient.id,
+        medicationName: "Amoxicillin (draft)",
+        instructions: "Draft prescription pending physician review",
+        status: "DRAFT",
+        prescribedAt: new Date(),
+        doctorId: publishedDoctor.id,
+        lines: {
+          create: [
+            {
+              medicationName: "Amoxicillin",
+              dose: "500mg",
+              frequency: "TID",
+              sortOrder: 0,
+            },
+          ],
+        },
+      },
+    }).catch(() => undefined);
+
     await prisma.labResult.create({
       data: {
         patientUserId: patient.id,
@@ -173,7 +280,7 @@ async function main() {
 
   await prisma.notification.create({
     data: {
-      patientUserId: patient.id,
+      recipientUserId: patient.id,
       category: "SYSTEM",
       title: "Welcome to Hakeem Patient Portal",
       body: "Your dashboard is ready. Book an appointment anytime.",
@@ -194,7 +301,9 @@ async function main() {
     },
   });
 
-  console.log("Seed complete (includes admin@hakeem.local / patient@hakeem.local + portal demo data)");
+  console.log(
+    "Seed complete (admin@hakeem.local / patient@hakeem.local / doctor@hakeem.local Doctor!Pass1234)",
+  );
 }
 
 main()

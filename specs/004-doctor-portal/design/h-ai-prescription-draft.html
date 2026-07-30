@@ -1,0 +1,480 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>AI Prescription Draft | Clinical Intelligence AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Lexend:wght@500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#f8f9ff",
+                        "surface-tint": "#0053db",
+                        "surface": "#f8f9ff",
+                        "outline": "#737686",
+                        "surface-container-low": "#eff4ff",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-tertiary-fixed": "#07006c",
+                        "primary-fixed": "#dbe1ff",
+                        "on-primary-container": "#eeefff",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-background": "#0b1c30",
+                        "surface-container": "#e5eeff",
+                        "primary": "#004ac6",
+                        "tertiary-container": "#585be6",
+                        "surface-dim": "#cbdbf5",
+                        "inverse-surface": "#213145",
+                        "surface-bright": "#f8f9ff",
+                        "on-error-container": "#93000a",
+                        "on-surface": "#0b1c30",
+                        "inverse-on-surface": "#eaf1ff",
+                        "secondary-container": "#6cf8bb",
+                        "outline-variant": "#c3c6d7",
+                        "on-primary-fixed": "#00174b",
+                        "on-secondary-container": "#00714d",
+                        "primary-container": "#2563eb",
+                        "on-surface-variant": "#434655",
+                        "tertiary-fixed": "#e1e0ff",
+                        "tertiary-fixed-dim": "#c0c1ff",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-secondary-fixed": "#002113",
+                        "on-tertiary-container": "#f1eeff",
+                        "secondary": "#006c49",
+                        "surface-container-high": "#dce9ff",
+                        "tertiary": "#3e3fcc",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#2f2ebe",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-variant": "#d3e4fe",
+                        "secondary-fixed": "#6ffbbe",
+                        "inverse-primary": "#b4c5ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-max": "1440px",
+                        "margin-mobile": "16px",
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "margin-desktop": "48px",
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "stack-lg": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Lexend"],
+                        "headline-md": ["Lexend"],
+                        "display-lg": ["Lexend"],
+                        "body-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #f8f9ff;
+            color: #0b1c30;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md selection:bg-primary-fixed">
+<!-- TopNavBar -->
+<header class="fixed top-0 z-50 w-full bg-surface-container-lowest border-b border-outline-variant shadow-sm h-16 flex justify-between items-center px-margin-desktop">
+<div class="flex items-center gap-gutter">
+<div class="flex items-center gap-3">
+    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4YikYI3aNr8vaoZCortJ5zvhD50mP8PsVlZOQcWM2RNZCrj-277AqdwDs8nogOuI287ukSD5aE_ObyZzqmhVmT4s9viq3hRMKB62RBBEizl-qqWY6WItnn87GE1wGoXuK5xBDHYGgdEA78YeKAKHmebBQ2sSy_bL469yDXRQTUlJHIQ6gQPyFfYnjknIM5mI9jWROhLg4oZJu6EB3jcyU3dALkF2ZDYC8UhCaAMR_k8vkFhCMvyU6VrLBiUAb-49JQA" alt="Hakeem Logo" class="h-10 w-auto">
+    <div class="flex flex-col leading-tight">
+        <span class="font-headline-md text-[20px] font-bold text-primary">Hakeem AI</span>
+        <span class="font-label-sm text-[12px] font-medium text-on-surface-variant">Precision Care</span>
+    </div>
+</div>
+<nav class="hidden md:flex gap-6 items-center">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Patients</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Dashboard</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Schedule</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Records</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="hidden lg:flex items-center px-4 py-2 border border-outline-variant rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-low transition-all">
+                Review EMR
+            </button>
+<button class="bg-primary text-on-primary px-5 py-2.5 rounded-lg font-label-md text-label-md shadow-sm hover:opacity-90 active:scale-[0.98] transition-all">
+                Finalize Consultation
+            </button>
+<div class="flex items-center gap-2 ml-2">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer p-2 hover:bg-surface-container-low rounded-full">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer p-2 hover:bg-surface-container-low rounded-full">settings</span>
+<div class="w-8 h-8 rounded-full bg-surface-container-high ml-2 border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a female doctor in her late 30s with a warm, confident smile, wearing a white lab coat over a light blue shirt. The background is a softly blurred modern clinical office with high-key lighting. The overall style is clean, sharp, and authoritative, matching the premium healthcare aesthetic of the app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0VKKjEnhxhHrVS7BZvx8StGeZZby1q27L_apGpLx4-MhmoLy8XDdawLKUwNVFZxqz84d5d2VEpzArQZIofpzqd_zcDMfgL3-Hma7I9BP8TaXXO-QuqeNKLXspAXctSZOVCsCQ12iBp6Htw8lbh7rmYOHiy_G3rVn9PNb6XoioJxwZv10a76VUWJn0drrUcjP78gV7CG3mbnXYuwUBkQNFl8wB-Dl89KHBFokFMYbufSFxz_1Ls7YeRDDP38tc8whRMw-HHM-VUqQ">
+</div>
+</div>
+</div>
+</header>
+<div class="flex pt-16 h-screen overflow-hidden">
+<!-- SideNavBar -->
+<aside class="w-64 bg-surface-container-low border-r border-outline-variant flex flex-col h-full py-6 px-4 space-y-stack-md hidden md:flex"><div class="flex items-center gap-3 px-2 mb-6">
+    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3yqRZtd3d9aa3v2BUa2m2LVxFL2M1Ll5ukQGo5yoq_W6ADjHfAd00P80eu-88XnlNNkN8NUogz_XwoOIpTdK30Dl2H1VU5M4Mg4uEh-YHMUaY9qKXySyMEJtuD6kpAngR4t7hf330Pn3yYCCT7czRbyzVVzz-GNkbO-xgJ2_QAyybyT9J3320X-5UVpBNVDZT8aAFLOKAwiHLfAJpFs3TdOThMySX_VHF_OCmmdqLNoeYmKG8_iboohm0W3GfS98elA" alt="Hakeem Logo" class="h-8 w-auto">
+    <div class="flex flex-col leading-tight">
+        <span class="font-headline-md text-[18px] font-bold text-primary">Hakeem AI</span>
+        <span class="font-label-sm text-[11px] font-medium text-on-surface-variant">Precision Care</span>
+    </div>
+</div>
+<div class="flex items-center gap-3 px-2 mb-4">
+<div class="w-10 h-10 rounded-full bg-primary-fixed-dim flex items-center justify-center border border-primary-container">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">person</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Sarah Jenkins</p>
+<p class="text-[11px] text-on-surface-variant uppercase tracking-wider font-bold">ID: 992-04-12</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-transform duration-200 hover:translate-x-1 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary">mic</span>
+<span class="font-label-md text-label-md">Live Transcript</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-transform duration-200 hover:translate-x-1 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary">person</span>
+<span class="font-label-md text-label-md">Patient Context</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-transform duration-200 hover:translate-x-1 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary">psychology</span>
+<span class="font-label-md text-label-md">AI Insights</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-transform duration-200 hover:translate-x-1 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary">description</span>
+<span class="font-label-md text-label-md">SOAP Notes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 bg-primary-container text-on-primary-container rounded-lg font-bold shadow-sm ring-2 ring-primary-container transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">medication</span>
+<span class="font-label-md text-label-md">Prescriptions</span>
+</a>
+</nav>
+<button class="w-full flex items-center justify-center gap-2 bg-surface-container-highest text-primary py-3 rounded-xl font-bold hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined">add</span>
+                New Consult
+            </button>
+<div class="pt-4 border-t border-outline-variant space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-variant rounded-lg text-sm" href="#">
+<span class="material-symbols-outlined">emergency_home</span>
+<span class="font-label-md text-label-md">System Status</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-variant rounded-lg text-sm" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+<span class="font-label-md text-label-md">Help</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 overflow-y-auto bg-background p-margin-desktop relative">
+<div class="max-w-[1200px] mx-auto space-y-stack-lg">
+<!-- Page Header -->
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">AI Prescription Draft</h2>
+<p class="text-on-surface-variant mt-1">Suggestions generated from consultation transcript (14:22 PM Today)</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 bg-surface-container-highest text-primary font-label-md text-label-md rounded-lg flex items-center gap-2 hover:brightness-95 transition-all">
+<span class="material-symbols-outlined text-[18px]">history</span>
+                            View History
+                        </button>
+</div>
+</div>
+<!-- Drug Safety Alerts -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
+<!-- Critical Interaction Alert -->
+<div class="bg-error-container border border-error p-stack-md rounded-xl flex gap-4 items-start shadow-sm">
+<div class="w-10 h-10 rounded-full bg-error flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div>
+<h4 class="font-bold text-on-error-container font-label-md text-label-md">Critical Drug Interaction</h4>
+<p class="text-on-error-container text-body-sm mt-1">High risk of serotonin syndrome. Suggested <strong>Sertraline</strong> interacts with patient's existing <strong>Tramadol</strong> prescription.</p>
+<button class="mt-3 text-error font-bold text-label-sm uppercase tracking-tight flex items-center gap-1">
+                                Resolve Immediately <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Duplicate Warning -->
+<div class="bg-[#FFF4E5] border border-[#FFAB00] p-stack-md rounded-xl flex gap-4 items-start shadow-sm">
+<div class="w-10 h-10 rounded-full bg-[#FFAB00] flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">info</span>
+</div>
+<div>
+<h4 class="font-bold text-[#664D03] font-label-md text-label-md">Duplicate Medication Warning</h4>
+<p class="text-[#664D03] text-body-sm mt-1">Suggested <strong>Lisinopril</strong> belongs to the same class as <strong>Ramipril</strong> found in recent pharmacy records.</p>
+<button class="mt-3 text-[#664D03] font-bold text-label-sm uppercase tracking-tight flex items-center gap-1">
+                                Check Records <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Prescription List Grid -->
+<div class="space-y-gutter">
+<div class="flex items-center justify-between border-b border-outline-variant pb-2">
+<h3 class="font-headline-md text-headline-md text-on-surface">AI Suggestions</h3>
+<div class="flex gap-4">
+<span class="text-body-sm text-on-surface-variant flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-secondary"></span> 3 Safe</span>
+<span class="text-body-sm text-on-surface-variant flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-error"></span> 1 Conflict</span>
+</div>
+</div>
+<!-- Bento Grid for Medications -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Suggestion 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 hover:shadow-md transition-shadow group relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -mr-10 -mt-10 group-hover:scale-110 transition-transform duration-500"></div>
+<div class="flex justify-between items-start mb-4 relative">
+<div>
+<h4 class="font-headline-md text-headline-md text-primary">Sertraline</h4>
+<p class="text-on-surface-variant text-body-sm">SSRI Antidepressant</p>
+</div>
+<div class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full flex flex-col items-center">
+<span class="font-bold text-sm">94%</span>
+<span class="text-[10px] uppercase font-bold opacity-70">Confidence</span>
+</div>
+</div>
+<div class="space-y-3 mb-6 relative">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-[20px]">scale</span>
+<span class="text-on-surface font-label-md text-label-md">Suggested Dosage:</span>
+<span class="text-primary font-bold">50 mg</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-[20px]">update</span>
+<span class="text-on-surface font-label-md text-label-md">Frequency:</span>
+<span class="text-on-surface">Once daily in the morning</span>
+</div>
+</div>
+<div class="flex gap-2 relative">
+<button class="flex-1 bg-primary text-on-primary py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 hover:brightness-110 transition-all">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+                                    Accept
+                                </button>
+<button class="flex-1 border border-outline-variant text-on-surface-variant py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+                                    Edit
+                                </button>
+<button class="p-2.5 border border-error-container text-error rounded-lg hover:bg-error-container transition-all">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+<!-- Suggestion 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 hover:shadow-md transition-shadow group relative overflow-hidden">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h4 class="font-headline-md text-headline-md text-primary">Metformin</h4>
+<p class="text-on-surface-variant text-body-sm">Antidiabetic agent</p>
+</div>
+<div class="bg-primary-fixed text-primary px-3 py-1 rounded-full flex flex-col items-center">
+<span class="font-bold text-sm">88%</span>
+<span class="text-[10px] uppercase font-bold opacity-70">Confidence</span>
+</div>
+</div>
+<div class="space-y-3 mb-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-[20px]">scale</span>
+<span class="text-on-surface font-label-md text-label-md">Suggested Dosage:</span>
+<span class="text-primary font-bold">500 mg</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-[20px]">update</span>
+<span class="text-on-surface font-label-md text-label-md">Frequency:</span>
+<span class="text-on-surface">Twice daily with meals</span>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 bg-primary text-on-primary py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 hover:brightness-110 transition-all">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+                                    Accept
+                                </button>
+<button class="flex-1 border border-outline-variant text-on-surface-variant py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+                                    Edit
+                                </button>
+<button class="p-2.5 border border-error-container text-error rounded-lg hover:bg-error-container transition-all">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+<!-- Suggestion 3 (The Conflict one) -->
+<div class="bg-error-container/20 border-2 border-dashed border-error rounded-xl p-6 relative overflow-hidden">
+<div class="absolute top-2 right-2 flex items-center gap-1 bg-error text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest z-10">
+<span class="material-symbols-outlined text-[12px]">block</span> Interaction
+                            </div>
+<div class="flex justify-between items-start mb-4">
+<div>
+<h4 class="font-headline-md text-headline-md text-on-surface">Atorvastatin</h4>
+<p class="text-on-surface-variant text-body-sm">HMG-CoA Reductase Inhibitor</p>
+</div>
+<div class="bg-error text-white px-3 py-1 rounded-full flex flex-col items-center">
+<span class="font-bold text-sm">91%</span>
+<span class="text-[10px] uppercase font-bold opacity-70">Confidence</span>
+</div>
+</div>
+<div class="space-y-3 mb-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-[20px]">scale</span>
+<span class="text-on-surface font-label-md text-label-md">Suggested Dosage:</span>
+<span class="text-primary font-bold">20 mg</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-[20px]">update</span>
+<span class="text-on-surface font-label-md text-label-md">Frequency:</span>
+<span class="text-on-surface">Once daily at bedtime</span>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-[2] bg-surface-container-highest text-primary-fixed-dim bg-[#1a1c1e] py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 cursor-not-allowed opacity-50">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+                                    Blocked
+                                </button>
+<button class="flex-1 border-2 border-error text-error py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-error hover:text-white transition-all">
+                                    Review
+                                </button>
+</div>
+<div class="mt-4 p-3 bg-white/50 rounded-lg border border-error/20">
+<p class="text-xs text-error font-medium italic">Reason: Potential interaction with existing Cyclosporine therapy. Increases risk of myopathy.</p>
+</div>
+</div>
+<!-- Suggestion 4 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 hover:shadow-md transition-shadow group relative overflow-hidden">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h4 class="font-headline-md text-headline-md text-primary">Amoxicillin</h4>
+<p class="text-on-surface-variant text-body-sm">Penicillin Antibiotic</p>
+</div>
+<div class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full flex flex-col items-center">
+<span class="font-bold text-sm">96%</span>
+<span class="text-[10px] uppercase font-bold opacity-70">Confidence</span>
+</div>
+</div>
+<div class="space-y-3 mb-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-[20px]">scale</span>
+<span class="text-on-surface font-label-md text-label-md">Suggested Dosage:</span>
+<span class="text-primary font-bold">500 mg</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-[20px]">update</span>
+<span class="text-on-surface font-label-md text-label-md">Frequency:</span>
+<span class="text-on-surface">Every 8 hours for 7 days</span>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 bg-primary text-on-primary py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 hover:brightness-110 transition-all">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+                                    Accept
+                                </button>
+<button class="flex-1 border border-outline-variant text-on-surface-variant py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+                                    Edit
+                                </button>
+<button class="p-2.5 border border-error-container text-error rounded-lg hover:bg-error-container transition-all">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Rationale Section -->
+<div class="glass-panel p-gutter rounded-2xl border-primary/20 bg-surface-container-low/40">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Clinical Reasoning</h3>
+</div>
+<div class="space-y-4">
+<div class="p-4 bg-white rounded-xl border border-outline-variant shadow-sm">
+<p class="text-body-md text-on-surface-variant">
+                                AI identified persistent cough and wheezing reported by the patient (Transcript Index 04:12). 
+                                <strong>Sertraline</strong> suggested based on documented PHQ-9 score of 14 (Moderate Depression) mentioned during subjective assessment. 
+                                <strong>Amoxicillin</strong> recommended due to physical exam findings of bilateral pulmonary crackles and fever of 101.2°F.
+                            </p>
+</div>
+<div class="flex gap-2">
+<button class="text-primary font-label-md text-label-md underline hover:text-surface-tint">View Full Annotated Transcript</button>
+<span class="text-outline">•</span>
+<button class="text-primary font-label-md text-label-md underline hover:text-surface-tint">Download AI Reasoning PDF</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Global Action Footer -->
+<div class="sticky bottom-0 mt-stack-lg -mx-margin-desktop p-6 bg-surface-container-lowest/80 backdrop-blur-md border-t border-outline-variant flex justify-between items-center z-40">
+<div class="flex gap-4 items-center">
+<div class="flex items-center gap-2 px-3 py-1 bg-surface-container rounded-full">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="text-xs font-bold text-on-surface-variant">AI AGENT ACTIVE</span>
+</div>
+<p class="text-sm text-on-surface-variant">Review required for 4 medication drafts.</p>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-3 border border-outline-variant rounded-xl font-bold text-on-surface-variant hover:bg-surface-container-low transition-all">
+                        Save as Draft
+                    </button>
+<button class="px-8 py-3 bg-primary text-on-primary rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                        Approve All (2/4 Safe)
+                    </button>
+</div>
+</div>
+</main>
+</div>
+<!-- Micro-interaction Script -->
+<script>
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                if (this.innerText.includes('Accept')) {
+                    const card = this.closest('.group');
+                    card.classList.add('opacity-50', 'bg-green-50/50');
+                    this.innerHTML = '<span class="material-symbols-outlined">check</span> Accepted';
+                    this.classList.replace('bg-primary', 'bg-secondary');
+                }
+            });
+        });
+    </script>
+
+
+
+</body></html>

@@ -3,10 +3,12 @@ export type AppointmentMode = "IN_PERSON" | "VIDEO";
 export type AppointmentStatus =
   | "HELD"
   | "CONFIRMED"
+  | "CHECKED_IN"
   | "CANCELLED"
   | "COMPLETED"
   | "NO_SHOW"
-  | "IN_PROGRESS";
+  | "IN_PROGRESS"
+  | "RESCHEDULED";
 
 /** Minutes before startAt when patient may join a video visit. */
 export const JOIN_WINDOW_BEFORE_MS = 15 * 60 * 1000;

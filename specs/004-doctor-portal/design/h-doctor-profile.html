@@ -1,0 +1,525 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Doctor Profile | AeroHealth AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#e1e0ff",
+                    "on-secondary-fixed-variant": "#005236",
+                    "primary": "#004ac6",
+                    "on-error-container": "#93000a",
+                    "tertiary": "#3e3fcc",
+                    "surface-variant": "#d3e4fe",
+                    "outline-variant": "#c3c6d7",
+                    "surface-container-low": "#eff4ff",
+                    "surface-dim": "#cbdbf5",
+                    "background": "#f8f9ff",
+                    "surface-bright": "#f8f9ff",
+                    "surface-container-highest": "#d3e4fe",
+                    "outline": "#737686",
+                    "on-tertiary-fixed": "#07006c",
+                    "surface-container": "#e5eeff",
+                    "on-surface-variant": "#434655",
+                    "surface": "#f8f9ff",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "on-primary": "#ffffff",
+                    "on-background": "#0b1c30",
+                    "error-container": "#ffdad6",
+                    "surface-container-high": "#dce9ff",
+                    "surface-tint": "#0053db",
+                    "inverse-on-surface": "#eaf1ff",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed-dim": "#c0c1ff",
+                    "secondary-fixed": "#6ffbbe",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "on-error": "#ffffff",
+                    "on-surface": "#0b1c30",
+                    "inverse-surface": "#213145",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-fixed": "#00174b",
+                    "on-tertiary-container": "#f1eeff",
+                    "secondary-container": "#6cf8bb",
+                    "on-secondary-fixed": "#002113",
+                    "on-secondary": "#ffffff",
+                    "tertiary-container": "#585be6",
+                    "on-secondary-container": "#00714d",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed-dim": "#4edea3",
+                    "secondary": "#006c49",
+                    "primary-container": "#2563eb",
+                    "on-tertiary-fixed-variant": "#2f2ebe",
+                    "on-primary-container": "#eeefff",
+                    "inverse-primary": "#b4c5ff",
+                    "primary-fixed": "#dbe1ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-sm": "8px",
+                    "unit": "4px",
+                    "stack-md": "16px",
+                    "gutter": "24px",
+                    "container-max": "1440px",
+                    "margin-mobile": "16px",
+                    "margin-desktop": "48px",
+                    "stack-lg": "32px"
+            },
+            "fontFamily": {
+                    "label-sm": ["Inter"],
+                    "headline-lg-mobile": ["Lexend"],
+                    "body-lg": ["Inter"],
+                    "headline-lg": ["Lexend"],
+                    "display-lg": ["Lexend"],
+                    "body-sm": ["Inter"],
+                    "headline-md": ["Lexend"],
+                    "label-md": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                    "label-md": ["14px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen">
+<!-- Sidebar Navigation -->
+<aside class="h-screen w-64 fixed left-0 top-0 hidden lg:flex flex-col bg-surface-container-lowest dark:bg-surface-dim border-r border-outline-variant/20 shadow-sm z-50">
+<div class="flex flex-col h-full p-stack-md">
+<div class="mb-stack-lg px-2"><div class="flex items-center gap-3 mb-2"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7umdqchu5BPUjSztJvuUPQb5gCyCYhnJ9dC70YsNvG9TVB8odch-hcoRygdFsfq-Epz1_oZ8qxWXohEkB59Xu2YpXV-suXLyMmRup9ypLXaWt3audDM6gNrMQ3Nsu57KOWgyCL2qvD-iO5CH3I0gvovNFT2v54HGj_omRyFZlEV-2qeI2N27F0kSrqNafdJh7f3XdFpG7tFFlsTgjHHYAVDKCw247p5-1UfoCZ2yA92ES2lVH2YC_2FSQ1GYQgr2x-A" alt="Hakeem Logo" class="h-10 w-auto"><div class="flex flex-col"><h1 class="font-headline-md text-headline-md font-bold text-primary leading-none">Hakeem AI</h1><p class="text-label-sm text-on-surface-variant">Precision Care</p></div></div></div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Dashboard
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container font-bold rounded-xl font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+                    Appointments
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">person</span>
+                    Medical Profile
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">folder_shared</span>
+                    Records
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">prescriptions</span>
+                    Prescriptions
+                </a>
+</nav>
+<div class="mt-auto space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">help</span>
+                    Help Center
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">logout</span>
+                    Logout
+                </a>
+</div>
+</div>
+</aside>
+<div class="lg:pl-64 flex flex-col">
+<!-- Top Nav -->
+<header class="bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 h-16 flex justify-between items-center px-gutter sticky top-0 z-40">
+<div class="flex items-center gap-4">
+<button class="lg:hidden text-primary">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="hidden md:flex items-center gap-2 bg-surface-container-low px-4 py-2 rounded-full">
+<span class="material-symbols-outlined text-outline">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-sm w-64" placeholder="Search appointments or records..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="flex items-center gap-3 ml-2 border-l pl-4 border-outline-variant/30">
+<div class="text-right hidden sm:block">
+<p class="font-label-md text-label-md">Dr. Julian Vance</p>
+<p class="text-label-sm text-on-surface-variant">Chief Medical Officer</p>
+</div>
+<img class="w-10 h-10 rounded-full object-cover ring-2 ring-primary/10" data-alt="A professional close-up portrait of Dr. Julian Vance, a middle-aged male doctor with a kind and authoritative expression. He is wearing a clean white lab coat and a subtle stethoscope around his neck. The background is a soft-focus clinical setting with cool blue and white tones, reflecting a modern healthcare environment with precision and empathy." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_aa0YPKk-ByDAhSy5-FTMM1QvRfAq3kZmkLorNs4DKR9I78s5qVj-DDkp80rkRcsYTL-X5ETG-l68dDHM7GEws3NKc2cC75DdwDvc4YKiyO6s3ysZ9WFW0I-F8avkuNkPZ9apAAujokFy43n7digXjmGgX7tWtj9gpSlumL-F-_T0HalHbe3OnL214BCRd7ZoFbRpesjqA46B6aU3zM0IilYvZiZi9lioMRLLX30G4c7eOtLWP6Px-L_GIAepnKsocLoONbW7SU4">
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="max-w-container-max mx-auto w-full p-gutter lg:p-margin-desktop">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-2 mb-stack-lg text-on-surface-variant font-label-md text-label-md">
+<a class="hover:text-primary" href="#">Dashboard</a>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<a class="hover:text-primary" href="#">Medical Staff</a>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<span class="text-on-surface">Dr. Elena Rodriguez</span>
+</nav>
+<!-- Hero Header Section -->
+<section class="mb-stack-lg">
+<div class="relative rounded-3xl overflow-hidden h-48 sm:h-64 mb-8">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="An abstract, high-resolution background texture featuring soft waves of deep blue and pristine white, reminiscent of clinical precision and medical technology. The lighting is diffused and professional, creating an atmosphere of trust and advanced care. Subtle geometric patterns are integrated into the flow, emphasizing the intersection of AI and human healthcare." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuABy9AVuQLvrNWKd-IklY87u1YZWl9DtZTDusA83BBxjpzRADYWLPWsA1PA6rkIMAiUNfAcI34_WlxqX8H6oujKAEUL-Fm_wbuMLpSLYd8iGfqhjwA9PP6QU4jcFxHvuzkRjqgIDi_67rZX9qhPFpIhtePb-pxNaoEmsOj08W76n2yRVnv81BCnn9Qgs6l9tXVcmVrVqiD45h6Z_BUWZYoBwDDoBfdCEHP1khBnwyTFBUiV3EMacToqZvhmOCPmmA1AklZmfVHcyo8')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+</div>
+<div class="relative -mt-24 px-8 flex flex-col md:flex-row items-end md:items-center gap-6">
+<img class="w-32 h-32 md:w-40 md:h-40 rounded-2xl object-cover border-4 border-surface shadow-lg z-10" data-alt="A high-quality professional portrait of Dr. Elena Rodriguez, a specialized physician with an approachable and intelligent gaze. She has dark hair tied back, wearing modern professional medical attire. The image is captured with shallow depth of field against a clean, brightly lit clinic background, embodying the AeroHealth brand's focus on precision and empathetic care." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnxcPoYGcbUKFKWnQPej4y4taT4prSLS8HB9U_qivAN37n5Ul02hIpg9aIwjmyuZx0UxMRpcl4ztIgxFYNMpINR29RH6p22L-xvMRvYA5BoVAFs_s6pkHDJDlvy4SblaNliQny5GbwZvanAzAL9VrOu_mydZG-BFQ6-9F0cK4Cw-gbYjB6H1nEtjIp5UWTrd2ICbjwoD1pujQulmPcF-PfV01JADO0AmQsBnuJ_Y0v6Ha6jLiFCRBUeXcpvxaHPz8UNbv7AAmKlWE">
+<div class="flex-1 pb-2">
+<div class="flex items-center gap-3">
+<h2 class="font-headline-lg text-headline-lg font-bold">Dr. Elena Rodriguez, MD</h2>
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-label-sm font-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">verified</span>
+                                Verified Provider
+                            </span>
+</div>
+<p class="font-headline-md text-headline-md text-primary font-medium">Senior Cardiologist &amp; Precision Medicine Specialist</p>
+<div class="flex flex-wrap gap-4 mt-2 text-on-surface-variant font-label-md">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-primary text-lg">location_on</span> Stanford Health Center, CA</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-primary text-lg">star</span> 4.9 (1,240 Reviews)</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-primary text-lg">work_history</span> 15+ Years Experience</span>
+</div>
+</div>
+<div class="hidden md:flex gap-3 pb-2">
+<button class="bg-surface-container-lowest border border-outline-variant px-5 py-2.5 rounded-xl font-label-md hover:bg-surface-container-high transition-all active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">share</span> Share
+                        </button>
+<button class="bg-surface-container-lowest border border-outline-variant px-5 py-2.5 rounded-xl font-label-md hover:bg-surface-container-high transition-all active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">favorite</span> Save
+                        </button>
+</div>
+</div>
+</section>
+<!-- Main Two-Column Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Column 1: Info & Bio -->
+<div class="lg:col-span-2 space-y-stack-lg">
+<!-- Biography Section -->
+<div class="bg-surface-container-lowest rounded-3xl p-stack-lg border border-outline-variant/30 shadow-sm">
+<h3 class="font-headline-md text-headline-md font-bold mb-stack-md flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">description</span> Biography
+                        </h3>
+<p class="text-body-lg text-on-surface-variant mb-4 leading-relaxed">
+                            Dr. Elena Rodriguez is a world-renowned Senior Cardiologist specializing in precision AI-assisted diagnostics and interventional cardiology. With over 15 years of clinical practice, she has pioneered several non-invasive monitoring protocols that have set new standards for patient care in the digital health era.
+                        </p>
+<p class="text-body-lg text-on-surface-variant leading-relaxed">
+                            She received her medical degree from Harvard Medical School and completed her residency at the Cleveland Clinic. Dr. Rodriguez is deeply committed to merging high-tech diagnostic tools with a patient-centered, empathetic approach, ensuring that every individual receives a personalized health roadmap tailored to their unique genetic and lifestyle markers.
+                        </p>
+</div>
+<!-- Qualifications & Certifications Bento -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+<div class="bg-surface-container-lowest rounded-3xl p-stack-lg border border-outline-variant/30 shadow-sm">
+<h3 class="font-headline-md text-headline-md font-bold mb-stack-md flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">school</span> Qualifications
+                            </h3>
+<ul class="space-y-4">
+<li class="flex gap-4">
+<div class="bg-primary/5 p-2 rounded-lg h-fit">
+<span class="material-symbols-outlined text-primary">workspace_premium</span>
+</div>
+<div>
+<p class="font-label-md text-on-surface">Board Certified Cardiology</p>
+<p class="text-body-sm text-on-surface-variant">American Board of Internal Medicine</p>
+</div>
+</li>
+<li class="flex gap-4">
+<div class="bg-primary/5 p-2 rounded-lg h-fit">
+<span class="material-symbols-outlined text-primary">history_edu</span>
+</div>
+<div>
+<p class="font-label-md text-on-surface">MD - Harvard Medical School</p>
+<p class="text-body-sm text-on-surface-variant">Class of 2008, Cum Laude</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="bg-surface-container-lowest rounded-3xl p-stack-lg border border-outline-variant/30 shadow-sm">
+<h3 class="font-headline-md text-headline-md font-bold mb-stack-md flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">military_tech</span> Certifications
+                            </h3>
+<div class="flex flex-wrap gap-2">
+<span class="bg-surface-container-high px-3 py-1.5 rounded-lg text-label-sm border border-outline-variant/50">Fellowship of ACC</span>
+<span class="bg-surface-container-high px-3 py-1.5 rounded-lg text-label-sm border border-outline-variant/50">AI Diagnostic Specialist</span>
+<span class="bg-surface-container-high px-3 py-1.5 rounded-lg text-label-sm border border-outline-variant/50">Heart Rhythm Society</span>
+<span class="bg-surface-container-high px-3 py-1.5 rounded-lg text-label-sm border border-outline-variant/50">Echocardiography Level III</span>
+</div>
+</div>
+</div>
+<!-- Experience Timeline -->
+<div class="bg-surface-container-lowest rounded-3xl p-stack-lg border border-outline-variant/30 shadow-sm">
+<h3 class="font-headline-md text-headline-md font-bold mb-stack-md flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">timeline</span> Professional Experience
+                        </h3>
+<div class="space-y-6 relative before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/30">
+<div class="relative pl-8">
+<div class="absolute left-0 top-1 w-6 h-6 bg-primary rounded-full border-4 border-surface shadow-sm"></div>
+<p class="text-label-sm text-primary font-bold">2018 - Present</p>
+<p class="font-label-md text-on-surface">Senior Cardiologist, Stanford Health Center</p>
+<p class="text-body-sm text-on-surface-variant">Leading the Precision Heart Program and AI Diagnostics Wing.</p>
+</div>
+<div class="relative pl-8">
+<div class="absolute left-0 top-1 w-6 h-6 bg-outline-variant rounded-full border-4 border-surface shadow-sm"></div>
+<p class="text-label-sm text-on-surface-variant font-bold">2012 - 2018</p>
+<p class="font-label-md text-on-surface">Associate Professor, Cleveland Clinic</p>
+<p class="text-body-sm text-on-surface-variant">Specialized in interventional cardiology and research into valve replacement.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Column 2: Booking Widget -->
+<div class="lg:col-span-1">
+<div class="sticky top-24 glass-card rounded-3xl p-stack-lg shadow-xl">
+<h3 class="font-headline-md text-headline-md font-bold mb-stack-md">Book a Consultation</h3>
+<div class="space-y-6">
+<!-- Pricing & Details -->
+<div class="flex justify-between items-center p-4 bg-primary/5 rounded-2xl border border-primary/10">
+<div>
+<p class="text-label-sm text-on-surface-variant">Consultation Fee</p>
+<p class="text-headline-md font-bold text-primary">$250.00</p>
+</div>
+<div class="text-right">
+<p class="text-label-sm text-on-surface-variant">Duration</p>
+<p class="font-bold">45 Mins</p>
+</div>
+</div>
+<!-- Calendar Simulation -->
+<div>
+<label class="font-label-md text-on-surface mb-2 block">Select Date</label>
+<div class="grid grid-cols-4 gap-2">
+<button class="p-2 border border-outline-variant rounded-xl text-center bg-primary-container text-on-primary-container font-bold">
+<p class="text-[10px] uppercase">Mon</p>
+<p class="text-body-md">12</p>
+</button>
+<button class="p-2 border border-outline-variant rounded-xl text-center hover:bg-surface-container-high transition-colors">
+<p class="text-[10px] uppercase">Tue</p>
+<p class="text-body-md">13</p>
+</button>
+<button class="p-2 border border-outline-variant rounded-xl text-center hover:bg-surface-container-high transition-colors">
+<p class="text-[10px] uppercase">Wed</p>
+<p class="text-body-md">14</p>
+</button>
+<button class="p-2 border border-outline-variant rounded-xl text-center hover:bg-surface-container-high transition-colors">
+<p class="text-[10px] uppercase">Thu</p>
+<p class="text-body-md">15</p>
+</button>
+</div>
+</div>
+<!-- Time Grid -->
+<div>
+<label class="font-label-md text-on-surface mb-2 block">Available Slots</label>
+<div class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+<button class="py-2 border border-outline-variant rounded-xl text-center hover:bg-primary hover:text-white transition-all text-body-sm">09:00 AM</button>
+<button class="py-2 border border-outline-variant rounded-xl text-center hover:bg-primary hover:text-white transition-all text-body-sm">10:30 AM</button>
+<button class="py-2 border border-outline-variant rounded-xl text-center hover:bg-primary hover:text-white transition-all text-body-sm">11:15 AM</button>
+<button class="py-2 border border-outline-variant rounded-xl text-center hover:bg-primary hover:text-white transition-all text-body-sm">02:00 PM</button>
+<button class="py-2 border border-outline-variant rounded-xl text-center bg-surface-container-high text-outline cursor-not-allowed text-body-sm line-through">03:30 PM</button>
+<button class="py-2 border border-outline-variant rounded-xl text-center hover:bg-primary hover:text-white transition-all text-body-sm">04:45 PM</button>
+</div>
+</div>
+<button class="w-full bg-primary py-4 rounded-2xl text-white font-bold text-label-md shadow-lg shadow-primary/20 hover:bg-primary-container transition-all active:scale-[0.98]">
+                                Confirm Appointment
+                            </button>
+<!-- Mini Metadata -->
+<div class="space-y-3 pt-4 border-t border-outline-variant/30">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">schedule</span>
+<div>
+<p class="text-label-sm text-on-surface-variant">Working Hours</p>
+<p class="text-label-md">Mon-Fri, 08:00 - 18:00</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">translate</span>
+<div>
+<p class="text-label-sm text-on-surface-variant">Languages</p>
+<p class="text-label-md">English, Spanish, French</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Reviews & Ratings Section -->
+<section class="mt-stack-lg bg-surface-container-lowest rounded-3xl p-stack-lg border border-outline-variant/30 shadow-sm">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-stack-lg gap-6">
+<div>
+<h3 class="font-headline-md text-headline-md font-bold">Patient Reviews &amp; Ratings</h3>
+<p class="text-on-surface-variant">Verified feedback from real patients</p>
+</div>
+<div class="flex items-center gap-6">
+<div class="text-center">
+<p class="text-display-lg font-bold text-primary">4.9</p>
+<div class="flex text-yellow-500">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star_half</span>
+</div>
+<p class="text-label-sm text-on-surface-variant mt-1">1,240 Total Reviews</p>
+</div>
+<div class="h-16 w-[1px] bg-outline-variant hidden md:block"></div>
+<div class="hidden sm:block space-y-1">
+<div class="flex items-center gap-2">
+<span class="text-label-sm w-4">5</span>
+<div class="w-32 h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 85%"></div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-label-sm w-4">4</span>
+<div class="w-32 h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 10%"></div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-label-sm w-4">3</span>
+<div class="w-32 h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 3%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex justify-between items-center mb-6 border-b border-outline-variant/20 pb-4">
+<p class="font-label-md">Recent Feedback</p>
+<select class="bg-surface-container-low border-none rounded-lg text-label-sm focus:ring-primary">
+<option>Newest First</option>
+<option>Highest Rated</option>
+<option>Lowest Rated</option>
+</select>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+<!-- Review 1 -->
+<div class="p-stack-md border border-outline-variant/20 rounded-2xl hover:bg-surface-container-low transition-colors">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary">MS</div>
+<div>
+<p class="font-label-md">Michael S.</p>
+<p class="text-label-sm text-on-surface-variant">March 14, 2024</p>
+</div>
+</div>
+<div class="flex text-yellow-500 scale-75 origin-right">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<p class="text-body-sm text-on-surface-variant leading-relaxed">
+                            "Dr. Rodriguez was incredibly thorough during my cardiac assessment. Her use of AI models to explain my results helped me understand my condition like never before. Truly a modern healthcare experience."
+                        </p>
+</div>
+<!-- Review 2 -->
+<div class="p-stack-md border border-outline-variant/20 rounded-2xl hover:bg-surface-container-low transition-colors">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center font-bold text-on-secondary-container">AL</div>
+<div>
+<p class="font-label-md">Amanda L.</p>
+<p class="text-label-sm text-on-surface-variant">March 10, 2024</p>
+</div>
+</div>
+<div class="flex text-yellow-500 scale-75 origin-right">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<p class="text-body-sm text-on-surface-variant leading-relaxed">
+                            "Extremely compassionate and professional. She took the time to answer all my questions about the surgery. I feel I am in the best possible hands."
+                        </p>
+</div>
+</div>
+<div class="mt-8 text-center">
+<button class="text-primary font-bold text-label-md hover:underline decoration-2 underline-offset-4">
+                        Load More Reviews
+                    </button>
+</div>
+</section>
+</main>
+</div>
+<!-- Mobile Navigation Bar -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-surface/90 backdrop-blur-lg border-t border-outline-variant/30 px-gutter h-16 flex justify-around items-center z-50">
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-medium">Dashboard</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span class="text-[10px] font-bold">Booking</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">chat</span>
+<span class="text-[10px] font-medium">Messages</span>
+</button>
+</nav>
+<script>
+        // Simple Micro-interaction for booking slots
+        document.querySelectorAll('.grid button').forEach(btn => {
+            if(!btn.classList.contains('cursor-not-allowed')) {
+                btn.addEventListener('click', function() {
+                    // Deselect all in the same container
+                    this.parentElement.querySelectorAll('button').forEach(b => {
+                        b.classList.remove('bg-primary', 'text-white', 'bg-primary-container', 'text-on-primary-container');
+                        b.classList.add('hover:bg-primary', 'hover:text-white');
+                    });
+                    // Select this one
+                    this.classList.remove('hover:bg-primary', 'hover:text-white');
+                    this.classList.add('bg-primary', 'text-white', 'font-bold');
+                });
+            }
+        });
+    </script>
+
+
+
+</body></html>

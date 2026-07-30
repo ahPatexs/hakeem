@@ -300,6 +300,12 @@ model User {
   paymentObligations PaymentObligation[]
   notifications      Notification[]
   aiConversations    AiConversation[]
+  soapNotesAsPatient SoapNote[]           @relation("SoapPatient")
+  summariesAsPatient ClinicalSummary[]    @relation("SummaryPatient")
+  labReviewAcks      LabReviewAcknowledgement[]
+  doctorAiConversations DoctorAiConversation[]
+  panelAsPatient     DoctorPatientPanel[] @relation("PanelPatient")
+  doctorProfileExtras DoctorProfileExtras?
 
   @@index([role, status])
   @@index([doctorApproval])
@@ -417,10 +423,12 @@ model MfaFactor {
 enum AppointmentStatus {
   HELD
   CONFIRMED
+  CHECKED_IN
   CANCELLED
   COMPLETED
   NO_SHOW
   IN_PROGRESS
+  RESCHEDULED
 }
 
 enum AppointmentMode {
@@ -441,10 +449,23 @@ enum LabResultPhase {
 }
 
 enum PrescriptionStatus {
+  DRAFT
   ACTIVE
   COMPLETED
   CANCELLED
   EXPIRED
+}
+
+enum ClinicalNoteStatus {
+  DRAFT
+  FINAL
+  DISMISSED
+}
+
+enum DoctorAiMode {
+  MEDICAL
+  DOCUMENTATION
+  PRESCRIPTION
 }
 
 enum PaymentStatus {
@@ -456,7 +477,10 @@ enum PaymentStatus {
 
 enum NotificationCategory {
   APPOINTMENT
+  QUEUE
   CLINICAL
+  DOCUMENTATION
+  RESULTS
   PRESCRIPTION
   PAYMENT
   SYSTEM
@@ -543,14 +567,23 @@ model Appointment {
   cancellationReason String?
   rescheduledFromId String?
   videoRoomId       String?
+  checkedInAt       DateTime?
+  completedAt       DateTime?
+  noShowAt          DateTime?
+  noShowReason      String?
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
   patient           User              @relation("PatientAppointments", fields: [patientUserId], references: [id], onDelete: Cascade)
   doctor            Doctor            @relation(fields: [doctorId], references: [id])
   paymentObligations PaymentObligation[]
+  soapNotes         SoapNote[]
+  clinicalSummaries ClinicalSummary[]
+  prescriptions     Prescription[]    @relation("AppointmentPrescriptions")
 
   @@index([patientUserId, startAt])
   @@index([doctorId, startAt])
+  @@index([doctorId, status])
+  @@index([doctorId, checkedInAt])
   @@index([status, holdExpiresAt])
 }
 
@@ -603,6 +636,7 @@ model LabResult {
   supersededById String?
   patient        User             @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
   document       ClinicalDocument? @relation(fields: [documentId], references: [id])
+  reviewAcks     LabReviewAcknowledgement[]
 
   @@index([patientUserId, resultedAt])
   @@index([patientUserId, releaseStatus])
@@ -619,12 +653,39 @@ model Prescription {
   endsAt         DateTime?
   doctorId       String?
   documentId     String?
+  appointmentId  String?
+  signedAt       DateTime?
+  signerUserId   String?
+  contentVersion Int                @default(1)
+  allergyAckAt   DateTime?
+  interactionAckAt DateTime?
+  aiAssisted     Boolean            @default(false)
   patient        User               @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
   doctor         Doctor?            @relation(fields: [doctorId], references: [id])
   document       ClinicalDocument?  @relation(fields: [documentId], references: [id])
+  appointment    Appointment?       @relation("AppointmentPrescriptions", fields: [appointmentId], references: [id])
+  lines          PrescriptionLine[]
 
   @@index([patientUserId, status])
   @@index([patientUserId, prescribedAt])
+  @@index([doctorId, status])
+  @@index([appointmentId])
+}
+
+model PrescriptionLine {
+  id             String       @id @default(cuid())
+  prescriptionId String
+  medicationName String
+  dose           String?
+  route          String?
+  frequency      String?
+  duration       String?
+  quantity       String?
+  instructions   String?
+  sortOrder      Int          @default(0)
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+
+  @@index([prescriptionId, sortOrder])
 }
 
 model PaymentObligation {
@@ -662,19 +723,19 @@ model PaymentAttempt {
 }
 
 model Notification {
-  id            String               @id @default(cuid())
-  patientUserId String
-  category      NotificationCategory
-  title         String
-  body          String
-  href          String?
-  readAt        DateTime?
-  dismissedAt   DateTime?
-  createdAt     DateTime             @default(now())
-  patient       User                 @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+  id              String               @id @default(cuid())
+  recipientUserId String
+  category        NotificationCategory
+  title           String
+  body            String
+  href            String?
+  readAt          DateTime?
+  dismissedAt     DateTime?
+  createdAt       DateTime             @default(now())
+  recipient       User                 @relation(fields: [recipientUserId], references: [id], onDelete: Cascade)
 
-  @@index([patientUserId, createdAt])
-  @@index([patientUserId, readAt])
+  @@index([recipientUserId, createdAt])
+  @@index([recipientUserId, readAt])
 }
 
 model AiConversation {
@@ -698,4 +759,121 @@ model AiMessage {
   conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@index([conversationId, createdAt])
+}
+
+// ── Doctor Portal (Module 3) ──────────────────────────────────────────────
+
+model SoapNote {
+  id              String             @id @default(cuid())
+  appointmentId   String
+  patientUserId   String
+  doctorId        String
+  authorUserId    String
+  status          ClinicalNoteStatus @default(DRAFT)
+  version         Int                @default(1)
+  parentNoteId    String?
+  subjective      String             @default("")
+  objective       String             @default("")
+  assessment      String             @default("")
+  plan            String             @default("")
+  contentHash     String?
+  signedAt        DateTime?
+  signerUserId    String?
+  amendmentReason String?
+  lateAmendment   Boolean            @default(false)
+  dismissedAt     DateTime?
+  dismissReason   String?
+  aiAssisted      Boolean            @default(false)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  appointment     Appointment        @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  patient         User               @relation("SoapPatient", fields: [patientUserId], references: [id], onDelete: Cascade)
+
+  @@index([appointmentId, version])
+  @@index([doctorId, status])
+  @@index([patientUserId, createdAt])
+}
+
+model ClinicalSummary {
+  id              String             @id @default(cuid())
+  appointmentId   String
+  patientUserId   String
+  doctorId        String
+  authorUserId    String
+  status          ClinicalNoteStatus @default(DRAFT)
+  version         Int                @default(1)
+  parentSummaryId String?
+  body            String             @default("")
+  contentHash     String?
+  signedAt        DateTime?
+  signerUserId    String?
+  amendmentReason String?
+  lateAmendment   Boolean            @default(false)
+  dismissedAt     DateTime?
+  dismissReason   String?
+  aiAssisted      Boolean            @default(false)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  appointment     Appointment        @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  patient         User               @relation("SummaryPatient", fields: [patientUserId], references: [id], onDelete: Cascade)
+
+  @@index([appointmentId, version])
+  @@index([doctorId, status])
+}
+
+model LabReviewAcknowledgement {
+  id           String    @id @default(cuid())
+  labResultId  String
+  doctorUserId String
+  reviewedAt   DateTime  @default(now())
+  labResult    LabResult @relation(fields: [labResultId], references: [id], onDelete: Cascade)
+  doctor       User      @relation(fields: [doctorUserId], references: [id], onDelete: Cascade)
+
+  @@unique([labResultId, doctorUserId])
+}
+
+model DoctorAiConversation {
+  id            String            @id @default(cuid())
+  doctorUserId  String
+  mode          DoctorAiMode      @default(MEDICAL)
+  patientUserId String?
+  appointmentId String?
+  locale        LocaleCode        @default(EN)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  doctor        User              @relation(fields: [doctorUserId], references: [id], onDelete: Cascade)
+  messages      DoctorAiMessage[]
+
+  @@index([doctorUserId, updatedAt])
+}
+
+model DoctorAiMessage {
+  id             String               @id @default(cuid())
+  conversationId String
+  role           String
+  content        String
+  createdAt      DateTime             @default(now())
+  conversation   DoctorAiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+}
+
+model DoctorPatientPanel {
+  id            String   @id @default(cuid())
+  doctorId      String
+  patientUserId String
+  createdAt     DateTime @default(now())
+  patient       User     @relation("PanelPatient", fields: [patientUserId], references: [id], onDelete: Cascade)
+
+  @@unique([doctorId, patientUserId])
+}
+
+model DoctorProfileExtras {
+  userId            String   @id
+  bio               String?
+  languages         String[] @default([])
+  consultationPrefs Json?
+  timezone          String?
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

@@ -2,7 +2,7 @@ import type { NotificationCategory } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export interface CreateNotificationInput {
-  patientUserId: string;
+  recipientUserId: string;
   category: NotificationCategory;
   title: string;
   body: string;
@@ -12,7 +12,7 @@ export interface CreateNotificationInput {
 export async function createNotification(input: CreateNotificationInput) {
   return prisma.notification.create({
     data: {
-      patientUserId: input.patientUserId,
+      recipientUserId: input.recipientUserId,
       category: input.category,
       title: input.title,
       body: input.body,
@@ -27,7 +27,7 @@ export async function createNotifications(inputs: CreateNotificationInput[]) {
     inputs.map((input) =>
       prisma.notification.create({
         data: {
-          patientUserId: input.patientUserId,
+          recipientUserId: input.recipientUserId,
           category: input.category,
           title: input.title,
           body: input.body,

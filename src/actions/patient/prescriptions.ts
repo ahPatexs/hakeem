@@ -14,7 +14,8 @@ export async function listPrescriptions(input?: unknown) {
   if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
 
   return withPatient(async (userId) => {
-    const where = { patientUserId: userId };
+    // Drafts are doctor-only until signed (Module 4 / FR-016)
+    const where = { patientUserId: userId, status: { not: "DRAFT" as const } };
     const [items, total] = await Promise.all([
       prisma.prescription.findMany({
         where,
@@ -36,7 +37,7 @@ export async function listPrescriptions(input?: unknown) {
 export async function getPrescription(id: string) {
   return withPatient(async (userId) => {
     const rx = await prisma.prescription.findFirst({
-      where: { id, patientUserId: userId },
+      where: { id, patientUserId: userId, status: { not: "DRAFT" } },
       include: {
         doctor: { select: { nameEn: true, nameAr: true, slug: true } },
         document: true,

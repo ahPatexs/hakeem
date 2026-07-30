@@ -1,0 +1,398 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Review &amp; Sign Prescription | Clinical Intelligence AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Lexend:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white; }
+            .prescription-canvas { 
+                box-shadow: none !important; 
+                border: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+        }
+        .signature-line {
+            border-bottom: 2px solid #0b1c30;
+            width: 240px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#f8f9ff",
+                        "surface-tint": "#0053db",
+                        "surface": "#f8f9ff",
+                        "outline": "#737686",
+                        "surface-container-low": "#eff4ff",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-tertiary-fixed": "#07006c",
+                        "primary-fixed": "#dbe1ff",
+                        "on-primary-container": "#eeefff",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-background": "#0b1c30",
+                        "surface-container": "#e5eeff",
+                        "primary": "#004ac6",
+                        "tertiary-container": "#585be6",
+                        "surface-dim": "#cbdbf5",
+                        "inverse-surface": "#213145",
+                        "surface-bright": "#f8f9ff",
+                        "on-error-container": "#93000a",
+                        "on-surface": "#0b1c30",
+                        "inverse-on-surface": "#eaf1ff",
+                        "secondary-container": "#6cf8bb",
+                        "outline-variant": "#c3c6d7",
+                        "on-primary-fixed": "#00174b",
+                        "on-secondary-container": "#00714d",
+                        "primary-container": "#2563eb",
+                        "on-surface-variant": "#434655",
+                        "tertiary-fixed": "#e1e0ff",
+                        "tertiary-fixed-dim": "#c0c1ff",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-secondary-fixed": "#002113",
+                        "on-tertiary-container": "#f1eeff",
+                        "secondary": "#006c49",
+                        "surface-container-high": "#dce9ff",
+                        "tertiary": "#3e3fcc",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#2f2ebe",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-variant": "#d3e4fe",
+                        "secondary-fixed": "#6ffbbe",
+                        "inverse-primary": "#b4c5ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-max": "1440px",
+                        "margin-mobile": "16px",
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "margin-desktop": "48px",
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "stack-lg": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Lexend"],
+                        "headline-md": ["Lexend"],
+                        "display-lg": ["Lexend"],
+                        "body-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<header class="no-print sticky top-0 z-50 bg-surface-container-lowest border-b border-outline-variant shadow-sm h-16 flex justify-between items-center w-full px-margin-desktop">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCs2DTyJ136LJcI9WX5qGLiI2yEdeizkabFIHqquWfAGtoxw3KPo65HpV4lQb_8UWLRnrUw_7wvGaN9vnegT1jxnT7pb02d9-w1P2EDMAo8n8IsRlCQkVedtgK3FR54cRzMhwyPLANPDPVW3gxyMWGZIyKYdz8WLskSqZsOVGSqBUtsIEYd03jfp2BGmAppJkkryeACpmxLaQiw9_zFyFfZgZ4Tf4yRQOyENwIMnjXSM0wjy8WQJ0jxArd0oVw0MoBh4w" alt="Hakeem Logo" class="h-10 w-auto">
+  <div class="flex flex-col leading-none">
+    <span class="font-headline-md text-primary font-bold text-[20px] font-['Lexend']">Hakeem AI</span>
+    <span class="font-label-md text-on-surface-variant font-medium text-[12px] font-['Lexend']">Precision Care</span>
+  </div>
+</div>
+<nav class="hidden md:flex gap-6 items-center">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Patients</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Dashboard</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Schedule</a>
+<a class="text-primary border-b-2 border-primary pb-1 font-bold font-label-md text-label-md" href="#">Records</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors">notifications</button>
+<button class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors">settings</button>
+<div class="h-8 w-8 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a female doctor with dark hair and glasses, wearing a white clinical coat, against a soft blurred medical office background. The lighting is bright and natural, maintaining a high-trust healthcare aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-fGD59mD17l9Xrbw5YRxJzlgGeKBfuUz896DFxTdXozVXtLG-wqVNNgc8isLC6gZmDmtAbzPfCZZvn6pPWMC4k25wLBgA-v4XZNtE6cer2_wxTcejG6qmpT4blr2pas7ZB363XgkQJF9pFXoFfQK_6rik86JtmSG0Ov7gf0iP3-Cahy3XgsCPFq7ZKdEKsfKDVQZEj82l2mxiV30ox_rdNOHARcXJdb6kSWBWt14spVgo8KGKoM6a6mU_DFIN1eS7V0ZZGAAQ6iA">
+</div>
+</div>
+</header>
+<main class="flex flex-col md:flex-row min-h-[calc(100vh-64px)]">
+<!-- Sidebar Navigation -->
+<aside class="no-print w-64 bg-surface-container-low border-r border-outline-variant flex flex-col py-6 px-4 space-y-4"><div class="flex items-center gap-3 px-2 mb-8">
+  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpkCoIgsU7rnyDeH2dtk4PPrd37c7u3P92KRdV6IFYE3i7VLCPgz14PdbcFfbQ_g_rQa8ek2FP5lbkkBEzkgLfwN6X2QBtmJWsI86dMTBzZjtsiJqTUGAh-CLud7tn6UFzSLl0T19AzWPTeS_8AeuDFAC8guTCHIViGSBRkjk6Y_I4A63PMvhZYdOlYMS-dj70NrlNUr7HQVXL7NSkCMI1V_cF7ybqdlIl1Xg0zAqV_rb-lI8fZpeVfR7XzCZ06qPLfg" alt="Hakeem Logo" class="h-8 w-auto">
+  <div class="flex flex-col leading-none">
+    <span class="font-headline-md text-primary font-bold text-[18px] font-['Lexend']">Hakeem AI</span>
+    <span class="font-label-md text-on-surface-variant font-medium text-[11px] font-['Lexend']">Precision Care</span>
+  </div>
+</div>
+<div class="flex items-center gap-3 px-2 mb-4">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+</div>
+<div>
+<h3 class="font-label-md text-on-surface leading-tight">Sarah Jenkins</h3>
+<p class="font-body-sm text-on-surface-variant text-[12px]">ID: 992-04-12</p>
+</div>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-transform hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">mic</span>
+<span class="font-label-md">Live Transcript</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-transform hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md">Patient Context</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-transform hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span class="font-label-md">AI Insights</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-transform hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-label-md">SOAP Notes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 bg-primary-container text-on-primary-container rounded-lg font-bold shadow-sm ring-2 ring-primary-container transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">medication</span>
+<span class="font-label-md">Prescriptions</span>
+</a>
+</nav>
+<div class="mt-auto space-y-1 pt-6 border-t border-outline-variant">
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-variant rounded-lg" href="#">
+<span class="material-symbols-outlined">emergency_home</span>
+<span class="font-label-md">System Status</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-variant rounded-lg" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+<span class="font-label-md">Help</span>
+</a>
+</div>
+</aside>
+<!-- Content Canvas -->
+<div class="flex-1 p-6 md:p-12 bg-background flex flex-col items-center">
+<!-- Sticky Controls for Desktop -->
+<div class="no-print w-full max-w-[800px] mb-8 flex justify-between items-center">
+<div class="flex flex-col">
+<h1 class="font-headline-md text-on-surface">Review Prescription</h1>
+<p class="text-on-surface-variant font-body-sm">Finalize medication details before signing</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 border border-outline-variant rounded-lg font-label-md text-on-surface hover:bg-surface-container-low transition-all" onclick="window.print()">
+<span class="material-symbols-outlined text-[20px]">print</span>
+                        Print Copy
+                    </button>
+<button class="bg-primary text-white px-6 py-2 rounded-lg font-label-md shadow-md hover:shadow-lg active:scale-[0.98] transition-all flex items-center gap-2">
+                        Approve &amp; Send to Patient
+                        <span class="material-symbols-outlined text-[20px]">send</span>
+</button>
+</div>
+</div>
+<!-- Prescription Document Canvas -->
+<div class="prescription-canvas w-full max-w-[800px] bg-white border border-outline-variant shadow-xl p-12 md:p-16 flex flex-col gap-12 relative overflow-hidden">
+<!-- Branding Header -->
+<div class="flex justify-between items-start">
+<div class="flex flex-col gap-1">
+<h2 class="font-headline-lg text-on-surface text-primary tracking-tight">HAKEEM HEALTHCARE</h2>
+<p class="font-body-sm text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">location_on</span>
+                            882 Medical Plaza, Suite 400, Chicago, IL 60611
+                        </p>
+<p class="font-body-sm text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">call</span>
+                            (312) 555-0199
+                        </p>
+</div>
+<div class="text-right">
+<div class="text-primary font-bold text-[32px] leading-none mb-2 italic">Rx</div>
+<p class="font-label-md text-on-surface-variant">Order ID: #RX-2024-9901</p>
+<p class="font-label-md text-on-surface-variant">Date: Oct 24, 2024</p>
+</div>
+</div>
+<!-- Entity Details Grid -->
+<div class="grid grid-cols-2 gap-12 border-y border-outline-variant py-8">
+<div class="space-y-4">
+<h4 class="font-label-md text-primary uppercase tracking-widest text-[11px]">Patient Details</h4>
+<div>
+<p class="font-headline-md text-on-surface mb-1">Sarah Jenkins</p>
+<p class="font-body-sm text-on-surface-variant">DOB: 12/04/1982 (41 Yrs)</p>
+<p class="font-body-sm text-on-surface-variant">Gender: Female</p>
+<p class="font-body-sm text-on-surface-variant">Address: 452 Oak Ridge Ln, Evanston, IL</p>
+</div>
+</div>
+<div class="space-y-4">
+<h4 class="font-label-md text-primary uppercase tracking-widest text-[11px]">Prescribing Doctor</h4>
+<div>
+<p class="font-headline-md text-on-surface mb-1">Dr. Julianne Rivers</p>
+<p class="font-body-sm text-on-surface-variant">Internal Medicine | Cardiology</p>
+<p class="font-body-sm text-on-surface-variant">NPI: 1048827495</p>
+<p class="font-body-sm text-on-surface-variant">License: IL-4493022</p>
+</div>
+</div>
+</div>
+<!-- Medication Table -->
+<div class="flex flex-col gap-6">
+<h4 class="font-label-md text-primary uppercase tracking-widest text-[11px]">Prescribed Medication</h4>
+<table class="w-full text-left">
+<thead>
+<tr class="border-b border-outline-variant">
+<th class="pb-3 font-label-md text-on-surface w-1/2">Medication &amp; Strength</th>
+<th class="pb-3 font-label-md text-on-surface text-center">Dosage</th>
+<th class="pb-3 font-label-md text-on-surface text-center">Quantity</th>
+<th class="pb-3 font-label-md text-on-surface text-right">Refills</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/30">
+<tr>
+<td class="py-4">
+<p class="font-bold text-on-surface">Lisinopril 10mg Tablets</p>
+<p class="font-body-sm text-on-surface-variant">Oral administration</p>
+</td>
+<td class="py-4 text-center font-body-md">1 pill / Daily</td>
+<td class="py-4 text-center font-body-md">30 Units</td>
+<td class="py-4 text-right font-body-md">3</td>
+</tr>
+<tr>
+<td class="py-4">
+<p class="font-bold text-on-surface">Atorvastatin 20mg Tablets</p>
+<p class="font-body-sm text-on-surface-variant">Evening administration</p>
+</td>
+<td class="py-4 text-center font-body-md">1 pill / Nightly</td>
+<td class="py-4 text-center font-body-md">30 Units</td>
+<td class="py-4 text-right font-body-md">5</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Instructions & Warnings Bento -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="p-5 bg-surface-container-low rounded-xl border border-outline-variant/50">
+<div class="flex items-center gap-2 text-secondary mb-3">
+<span class="material-symbols-outlined text-[20px]">restaurant</span>
+<h5 class="font-label-md">Food Instructions</h5>
+</div>
+<ul class="space-y-2 list-disc list-inside font-body-sm text-on-surface-variant">
+<li class="">Take Lisinopril on an empty stomach 1 hour before eating.</li>
+<li class="">Avoid excessive grapefruit juice with Atorvastatin.</li>
+</ul>
+</div>
+<div class="p-5 bg-error-container/30 rounded-xl border border-error/20">
+<div class="flex items-center gap-2 text-error mb-3">
+<span class="material-symbols-outlined text-[20px]">warning</span>
+<h5 class="font-label-md">Clinical Warnings</h5>
+</div>
+<ul class="space-y-2 list-disc list-inside font-body-sm text-on-surface-variant">
+<li class="">Dizziness may occur; avoid operating heavy machinery initially.</li>
+<li class="">Monitor blood pressure weekly and report any persistent cough.</li>
+</ul>
+</div>
+</div>
+<!-- Notes -->
+<div class="flex flex-col gap-2">
+<h4 class="font-label-md text-primary uppercase tracking-widest text-[11px]">Provider Notes</h4>
+<p class="font-body-sm text-on-surface italic bg-surface-container-lowest p-4 border border-dashed border-outline-variant rounded-lg">
+                        "Patient presented with slightly elevated systolic pressure (145/90). Starting conservative dose of ACE inhibitor. Schedule follow-up in 4 weeks for electrolyte panel and BP check."
+                    </p>
+</div>
+<!-- Digital Signature Area -->
+<div class="mt-8 flex justify-between items-end">
+<div class="space-y-4">
+<div class="signature-line flex flex-col justify-end h-24 pb-2 relative">
+<!-- Hand-written style font simulation -->
+<span class="absolute bottom-2 left-2 text-[28px] font-medium text-primary-fixed-dim" style="font-family: 'Brush Script MT', cursive; font-style: italic;">
+                                Julianne Rivers, M.D.
+                            </span>
+<div class="absolute -top-4 left-0">
+<span class="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-bold border border-primary/20">VERIFIED CLINICIAN</span>
+</div>
+</div>
+<p class="font-label-md text-on-surface-variant">Electronic Signature of Prescriber</p>
+</div>
+<div class="text-right flex flex-col items-end gap-2">
+<div class="w-20 h-20 opacity-40">
+<img class="w-full h-full grayscale" data-alt="A clean, minimalist QR code rendered in dark navy blue against a white background, representing a secure digital health certificate or prescription verification link. The style is technical and sharp." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVPd3WOPWFytpP70eNEQdlMWJca-C3qYUxmKLAjs0KD3SJvh8scUDUdaEpxXCM5-5ZqmVXSGkrl1RVe-j2ySNV-bQTMDaaVyAJhwVdDXUN97D450RKVIUniCt-eyE0lclYwrsyHfC4YIoD6CCfPCG67AOYonXtSml6P-yo6kj3Tl5YEJbKpOshmwRTkYrkHHpLjljYef1AvAR2k2enVg7exCwDjPeXW6ELH7NKCqw26NTs3l4aI1QuDLOe7SNrBTwErtnCAhIWNIc">
+</div>
+<p class="text-[10px] font-body-sm text-on-surface-variant max-w-[150px]">Scan to verify prescription authenticity via Hakeem Secure Network.</p>
+</div>
+</div>
+<!-- Subtle Decorative Element -->
+<div class="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full -mr-24 -mt-24 pointer-events-none"></div>
+<div class="absolute bottom-0 left-0 w-32 h-32 bg-secondary/5 rounded-full -ml-16 -mb-16 pointer-events-none"></div>
+</div>
+<!-- Footer Spacing -->
+<div class="h-12 w-full"></div>
+</div>
+</main>
+<!-- FAB for Mobile (Contextual Action) -->
+<button class="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform">
+<span class="material-symbols-outlined">send</span>
+</button>
+<script>
+        // Micro-interaction for Approval button
+        const approveBtn = document.querySelector('button.bg-primary');
+        if(approveBtn) {
+            approveBtn.addEventListener('click', () => {
+                const originalText = approveBtn.innerHTML;
+                approveBtn.innerHTML = `
+                    <span class="material-symbols-outlined animate-spin">sync</span>
+                    Verifying...
+                `;
+                approveBtn.classList.add('opacity-80', 'pointer-events-none');
+                
+                setTimeout(() => {
+                    approveBtn.innerHTML = `
+                        <span class="material-symbols-outlined">check_circle</span>
+                        Prescription Signed
+                    `;
+                    approveBtn.classList.remove('bg-primary');
+                    approveBtn.classList.add('bg-secondary');
+                    
+                    // Trigger a confetti or success state simulation
+                    console.log("Prescription successfully sent to Sarah Jenkins.");
+                }, 1500);
+            });
+        }
+
+        // Handle Active Nav Logic
+        document.querySelectorAll('aside nav a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                // e.preventDefault();
+                // Simple toggle for demo
+            });
+        });
+    </script>
+
+
+
+</body></html>

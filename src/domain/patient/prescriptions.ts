@@ -1,4 +1,4 @@
-export type PrescriptionStatus = "ACTIVE" | "COMPLETED" | "CANCELLED" | "EXPIRED";
+export type PrescriptionStatus = "DRAFT" | "ACTIVE" | "COMPLETED" | "CANCELLED" | "EXPIRED";
 
 export interface PrescriptionTiming {
   status: PrescriptionStatus;

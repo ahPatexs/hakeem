@@ -1,0 +1,428 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Hakeem EMR | Lab Results &amp; Radiology</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .sparkline-container {
+            mask-image: linear-gradient(to right, black, black 90%, transparent);
+        }
+        body {
+            background-color: #f8f9ff;
+            color: #0b1c30;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#005236",
+                        "primary-container": "#2563eb",
+                        "on-secondary-fixed": "#002113",
+                        "outline": "#737686",
+                        "on-secondary": "#ffffff",
+                        "inverse-primary": "#b4c5ff",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "tertiary-fixed": "#e1e0ff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "surface-bright": "#f8f9ff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#0b1c30",
+                        "surface-tint": "#0053db",
+                        "on-primary-container": "#eeefff",
+                        "surface-container": "#e5eeff",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#2f2ebe",
+                        "on-secondary-container": "#00714d",
+                        "surface-container-low": "#eff4ff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "background": "#f8f9ff",
+                        "on-background": "#0b1c30",
+                        "surface-variant": "#d3e4fe",
+                        "surface": "#f8f9ff",
+                        "primary": "#004ac6",
+                        "on-tertiary-container": "#f1eeff",
+                        "on-error-container": "#93000a",
+                        "secondary": "#006c49",
+                        "surface-dim": "#cbdbf5",
+                        "tertiary-container": "#585be6",
+                        "on-primary-fixed": "#00174b",
+                        "secondary-fixed-dim": "#4edea3",
+                        "primary-fixed": "#dbe1ff",
+                        "on-surface-variant": "#434655",
+                        "on-error": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#213145",
+                        "surface-container-high": "#dce9ff",
+                        "on-tertiary-fixed": "#07006c",
+                        "tertiary": "#3e3fcc",
+                        "tertiary-fixed-dim": "#c0c1ff",
+                        "surface-container-highest": "#d3e4fe",
+                        "secondary-container": "#6cf8bb",
+                        "secondary-fixed": "#6ffbbe",
+                        "outline-variant": "#c3c6d7",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "stack-lg": "32px",
+                        "margin-mobile": "16px",
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "gutter": "24px",
+                        "margin-desktop": "48px",
+                        "container-max": "1440px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Lexend"],
+                        "headline-lg": ["Lexend"],
+                        "label-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Lexend"],
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="font-body-md text-on-background overflow-hidden flex h-screen">
+<!-- SideNavBar -->
+<aside class="docked left-0 h-screen w-64 flex flex-col h-full border-r border-outline-variant bg-surface shadow-sm z-50">
+<div class="px-6 py-8"><div class="flex items-center gap-3">
+  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYRy5pfeTmBBJ-j9d3l1iOHNffVwPUbTcE2ZJSCUpKL4IrpZh0pgQ32f0YMT4uvYHvzeJePKefJIWfyacunFF40zF5plM3YBTaeXUGbOJiZkoWd7UfOXkZtTZC7WT4UAE6NR0FSqQOpvBjMEn1MDtEHmQ2ZXgGhwtupWiLRnPxYOaoTIr2NvJHHBHqXWjPx4hjRnl4Sc9fFkFZAJ9T2TL-V98CSQZI7NgrGzkdcDevStZFnPMxtAaF5udvyqtmnH2STw" alt="Hakeem Logo" class="w-10 h-10 object-contain">
+  <div>
+    <h1 class="font-display-lg text-headline-md font-bold text-primary leading-tight">Hakeem AI</h1>
+    <p class="text-label-sm text-on-surface-variant font-medium opacity-70">Precision Care</p>
+  </div>
+</div></div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md">Overview</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined">timeline</span>
+<span class="font-label-md">Timeline</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-label-md">History</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined">medication</span>
+<span class="font-label-md">Meds/Allergies</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-primary font-bold border-r-4 border-primary bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">science</span>
+<span class="font-label-md">Labs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-label-md">Documents</span>
+</a>
+</nav>
+<div class="p-4 mt-auto space-y-1 border-t border-outline-variant">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-sm">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-sm">Support</span>
+</a>
+<div class="flex items-center gap-3 p-3 mt-4 bg-surface-container rounded-xl">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="A close-up, high-quality portrait of a professional medical provider in a clean clinic setting. The lighting is soft and natural, emphasizing a trustworthy and empathetic expression. The aesthetic is bright and modern, utilizing the Hakeem EMR palette of crisp whites and deep clinical blues." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6yFIs97JLmE6Xpqr2S7HINW7SgrWVqXAJuxN_R4CZduXrrlywJ-V1GQ1IWs4O0X69H4V775iLuAgfFkuZA4ejH8vxvEzrm1nC6842ZBN092RHaI4L4kBx04r-m1DjoBnl4VAASKLnUVL5iQNIR025ha43ZPJh5wRjwd1R-5vqGwI23QZow59nzkkBBITW5ki8dIUP12i79eMnEkn3jXCJE6vsNa4HQvbfGdFt43DbIJhxVFf6TZRpPc2YVxRt8Rw4AjGeEHZ6fdY">
+<div class="overflow-hidden">
+<p class="font-label-md text-sm truncate">Dr. Smith</p>
+<p class="text-xs text-on-surface-variant opacity-70 truncate">Provider Profile Avatar</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col h-full overflow-hidden bg-background">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-40 flex justify-between items-center px-margin-desktop py-4 w-full bg-surface/80 backdrop-blur-md border-b border-outline-variant shadow-sm">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-full text-sm focus:ring-2 focus:ring-primary focus:outline-none" placeholder="Search patient results..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+<button class="p-2 rounded-full hover:bg-surface-container transition-colors relative">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-surface"></span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">chat_bubble</span>
+</button>
+</div>
+<button class="bg-primary text-white px-6 py-2 rounded-full font-label-md text-sm shadow-md hover:opacity-90 active:scale-95 transition-all">
+                    Check In
+                </button>
+</div>
+</header>
+<!-- Content Area -->
+<div class="flex-1 overflow-y-auto px-margin-desktop py-stack-lg space-y-stack-lg">
+<!-- Page Header -->
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-display-lg text-headline-lg text-on-surface">Lab Results &amp; Radiology</h2>
+<p class="text-body-md text-on-surface-variant">Patient: James R. Harrison | ID: #9822-XP</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 border border-outline-variant px-4 py-2 rounded-lg font-label-md text-sm hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-base">filter_list</span>
+                        Filter
+                    </button>
+<button class="flex items-center gap-2 border border-outline-variant px-4 py-2 rounded-lg font-label-md text-sm hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-base">download</span>
+                        Export PDF
+                    </button>
+</div>
+</div>
+<!-- Labs Section: Card-based Grid -->
+<section>
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary">science</span>
+<h3 class="font-headline-md text-on-surface">Clinical Laboratory</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- CBC Card -->
+<div class="bg-white p-6 rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-label-sm text-on-surface-variant uppercase tracking-wider">Metabolic Panel</p>
+<h4 class="font-headline-md text-lg font-bold">CBC (Hemoglobin)</h4>
+</div>
+<span class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold uppercase">Normal</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-display-lg font-bold">14.2</span>
+<span class="text-on-surface-variant font-label-md">g/dL</span>
+</div>
+<div class="flex justify-between text-xs text-on-surface-variant border-t border-outline-variant pt-3">
+<span class="">Normal Range: <span class="font-bold">13.5 - 17.5</span></span>
+<span class="">Collected: 2h ago</span>
+</div>
+<div class="h-12 w-full sparkline-container">
+<svg class="w-full h-full stroke-secondary fill-none stroke-[1.5]" viewBox="0 0 100 20">
+<path d="M0 15 Q 10 10, 20 12 T 40 8 T 60 14 T 80 10 T 100 12"></path>
+</svg>
+</div>
+</div>
+<!-- Lipid Panel Card -->
+<div class="bg-white p-6 rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-label-sm text-on-surface-variant uppercase tracking-wider">Cardiology</p>
+<h4 class="font-headline-md text-lg font-bold">Lipid Panel (LDL)</h4>
+</div>
+<span class="px-3 py-1 rounded-full bg-error-container text-on-error-container text-xs font-bold uppercase">Critical</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-display-lg font-bold text-error">188</span>
+<span class="text-on-surface-variant font-label-md">mg/dL</span>
+</div>
+<div class="flex justify-between text-xs text-on-surface-variant border-t border-outline-variant pt-3">
+<span class="">Normal Range: <span class="font-bold">&lt; 100</span></span>
+<span class="">Collected: 4h ago</span>
+</div>
+<div class="h-12 w-full sparkline-container">
+<svg class="w-full h-full stroke-error fill-none stroke-[1.5]" viewBox="0 0 100 20">
+<path d="M0 18 Q 10 15, 20 14 T 40 10 T 60 8 T 80 4 T 100 2"></path>
+</svg>
+</div>
+</div>
+<!-- HbA1c Card -->
+<div class="bg-white p-6 rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-all flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-label-sm text-on-surface-variant uppercase tracking-wider">Endocrinology</p>
+<h4 class="font-headline-md text-lg font-bold">HbA1c</h4>
+</div>
+<span class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold uppercase">Normal</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-display-lg font-bold">5.4</span>
+<span class="text-on-surface-variant font-label-md">%</span>
+</div>
+<div class="flex justify-between text-xs text-on-surface-variant border-t border-outline-variant pt-3">
+<span class="">Normal Range: <span class="font-bold">4.0 - 5.6</span></span>
+<span class="">Collected: 1d ago</span>
+</div>
+<div class="h-12 w-full sparkline-container">
+<svg class="w-full h-full stroke-secondary fill-none stroke-[1.5]" viewBox="0 0 100 20">
+<path d="M0 12 Q 10 12, 20 12 T 40 13 T 60 12 T 80 11 T 100 12"></path>
+</svg>
+</div>
+</div>
+</div>
+</section>
+<!-- Radiology Section: Grid of Diagnostic Images -->
+<section>
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary">view_quilt</span>
+<h3 class="font-headline-md text-on-surface">Radiology &amp; Imaging</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-gutter">
+<!-- Image Card 1 -->
+<div class="bg-white rounded-xl border border-outline-variant overflow-hidden shadow-sm group">
+<div class="relative h-48 bg-black">
+<div class="w-full h-full bg-cover bg-center opacity-80 group-hover:opacity-100 transition-opacity" data-alt="A high-resolution black and white diagnostic chest X-ray displaying the rib cage, heart silhouette, and lungs in professional clinical detail. The image is crisp, with subtle glowing annotations for medical study, set against a dark, minimalist interface background typical of high-end medical radiology software." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDXX_eD303OT5ttZPkv9vkOy44l2Bxbxf6vEcivlc7VO14vEBBmKfWrphXZZVQti3xSJz72_PMsoxQ28AR8knNbNZImVlkckrdkRbLy04uFoVIrfWVeOfFM8kqqUQq_h0B3Uh8GcbmFNMZsMUq6R3qwygnCNuNh4bkPs86Ztd--qRd2CnPLrMzV3fi0rNXYZD0FE8JFviEtuyaTErIXf-YhSuyLHL9DeaegP0WKKg2k29eheoNlibZ7_ker48-v1CAXeT-Xp9Sd70c')"></div>
+<div class="absolute top-3 right-3 flex gap-2">
+<span class="bg-black/60 backdrop-blur px-2 py-1 rounded text-[10px] text-white font-bold tracking-widest uppercase">X-RAY</span>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h4 class="font-bold text-on-surface">Chest PA View</h4>
+<p class="text-xs text-on-surface-variant">Oct 24, 2023 • 14:20</p>
+</div>
+<span class="material-symbols-outlined text-primary cursor-pointer">info</span>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 bg-surface-container hover:bg-surface-container-high text-on-surface px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">open_in_new</span>
+                                    Open Full Viewer
+                                </button>
+<button class="p-2 border border-outline-variant rounded-lg hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-sm text-on-surface-variant">download</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Image Card 2 -->
+<div class="bg-white rounded-xl border border-outline-variant overflow-hidden shadow-sm group">
+<div class="relative h-48 bg-black">
+<div class="w-full h-full bg-cover bg-center opacity-80 group-hover:opacity-100 transition-opacity" data-alt="A detailed MRI brain scan axial slice showing neural structures in high contrast black, grey, and white. The aesthetic is extremely high-tech and precise, capturing the minute details of a medical diagnostic procedure. The lighting is focused and clinical, reflecting a modern EMR interface for specialist review." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB3ozgBL-xLgXsTyt-Z-v-LISfqwJg343XhMZGon1n7ssr-4t-MQinXZ7tlOfY5M7hlyrkSUTg8b8-atjvN7C-0uTOl3WrLoK1YilwYLj3p_8iRFlWIUPc2WQ_Zg3xii5AkBJwNh7SQ99xy8PUFsnPo719QwXYBdtzVgxSo7SU9QNgsQ2HkXc5ecyG_uCkwjhhIXAJVHi4wEBi3DSdSAZYNOMkiPGaPoUOVBoJ4Y6ZP6NJzzNjrwiH30YJj45Io3AhF7VVlpOODlac')"></div>
+<div class="absolute top-3 right-3 flex gap-2">
+<span class="bg-black/60 backdrop-blur px-2 py-1 rounded text-[10px] text-white font-bold tracking-widest uppercase">MRI</span>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h4 class="font-bold text-on-surface">Brain MRI w/ Contrast</h4>
+<p class="text-xs text-on-surface-variant">Oct 22, 2023 • 09:15</p>
+</div>
+<span class="material-symbols-outlined text-primary cursor-pointer">info</span>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 bg-surface-container hover:bg-surface-container-high text-on-surface px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">open_in_new</span>
+                                    Open Full Viewer
+                                </button>
+<button class="p-2 border border-outline-variant rounded-lg hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-sm text-on-surface-variant">download</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Image Card 3 -->
+<div class="bg-white rounded-xl border border-outline-variant overflow-hidden shadow-sm group">
+<div class="relative h-48 bg-black">
+<div class="w-full h-full bg-cover bg-center opacity-80 group-hover:opacity-100 transition-opacity" data-alt="A high-definition CT scan of the abdomen and pelvis, showing complex organ structures and skeletal alignment in a detailed medical diagnostic format. The style is professional and informative, utilizing clinical greyscale levels that indicate advanced healthcare technology and precise data visualization within Hakeem EMR." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuASuw0MB84IhpQoeDm0Nj5yrBRXkEof1B3Xuci8f4PaY3loX3B1OT17vIv6U4IJOjXlvm4ESqxDz8NayJrNPyBkJCCpZ_C12S3_AyI_SfDCYsX5k8R1aQotQ-Zh-5Y37GO6azt9DrjIa9fgrSN-b-XxMSKZvBliB7-Zl9PacWd7tcZEPlk6nyNscW6ZD8dcPFWsrslD1mFYDNut8s9SSPoRoe4vzKBtEQSmBUonpIP58pxGElgiwcKraOQEVcR7NQwVi-zgwmSFfKw')"></div>
+<div class="absolute top-3 right-3 flex gap-2">
+<span class="bg-black/60 backdrop-blur px-2 py-1 rounded text-[10px] text-white font-bold tracking-widest uppercase">CT SCAN</span>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h4 class="font-bold text-on-surface">Abdominal CT</h4>
+<p class="text-xs text-on-surface-variant">Oct 20, 2023 • 11:45</p>
+</div>
+<span class="material-symbols-outlined text-primary cursor-pointer">info</span>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 bg-surface-container hover:bg-surface-container-high text-on-surface px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">open_in_new</span>
+                                    Open Full Viewer
+                                </button>
+<button class="p-2 border border-outline-variant rounded-lg hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-sm text-on-surface-variant">download</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Audit Section: Permissions & Audit Log -->
+<section class="pb-12">
+<div class="bg-surface-container-low border border-outline-variant rounded-xl p-4 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant">policy</span>
+<div>
+<p class="text-xs font-bold text-on-surface uppercase tracking-tight">Permissions &amp; Audit Log</p>
+<p class="text-xs text-on-surface-variant">Record of recent healthcare access to these results.</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 bg-white/50 px-3 py-1.5 rounded-full border border-outline-variant">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<p class="text-xs font-label-md">Dr. Rivers - Viewed - 10:45 AM Today</p>
+</div>
+<div class="flex items-center gap-2 bg-white/50 px-3 py-1.5 rounded-full border border-outline-variant">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+<p class="text-xs font-label-md">Nur. Jenkins - Printed - 09:12 AM Today</p>
+</div>
+<button class="text-primary text-xs font-bold hover:underline">View Full Log</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Float Action for Emergency or Quick Add -->
+<button class="fixed bottom-8 right-8 bg-primary text-white p-4 rounded-full shadow-xl hover:scale-110 active:scale-95 transition-all flex items-center justify-center">
+<span class="material-symbols-outlined">add</span>
+</button>
+</main>
+<script>
+        // Simple Interaction: Toggle active state visually on Lab Cards
+        document.querySelectorAll('.bg-white').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Search highlight micro-interaction
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('ring-2', 'ring-primary/20');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('ring-2', 'ring-primary/20');
+        });
+    </script>
+
+
+
+</body></html>

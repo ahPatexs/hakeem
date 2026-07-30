@@ -13,7 +13,7 @@ export async function listNotifications(input?: unknown) {
   if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
 
   return withPatient(async (userId) => {
-    const where = { patientUserId: userId, dismissedAt: null };
+    const where = { recipientUserId: userId, dismissedAt: null };
     const [items, total, unreadCount] = await Promise.all([
       prisma.notification.findMany({
         where,
@@ -23,7 +23,7 @@ export async function listNotifications(input?: unknown) {
       }),
       prisma.notification.count({ where }),
       prisma.notification.count({
-        where: { patientUserId: userId, readAt: null, dismissedAt: null },
+        where: { recipientUserId: userId, readAt: null, dismissedAt: null },
       }),
     ]);
     return { items, total, unreadCount, page: parsed.data.page, pageSize: PAGE_SIZE };
@@ -36,7 +36,7 @@ export async function markNotificationRead(input: unknown) {
 
   return withPatientMutation(async (userId) => {
     await prisma.notification.updateMany({
-      where: { id: parsed.data.id, patientUserId: userId },
+      where: { id: parsed.data.id, recipientUserId: userId },
       data: { readAt: new Date() },
     });
   });
@@ -45,7 +45,7 @@ export async function markNotificationRead(input: unknown) {
 export async function markAllNotificationsRead() {
   return withPatientMutation(async (userId) => {
     await prisma.notification.updateMany({
-      where: { patientUserId: userId, readAt: null, dismissedAt: null },
+      where: { recipientUserId: userId, readAt: null, dismissedAt: null },
       data: { readAt: new Date() },
     });
   });
@@ -57,7 +57,7 @@ export async function dismissNotification(input: unknown) {
 
   return withPatientMutation(async (userId) => {
     await prisma.notification.updateMany({
-      where: { id: parsed.data.id, patientUserId: userId },
+      where: { id: parsed.data.id, recipientUserId: userId },
       data: { dismissedAt: new Date(), readAt: new Date() },
     });
   });

@@ -113,7 +113,7 @@ export async function markPaymentPaid(input: unknown) {
     ]);
 
     await createNotification({
-      patientUserId: userId,
+      recipientUserId: userId,
       category: "PAYMENT",
       title: "Payment received",
       body: `Payment of ${(obligation.amountCents / 100).toFixed(2)} ${obligation.currency} was successful.`,
