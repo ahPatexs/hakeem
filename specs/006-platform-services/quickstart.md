@@ -21,6 +21,7 @@ npm run dev
 ```
 
 Optional: set `PAYMENTS_HEALTH_URL`, `AI_HEALTH_URL`, `TELEMEDICINE_HEALTH_URL` for real pings.
+LiveKit: set `TELEMEDICINE_ADAPTER=livekit`, `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` (never expose secrets to client).
 
 ## Validation scenarios
 
@@ -40,6 +41,7 @@ Optional: set `PAYMENTS_HEALTH_URL`, `AI_HEALTH_URL`, `TELEMEDICINE_HEALTH_URL` 
 2. POST valid signed webhook → obligation PAID once; notification enqueued.
 3. Replay same `providerEventId` → 200, no double Paid / double charge side effects (`WebhookReceipt`).
 4. Invalid signature → 400, no state change.
+5. Signed but stale timestamp (beyond ≤5m skew) → 400, no state change (FR-045 / SC-019).
 
 ### 4. Refunds
 1. As Admin, partial refund → PARTIALLY_REFUNDED; patient notified.
@@ -56,14 +58,19 @@ Optional: set `PAYMENTS_HEALTH_URL`, `AI_HEALTH_URL`, `TELEMEDICINE_HEALTH_URL` 
 3. Treating doctor / owner can get ≤15m download URL.
 4. Rejected scan never appears as available.
 
-### 7. Video join authz
-1. Confirmed telemedicine appointment → patient and assigned doctor get join credentials.
-2. Other user → FORBIDDEN + audit.
-3. Cancelled appointment → refused.
+### 7. Video Communication (LiveKit)
+1. Confirmed telemedicine appointment → patient and assigned doctor get join credentials from `lib/platform/video` (JWT from LiveKit adapter).
+2. Both portals render shared `components/platform/video/*` (waiting room, camera preview, device selector, participant grid, controls) — no portal-local LiveKit Server SDK.
+3. Other user → FORBIDDEN + audit.
+4. Cancelled appointment → refused.
+5. Optional: enable recording flag → egress path; default remains off.
+6. Admin can view call log / session analytics summaries (no media).
+7. LiveKit webhook invalid signature or stale skew → no session state corruption.
 
-### 8. Search freshness
+### 8. Search freshness + public rate limit
 1. Approve/suspend doctor.
 2. Within 5 minutes (or after running cron jobs), Public/Patient search bookable membership matches.
+3. Burst anonymous discovery requests → `RATE_LIMITED` / throttle without breaking a normal single-user browse (FR-046 / SC-020).
 
 ### 9. Background jobs
 1. Call cron endpoint with secret: `POST /api/cron/platform-jobs`.
@@ -72,7 +79,8 @@ Optional: set `PAYMENTS_HEALTH_URL`, `AI_HEALTH_URL`, `TELEMEDICINE_HEALTH_URL` 
 
 ### 10. Shared UI (no redesign)
 1. Open notification centers, upload, payment, empty/error/loading on Patient/Doctor/Admin.
-2. Confirm components match Stitch / existing tokens (see [ui-review.md](./ui-review.md)).
+2. Confirm components import from `components/platform` and match Stitch screens listed in [ui-review.md](./ui-review.md) (Notification Center / All Caught Up / Secure Checkout / Payment Status / Documents).
+3. No new palette or typography stack.
 
 ### 11. Localization
 1. Switch EN ↔ AR on a shared surface; RTL for AR; SAR formatting consistent.

@@ -4,13 +4,16 @@ import { stubEmailAdapter } from "@/adapters/stub-email";
 import { stubMalwareScanAdapter } from "@/adapters/stub-malware";
 import { stubPaymentsAdapter } from "@/adapters/stub-payments";
 import { stubPushAdapter } from "@/adapters/stub-push";
+import { stubSafetyCheckAdapter } from "@/adapters/stub-safety-check";
 import { stubSmsAdapter } from "@/adapters/stub-sms";
 import { stubTelemedicineAdapter } from "@/adapters/stub-telemedicine";
+import { liveKitTelemedicineAdapter } from "@/adapters/livekit-telemedicine";
 import type { AiAssistantPort } from "@/ports/ai-assistant";
 import type { EmailPort } from "@/ports/email";
 import type { MalwareScanPort } from "@/ports/malware-scan";
 import type { PaymentsPort } from "@/ports/payments";
 import type { PushPort } from "@/ports/push";
+import type { SafetyCheckPort } from "@/ports/safety-check";
 import type { SmsPort } from "@/ports/sms";
 import type { StoragePort } from "@/ports/storage";
 import type { TelemedicinePort } from "@/ports/telemedicine";
@@ -69,7 +72,9 @@ export function getStorageAdapter(): StoragePort {
 }
 
 export function getTelemedicineAdapter(): TelemedicinePort {
-  switch (provider(process.env.TELEMEDICINE_PROVIDER)) {
+  switch (provider(process.env.TELEMEDICINE_ADAPTER ?? process.env.TELEMEDICINE_PROVIDER)) {
+    case "livekit":
+      return liveKitTelemedicineAdapter;
     case "stub":
     default:
       return stubTelemedicineAdapter;
@@ -81,5 +86,13 @@ export function getMalwareAdapter(): MalwareScanPort {
     case "stub":
     default:
       return stubMalwareScanAdapter;
+  }
+}
+
+export function getSafetyCheckAdapter(): SafetyCheckPort {
+  switch (provider(process.env.SAFETY_CHECK_PROVIDER)) {
+    case "stub":
+    default:
+      return stubSafetyCheckAdapter;
   }
 }

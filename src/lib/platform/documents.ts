@@ -11,6 +11,7 @@ import { hasCareRelationship } from "@/domain/doctor/care-relationship";
 import { platformFail, platformOk, type PlatformResult } from "@/domain/platform/outcomes";
 import { requireAuthSecret } from "@/lib/env";
 import { platformAudit } from "@/lib/platform/audit";
+import { assertHttpsUrl } from "@/lib/platform/https";
 
 export const DOWNLOAD_URL_MAX_AGE_SEC = 15 * 60;
 
@@ -112,6 +113,8 @@ export async function getDownloadUrl(input: {
 
   const expiresAtSec = Math.floor(Date.now() / 1000) + DOWNLOAD_URL_MAX_AGE_SEC;
   const url = signDownloadUrl(file.id, expiresAtSec);
+  const httpsCheck = assertHttpsUrl(url, { allowRelative: true });
+  if (!httpsCheck.ok) return httpsCheck;
 
   await platformAudit({
     type: "platform.document.download_url",

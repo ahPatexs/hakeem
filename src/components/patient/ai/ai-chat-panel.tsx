@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveMessage } from "@/actions/patient/ai";
+import { AiAssistantShell } from "@/components/platform/ai";
 import type { AiMessage } from "@prisma/client";
 
 const SUGGESTED_KEYS = ["symptoms", "medication", "appointment", "records"] as const;
@@ -82,11 +83,7 @@ export function AiChatPanel({
   }
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] flex-col gap-4">
-      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-        {t("disclaimer")}
-      </div>
-
+    <AiAssistantShell feature="patient" className="flex h-[calc(100vh-12rem)] flex-col gap-4">
       <div className="flex flex-wrap gap-2">
         {SUGGESTED_KEYS.map((key) => (
           <Button key={key} type="button" variant="outline" size="sm" onClick={() => send(t(`suggested.${key}`))}>
@@ -132,6 +129,6 @@ export function AiChatPanel({
           {t("send")}
         </Button>
       </form>
-    </div>
+    </AiAssistantShell>
   );
 }

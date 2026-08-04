@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { sendAiMessage, recordAiDecision } from "@/actions/doctor/ai";
+import { AiAssistantShell } from "@/components/platform/ai";
 import { Bot, Send } from "lucide-react";
 
 type ChatMessage = {
@@ -62,13 +63,19 @@ export function AiPanel({
     });
   }
 
+  const feature =
+    mode === "PRESCRIPTION"
+      ? "doctorPrescription"
+      : mode === "DOCUMENTATION"
+        ? "doctorDocumentation"
+        : "doctorDocumentation";
+
   return (
-    <div className="flex h-full flex-col gap-3">
+    <AiAssistantShell feature={feature} className="flex h-full flex-col gap-3">
       <div className="flex items-center gap-2">
         <Bot className="h-5 w-5 text-med-green" aria-hidden />
         <h3 className="font-headline text-lg text-primary">{t("title")}</h3>
       </div>
-      <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-900">{t("disclaimer")}</p>
 
       <div className="flex flex-wrap gap-1" role="tablist" aria-label={t("title")}>
         {modes.map((m) => (
@@ -166,6 +173,6 @@ export function AiPanel({
           <Send className="h-4 w-4 rtl:rotate-180" aria-hidden />
         </Button>
       </form>
-    </div>
+    </AiAssistantShell>
   );
 }

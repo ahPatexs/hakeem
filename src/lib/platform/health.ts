@@ -83,8 +83,12 @@ export async function pingAiAdapter(): Promise<AdapterHealth> {
 }
 
 export async function pingTelemedicineAdapter(): Promise<AdapterHealth> {
-  getTelemedicineAdapter();
-  return timedPing("TELEMEDICINE", async () => true, "Telemedicine");
+  const adapter = getTelemedicineAdapter();
+  return timedPing(
+    "TELEMEDICINE",
+    async () => (adapter.ping ? adapter.ping() : true),
+    "Telemedicine",
+  );
 }
 
 export async function pingMalwareAdapter(): Promise<AdapterHealth> {

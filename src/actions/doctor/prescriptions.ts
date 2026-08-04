@@ -8,7 +8,7 @@ import { assertCareRelationship } from "@/domain/doctor/care-relationship";
 import { assertHasLines, assertSafeToSign } from "@/domain/doctor/prescriptions";
 import { isTerminalForClinicalWork } from "@/domain/doctor/consultation";
 import { DomainRuleError } from "@/domain/doctor/errors";
-import { stubSafetyCheckAdapter } from "@/adapters/stub-safety-check";
+import { runSafetyCheck } from "@/lib/platform/safety";
 import {
   savePrescriptionDraftSchema,
   signPrescriptionSchema,
@@ -60,7 +60,7 @@ export async function getPrescription(raw: { prescriptionId: string }) {
       where: { userId: rx.patientUserId },
       select: { allergies: true },
     });
-    const safety = await stubSafetyCheckAdapter.check({
+    const safety = await runSafetyCheck({
       allergies: medicalProfile?.allergies ?? [],
       medications: rx.lines.map((l) => l.medicationName),
     });
@@ -193,7 +193,7 @@ export async function signPrescription(raw: z.input<typeof signPrescriptionSchem
       where: { userId: rx.patientUserId },
       select: { allergies: true },
     });
-    const safety = await stubSafetyCheckAdapter.check({
+    const safety = await runSafetyCheck({
       allergies: medicalProfile?.allergies ?? [],
       medications: rx.lines.map((l) => l.medicationName),
     });

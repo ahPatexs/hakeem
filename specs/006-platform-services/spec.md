@@ -43,6 +43,29 @@ Non-interactive clarification pass (user directed no questions): enterprise-grad
 - Q: Webhooks? → A: Inbound webhooks (payments, optionally video/provider events) MUST verify **shared-secret or signature**, reject unsigned/invalid with denial audit where appropriate, and process **idempotently** by provider event id. Out-of-order events: status machine only advances allowed transitions (never Paid → Pending). Replay of the same event id is a no-op success. Webhook handlers acknowledge quickly; heavy work is deferred to background jobs when needed.
 - Q: Background jobs? → A: Asynchronous work is first-class for: outbound email/SMS/push send, malware screening, search index refresh, webhook reconciliation/side effects, and notification fan-out to multiple admins. Jobs are durable (survive process restart), uniquely keyed for idempotency, observable (queued/running/succeeded/failed), and respect the retry policy above. Product UX MUST NOT assume instant completion of background-only steps; surfaces show pending/processing states where Stitch provides them.
 
+### Session 2026-07-30 (non-interactive re-clarify)
+
+User directed: review Shared Services spec; **do not ask questions**; identify missing business/technical requirements; apply enterprise-grade assumptions; document every assumption; validate Notification Channels, Payment Providers, AI Providers, File Storage, Medical File Security, Video Provider, Localization, Search, Logging, Monitoring, Error Handling, Retry Policies, Webhooks, Background Jobs.
+
+**Validation outcome (all 14 areas):** Already specified in the prior Clarifications session and FR-029–FR-043. Re-reviewed for residual enterprise gaps; incremental assumptions and requirements below fill those gaps without changing prior decisions.
+
+- Q: Notification Channels (residual)? → A: **Transactional vs promotional** are distinct. Transactional/security/care notices (Auth challenges, billing/security, appointment-critical) use the channel matrix and **cannot** be fully opted out of email+in-app. Promotional/marketing-style notices (if any later) require explicit opt-in and are **out of v1 product scope** for Platform Services. SMS for OTP/care reminders requires a **verified phone**; unverified phone → SMS skipped without failing in-app/email. Quiet hours do **not** delay transactional/security messages.
+- Q: Payment Providers (residual)? → A: Provider may require **payer authentication** (e.g., 3-D Secure) as part of the intent/checkout UX owned by Patient Portal; Platform Payment Gateway MUST support returning provider challenges/redirects without inventing a second payment UX. **Disputes/chargebacks** map to Billing **Disputed** status when reported via provider webhook or Admin manual note; full chargeback case management UI is out of v1 beyond status + audit. Refund windows follow provider + Admin policy already used by Admin refund flows.
+- Q: AI Providers (residual)? → A: Shared AI boundary MUST treat prompts/responses as potentially sensitive: **no training on customer PHI** unless explicitly configured off-by-default and contractually allowed (already). Product requirement: callers MUST NOT send unnecessary raw document binaries into prompts when a summary/reference id suffices. Prompt-injection / jailbreak resistance is a **provider+governance** concern; Platform AI MUST still enforce fail-closed flags and non-diagnostic posture regardless of model output.
+- Q: File Storage (residual)? → A: All upload/download paths MUST use **TLS in transit**. Rejected malware objects are not end-user-available; retention of rejected binaries is ops-minimal (may delete after reject) while the rejection outcome remains auditable. No public ACLs; no permanent unsigned URLs.
+- Q: Medical File Security (residual)? → A: Access is role + relationship (already). **Break-glass** Admin access (if used) MUST still produce audit events (already covered by high-impact audit). Soft-delete does not purge legal-hold/audit (already). Downloads require fresh auth for new short-lived URLs (already).
+- Q: Video Provider (residual)? → A: One primary provider (already). Recording off by default (already). Concurrent join limited to authorized appointment participants; platform does not sell multi-party webinars in v1. Waiting-room is optional provider feature; Hakeem authorization remains mandatory before token issue.
+- Q: Localization (residual)? → A: `en`/`ar` + Asia/Riyadh (already). **Hijri calendar** display is not required in shared platform services v1 (Gregorian sufficient unless a portal already requires Hijri in its own UX). Currency formatting remains SAR with locale-aware numerals/grouping.
+- Q: Search (residual)? → A: Doctor discovery P1 (already). Public/anonymous discovery MUST be **rate-limited** against scraping/abuse without blocking normal browsing. No extra PII in public results beyond professional profile fields (already).
+- Q: Logging (residual)? → A: Three streams (already). **Operational log retention**: retain online/queryable operational diagnostics ≥30 days (or host platform default if longer); security **audit** retention remains ≥365 days floor per Auth assumptions. Redaction policy unchanged.
+- Q: Monitoring (residual)? → A: Component health for Email, SMS, Payments, AI, Storage, Video (already; Email/SMS included). Forced failure visible within one Admin health refresh (SC-018). No full APM product in v1 (already). Critical payment/webhook failures notify Admins (already).
+- Q: Error Handling (residual)? → A: Outcome taxonomy including PartialSuccess (already). Portals map codes to localized safe messages; no stack traces or provider raw bodies in user UI.
+- Q: Retry Policies (residual)? → A: Exp backoff + jitter, max 5, dead-letter (already). **Non-retryable** explicitly includes: validation errors, unauthorized/forbidden, not found, conflict (hard), rate limit only when caller should back off externally, malware reject, hard payment declines, invalid webhook signatures. Retryable: timeouts, 5xx, transient network, provider “try again”.
+- Q: Webhooks (residual)? → A: Signature/shared-secret verify + idempotent event id (already). **Timestamp skew**: when the provider signs a timestamp, reject events outside a short acceptance window (default ≤5 minutes skew) to reduce replay risk alongside event-id idempotency. Illegal backward transitions ignored (already).
+- Q: Background Jobs (residual)? → A: Durable, idempotent, observable (already). **Concurrency**: each job type runs with a bounded concurrency (ops-configurable soft limit) so provider rate limits are respected; poison messages dead-letter after max attempts with Admin signal (already).
+
+Incremental requirements encoded as FR-044–FR-048 and Assumptions bullets in this pass.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Shared Notification Delivery (Priority: P1)
@@ -284,6 +307,10 @@ External providers confirm payments (and optionally other events) via signed web
 - Background job poison message: after max retries, marked failed/dead-letter; Admin health/notification alerted; no infinite retry loop.
 - Synchronous path timeout: user sees DependencyUnavailable within ≤10s while eligible work continues in background where queued.
 - Operational log redaction failure risk: secrets, raw cards, session tokens, and full document bodies are never written to operational logs (defense via logging policy).
+- Webhook with valid signature but stale timestamp (beyond skew): rejected; no state change; may be audited as denial.
+- Public search under abusive burst: rate limited; legitimate interactive browsing still works.
+- Unverified phone on SMS-required optional channel: SMS skipped; in-app/email proceed.
+- AI request that would require PHI provider without BAA gate: denied fail-closed before provider call.
 
 ## Requirements *(mandatory)*
 
@@ -332,6 +359,11 @@ External providers confirm payments (and optionally other events) via signed web
 - **FR-041**: Transient dependency failures for background work MUST retry with exponential backoff and jitter, maximum 5 attempts, then enter failed/dead-letter with ops visibility; user-facing synchronous calls MUST fail fast (≤10 seconds) with DependencyUnavailable when waiting is not appropriate.
 - **FR-042**: Inbound webhooks MUST verify signature or shared secret, process idempotently by provider event id, ignore illegal backward status transitions, and acknowledge promptly with heavy work deferred to background jobs when needed.
 - **FR-043**: Background jobs MUST cover at least outbound messaging, malware screening, search index refresh, webhook side-effect processing, and admin notification fan-out; jobs MUST be durable, idempotent-keyed, and observable (queued/running/succeeded/failed).
+- **FR-044**: Shared integrations that exchange data with external providers or issue download links MUST use encrypted transport (HTTPS/TLS); permanent public object URLs MUST NOT be used.
+- **FR-045**: When inbound webhooks include a signed timestamp (or equivalent freshness claim), events outside the configured acceptance skew window MUST be rejected without applying state changes.
+- **FR-046**: Public/anonymous doctor discovery search MUST apply abuse-oriented rate limiting so normal browsing succeeds while bulk scraping is throttled.
+- **FR-047**: Operational diagnostic logs MUST be retained in an accessible form for at least 30 days (or the hosting platform’s longer default); security audit retention remains governed by Auth/Admin floors (≥365 days) and is distinct from operational log retention.
+- **FR-048**: Background job execution MUST respect per-type concurrency bounds sufficient to avoid uncontrolled provider thundering herds; exhausted retries MUST dead-letter with ops-visible signal (as in FR-041).
 
 ### Key Entities
 
@@ -378,6 +410,8 @@ External providers confirm payments (and optionally other events) via signed web
 - **SC-016**: Doctor eligibility changes (approve/suspend) appear correctly in discovery search within 5 minutes in ≥95% of timed verification runs under normal load.
 - **SC-017**: Sampled operational logs for payment and document flows contain no raw secrets, session tokens, or full document bodies in 100% of log-policy review checks.
 - **SC-018**: System Health shows distinct signals for Payments, AI, Storage, and Video (when configured) such that a forced dependency failure flips the matching component from Healthy within one manual refresh cycle in ops verification.
+- **SC-019**: Webhook events with invalid signatures or expired freshness/skew (when timestamp signing is present) leave billing/video state unchanged in 100% of negative tests.
+- **SC-020**: Public discovery search under simulated abusive request rates returns throttled outcomes without taking down normal single-user browsing in verification tests.
 
 ## Assumptions
 
@@ -402,4 +436,13 @@ External providers confirm payments (and optionally other events) via signed web
 - Retry: exponential backoff + jitter, max 5 attempts; dead-letter with Admin-visible alert afterward.
 - User-facing synchronous dependency waits capped at ~10 seconds before DependencyUnavailable.
 - Health monitoring is summary component checks (not a full APM suite) aligned with Administration System Health.
-- Out of scope for this module’s v1: multi-provider payment routing, doctor payout ledgers, semantic search, call recording vault, customer-facing log explorers, and a separate Platform Services portal UI.
+- Out of scope for this module’s v1: multi-provider payment routing, doctor payout ledgers, semantic search, call recording vault, customer-facing log explorers, a separate Platform Services portal UI, promotional/marketing notification campaigns, Hijri calendar as a shared platform requirement, and full chargeback case-management UI beyond Disputed status + audit.
+- Transactional/security notifications cannot be fully opted out of email+in-app; quiet hours do not delay them.
+- SMS care/OTP sends require verified phone; otherwise SMS is skipped without failing other channels.
+- Payment payer-authentication challenges (e.g., 3-D Secure) are surfaced through the existing Patient checkout UX via gateway-returned provider details.
+- TLS/HTTPS is required for provider calls and file download links; no public buckets or permanent unsigned URLs.
+- Non-retryable outcomes include validation, authz, not-found, hard conflict, malware reject, hard payment declines, and invalid webhook signatures; timeouts/5xx/network are retryable under FR-041.
+- Webhook freshness skew default ≤5 minutes when timestamp claims exist, in addition to provider event-id idempotency.
+- Operational logs retained ≥30 days accessible; audit retention remains ≥365 days floor (distinct streams).
+- Public search is rate-limited against scraping; job types have bounded concurrency to protect providers.
+- Prompt/document minimization for AI: prefer references/summaries over unnecessary raw file contents in prompts.

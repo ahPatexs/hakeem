@@ -5,3 +5,12 @@ export { ConfirmReasonDialog } from "./dialogs/confirm-reason-dialog";
 export { NotificationList, type PlatformNotificationItem } from "./notifications/notification-list";
 export { PaymentStatusBadge } from "./payments/payment-status-badge";
 export { FileUploadField } from "./upload/file-upload-field";
+export {
+  VideoSessionShell,
+  VideoWaitingRoom,
+  CameraPreview,
+  DeviceSelector,
+  ParticipantGrid,
+  CallControls,
+} from "./video";
+export { AiAssistantShell } from "./ai";

@@ -51,12 +51,13 @@ Reuse existing Auth/Patient/Admin entities where possible; add tables only for j
 | providerEventId | string | Unique with provider |
 | eventType | string | |
 | signatureValid | boolean | |
+| freshnessValid | boolean? | false when signed timestamp outside skew window (FR-045) |
 | processedAt | datetime? | |
 | obligationId | string? | FK optional |
 | rawHash | string | Hash of body for forensics (not full PHI dump) |
 | createdAt | datetime | |
 
-**Validation**: Reject insert duplicate `provider+providerEventId` → treat as idempotent success.
+**Validation**: Reject insert duplicate `provider+providerEventId` → treat as idempotent success. Invalid signature or failed freshness → no state change (SC-014 / SC-019).
 
 ### OutboundMessage
 
@@ -149,11 +150,37 @@ User 1──* PushDeviceRegistration
 PaymentObligation 1──* PaymentAttempt
 PaymentObligation 1──* WebhookReceipt (optional link)
 PatientUpload / ClinicalDocument ── storageKey → StoragePort
-Appointment 1──0..1 VideoSession metadata (roomId on appointment or side table)
+Appointment 1──0..1 VideoSession (roomId, state, provider=livekit)
+VideoSession 1──* VideoCallEvent (join/leave/deny/reconnect/recording)
 Doctor 1──1 SearchDoctorProjection
 BackgroundJob (standalone; payload refs other ids)
 ```
 
+### VideoSession (extend / add)
+
+| Field | Type | Notes |
+|-------|------|-------|
+| id | cuid | PK |
+| appointmentId | string | Unique FK |
+| provider | string | `livekit` \| `stub` |
+| roomId / roomName | string | LiveKit room |
+| state | enum | SCHEDULED \| WAITING \| IN_CALL \| ENDED \| CANCELLED |
+| recordingEnabled | boolean | default false |
+| startedAt / endedAt | datetime? | |
+| createdAt / updatedAt | datetime | |
+
+### VideoCallEvent (call logging)
+
+| Field | Type | Notes |
+|-------|------|-------|
+| id | cuid | PK |
+| sessionId | string | FK |
+| actorUserId | string? | |
+| kind | string | JOIN \| LEAVE \| DENY \| RECONNECT \| RECORDING_START \| RECORDING_STOP \| CHAT_META |
+| metadata | json | Redacted (no media, no full chat body) |
+| createdAt | datetime | |
+
+**Analytics**: Admin summaries derived from sessions + events (duration, join counts, disconnects) — no media retention in analytics tables.
 ## Indexes
 
 - `BackgroundJob (state, runAfter)` and unique `(type, idempotencyKey)`
@@ -164,7 +191,9 @@ BackgroundJob (standalone; payload refs other ids)
 
 ## Retention
 
-- Audit: ≥365d floor (Auth); admin governance longer per Admin spec
+- Security audit (`SecurityAuditEvent`): ≥365d floor (Auth); admin governance longer per Admin spec
+- Operational diagnostics (logs): ≥30d accessible (FR-047); distinct from audit
 - OutboundMessage / WebhookReceipt: ≥90d operational
 - BackgroundJob SUCCEEDED: purge &gt;30d; FAILED retain ≥90d for ops
 - Push registrations: remove on revoke/invalid token
+- Rejected malware binaries: ops-minimal retention; rejection outcome remains auditable

@@ -182,6 +182,23 @@ export async function handleBackgroundJob(type: BackgroundJobType, payload: unkn
       });
       return;
     }
+    case "VIDEO_RECORDING_FINALIZE": {
+      const egressId = typeof record.egressId === "string" ? record.egressId : null;
+      const sessionId = typeof record.sessionId === "string" ? record.sessionId : null;
+      if (!egressId || !sessionId) throw new Error("MISSING_JOB_FIELD:egressId|sessionId");
+      const adapter = (await import("@/adapters")).getTelemedicineAdapter();
+      if (adapter.stopRecording) {
+        await adapter.stopRecording({ egressId }).catch(() => undefined);
+      }
+      await prisma.videoCallEvent.create({
+        data: {
+          sessionId,
+          kind: "RECORDING_STOP",
+          metadata: { egressId },
+        },
+      });
+      return;
+    }
     default: {
       const _exhaustive: never = type;
       throw new Error(`UNSUPPORTED_JOB_TYPE:${String(_exhaustive)}`);

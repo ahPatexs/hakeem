@@ -3,13 +3,26 @@
 **Input**: Design documents from `/specs/006-platform-services/`  
 **Prerequisites**: [plan.md](./plan.md), [spec.md](./spec.md), [research.md](./research.md), [data-model.md](./data-model.md), [contracts/](./contracts/), [ui-review.md](./ui-review.md), [quickstart.md](./quickstart.md)
 
-**Tests**: Included (user requested unit, integration, performance).
+**Tests**: Included ? unit, integration, performance, security, and e2e (user-requested).
 
-**UI gate**: Do not redesign. Consolidate existing Stitch-aligned primitives into `src/components/platform/`. Re-export Stitch shared frames to `specs/006-platform-services/design/` when MCP auth available (T008).
+**UI gate**: Do not redesign. Consolidate Stitch-aligned primitives into `src/components/platform/` (incl. `video/*` and `ai/*`). LiveKit React Components wrap Stitch Waiting Room / Video Consultation patterns only.
 
-**Organization**: Setup ? Foundational (shared layout/components/hooks/utilities + schema + ports + jobs skeleton) ? US1?US13 by priority ? Polish (DoD + cross-module migration completeness)
+**Organization** (user categories ? phases):
 
-**Definition of Done** (validate in Polish): Shared services reusable across Public/Auth/Patient/Doctor/Admin; no duplicated business logic for listed concerns; centralized integrations via ports/adapters; production-ready checks from [quickstart.md](./quickstart.md).
+| Category | Phases / stories |
+|----------|------------------|
+| Foundation (layout, components, hooks, utilities, API clients) | Phase 1?2 |
+| Notifications (in-app, email, SMS, push) | US1?US3 |
+| Payments (gateway, billing, refunds) | US4 |
+| AI (provider, chat, clinical) | US5 |
+| Storage (upload, medical docs, image) | US6 |
+| **Video Communication (LiveKit)** | US7 + **Phase 19** (full LiveKit suite) |
+| Infrastructure (search, audit, timeline, i18n, flags, config, jobs, queue, monitoring, logging) | US8?US11, US13, Polish |
+| Consumer migration | US12 |
+| Testing | Per-story tests + Phase 19 security/e2e + Polish |
+| Convergence | Phase 17?18 (done) |
+
+**Definition of Done** (validate in Polish + Phase 19): Shared services reusable across Public/Auth/Patient/Doctor/Admin; **LiveKit integrated and reusable** via platform only; AI/notifications/payments operational and centralized; no duplicated business logic; no LiveKit SDK in portals; production-ready per [quickstart.md](./quickstart.md).
 
 ## Format: `[ID] [P?] [Story?] Description`
 
@@ -19,6 +32,8 @@
 ## Path Conventions
 
 Single Next.js app: `src/`, `prisma/`, `tests/` at repository root (extends Modules 001?005).
+
+**Status**: T001?T134 completed in prior implement/converge. **T135+ (Phase 19) are the open LiveKit Video Communication delta** from the updated plan.
 
 ---
 
@@ -226,9 +241,9 @@ Single Next.js app: `src/`, `prisma/`, `tests/` at repository root (extends Modu
 
 ---
 
-## Phase 10: User Story 7 ? Video Consultation Sessions (Priority: P1)
+## Phase 10: User Story 7 — Video Consultation Sessions (Priority: P1)
 
-**Goal**: Session create/join credentials; party authz; recording off by default.
+**Goal**: Session create/join credentials; party authz; recording off by default. **Baseline done (T070–T075)**; full LiveKit Communication Service is **Phase 19**.
 
 **Independent Test**: Patient + assigned doctor join; stranger denied; cancelled appointment refused.
 
@@ -244,7 +259,7 @@ Single Next.js app: `src/`, `prisma/`, `tests/` at repository root (extends Modu
 - [x] T074 [P] [US7] Ensure recording remains disabled via config/flag in `src/lib/platform/video.ts` + PlatformSetting key (Recording Support = off / future-ready)
 - [x] T075 [P] [US7] Add optional stub video webhook route placeholder `src/app/api/webhooks/video/route.ts` (verify + no-op) if provider needs it
 
-**Checkpoint**: Video consultation + session management shared; recording gated off
+**Checkpoint**: Baseline video facade + stub adapter done. Continue Phase 19 for LiveKit Cloud, shared video UI, analytics, call logging.
 
 ---
 
@@ -370,56 +385,9 @@ Single Next.js app: `src/`, `prisma/`, `tests/` at repository root (extends Modu
 
 ## Dependencies & Story Order
 
-```text
-Phase 1 Setup
-    ?
-Phase 2 Foundational (schema, jobs, shared UI/hooks/utils)
-    ?
-US1 Notifications (in-app) ?????? US2 Email/SMS ??? US3 Push
-    ?                        ?
-US4 Payments/Billing/Refunds????? US13 Webhooks/Retries (after jobs + payments)
-    ?
-US5 AI
-US6 Storage/Documents/Images
-US7 Video/Sessions/Recording-off
-US8 Search
-US9 Audit/Timeline
-US10 Localization
-US11 Flags/Config/Health
-    ?
-US12 Consumer migration (after facades exist)
-    ?
-Polish / DoD
-```
+See **Dependencies (updated)** after Phase 19 for the current graph (includes LiveKit Phase 19). Historical US1–US13 order: Foundation → Notifications → Payments+Jobs → AI/Storage/Video baseline → Search/Audit/i18n/Flags → US12 migration → Phase 17–18 → **Phase 19 LiveKit** → DoD.
 
-**Parallel opportunities** (after Phase 2): US5 ? US6 ? US7 ? US8 ? US9 ? US10 (different files); US1?US2?US3 sequential preferred; US4 before US13.
-
-## Parallel example (post-foundation)
-
-```bash
-# Parallel track A
-T057?T061 AI
-
-# Parallel track B
-T064?T069 Storage
-
-# Parallel track C
-T072?T075 Video
-```
-
-## Implementation strategy
-
-1. **MVP**: Phase 1?2 + US1 (in-app notify) + US2 (email) + US4 (payments) + US13 (webhooks/jobs) ? proves shared core.
-2. **Increment**: US5?US7 (AI/files/video), then US8?US11 (infra), then US12 migration sweep.
-3. **DoD**: Polish phase + quickstart evidence.
-
-## Suggested MVP scope
-
-T001?T033 + T039?T054 (Setup, Foundation, US1, US2, US4, US13) ? notifications + payments + reliable jobs/webhooks.
-
-## Format validation
-
-All tasks use `- [ ]`, sequential `Tnnn`, optional `[P]`, story `[USn]` on story phases only, and include explicit file paths.
+---
 
 ## Phase 17: Convergence
 
@@ -476,3 +444,169 @@ All tasks use `- [ ]`, sequential `Tnnn`, optional `[P]`, story `[USn]` on story
 - [x] T134 LOW: Align `specs/006-platform-services/quickstart-results.md` with actual evidence (design export status, operator E2E still optional) per T121 / DoD (partial)
 
 **Checkpoint**: After /speckit-implement on Phase 18, re-run /speckit-converge to confirm closure.
+
+---
+
+## Phase 19: Video Communication Service — LiveKit (US7 extension) 🎯 OPEN
+
+**Goal**: Complete shared **Video Communication Service** on **LiveKit Cloud** + Server SDK + React Components + WebRTC per updated [plan.md](./plan.md). Patient and Doctor portals consume shared facades/UI only; Admin monitors sessions/analytics/call logs; **no LiveKit business logic in portals**.
+
+**Independent Test**: With `TELEMEDICINE_ADAPTER=livekit`, authorized patient+doctor join via shared waiting room → preview → in-call grid/controls; stranger denied; reconnect recovers; Admin sees call events; recording stays off unless flag enabled; grep shows no `livekit-server-sdk` under patient/doctor component trees.
+
+**Depends on**: Phase 2 foundation + US7 baseline (T070–T075) + US11 flags/health.
+
+### Setup / deps
+
+- [x] T135 [P] [US7] Add npm deps `livekit-server-sdk`, `@livekit/components-react`, and LiveKit client packages to `package.json`; document `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, `TELEMEDICINE_ADAPTER=livekit|stub`, `VIDEO_WEBHOOK_SECRET` in `.env.example`
+- [x] T136 [P] [US7] Extend Prisma with `VideoSession` and `VideoCallEvent` per [data-model.md](./data-model.md); add migration under `prisma/migrations/`
+- [x] T137 [P] [US7] Add `platform.video.*` (and AI shell) message keys to `src/i18n/messages/en.json` and `src/i18n/messages/ar.json`
+
+### Tests (unit / integration / perf / security / e2e)
+
+- [x] T138 [P] [US7] Unit test LiveKit JWT TTL + role grants helpers in `tests/unit/platform/livekit-token.test.ts`
+- [x] T139 [P] [US7] Unit test session state machine (SCHEDULED→WAITING→IN_CALL→ENDED) in `tests/unit/platform/video-session.test.ts`
+- [x] T140 [P] [US7] Integration test LiveKit adapter (or recorded fixture) room create + token in `tests/integration/platform/livekit.test.ts` (skip if no LiveKit env)
+- [x] T141 [P] [US7] Security test: portals must not import `livekit-server-sdk`; JWT mint only via `src/lib/platform/video.ts` — assert in `tests/unit/platform/video-boundary.test.ts`
+- [x] T142 [P] [US7] Security/integration test video webhook invalid signature + stale skew leaves session unchanged in `tests/integration/platform/video-webhook.test.ts`
+- [x] T143 [P] [US7] Perf smoke: token issue p95 budget under load harness in `tests/perf/platform/video-token.perf.test.ts`
+- [x] T144 [P] [US7] E2E smoke (Playwright): patient waiting room → join shell mounts shared platform video in `tests/e2e/platform/video-consultation.spec.ts` (stub adapter acceptable in CI)
+
+### LiveKit Integration & port
+
+- [x] T145 [US7] Extend `src/ports/telemedicine.ts` with optional `closeRoom`, `startRecording`/`stopRecording`, `ping` per [contracts/platform-services.md](./contracts/platform-services.md)
+- [x] T146 [US7] Implement `src/adapters/livekit-telemedicine.ts` (LiveKit Cloud room create/delete, AccessToken JWT, optional egress, ping)
+- [x] T147 [US7] Wire `getTelemedicineAdapter()` in `src/adapters/index.ts` to select LiveKit when `TELEMEDICINE_ADAPTER=livekit`
+- [x] T148 [P] [US7] Keep `src/adapters/stub-telemedicine.ts` compatible with extended port for CI/local
+
+### Room / JWT / Session Management
+
+- [x] T149 [US7] Implement session domain in `src/domain/platform/video.ts` (VideoSession lifecycle, waiting-room policy, participant roster rules)
+- [x] T150 [US7] Extend `src/lib/platform/video.ts` for createConsultationSession / getJoinCredentials / endConsultationSession / listVideoCallEvents / getSessionAnalytics per contracts
+- [x] T151 [P] [US7] Add Server Actions in `src/actions/platform/video.ts` for token/session (callable from Patient/Doctor islands)
+- [x] T152 [US7] Persist join/leave/deny/reconnect events as `VideoCallEvent` from facade + webhook handlers
+
+### Shared Video UI (Stitch — do not redesign)
+
+- [x] T153 [P] [US7] Create `src/components/platform/video/waiting-room.tsx` aligned with Stitch Waiting Room
+- [x] T154 [P] [US7] Create `src/components/platform/video/camera-preview.tsx`
+- [x] T155 [P] [US7] Create `src/components/platform/video/device-selector.tsx`
+- [x] T156 [P] [US7] Create `src/components/platform/video/participant-grid.tsx` wrapping LiveKit React Components
+- [x] T157 [P] [US7] Create `src/components/platform/video/call-controls.tsx` (audio, video, screen share, in-call chat toggles)
+- [x] T158 [US7] Create `src/components/platform/video/session-shell.tsx` (Room connect + connection recovery / reconnect UX)
+- [x] T159 [P] [US7] Export video kit from `src/components/platform/index.ts` and `src/components/platform/video/index.ts`
+- [x] T160 [P] [US7] Implement `src/hooks/platform/use-video-session.ts` (fetch JWT via Server Action; expose connection state; never hold API secrets)
+
+### Portal consumption (no LiveKit logic in portals)
+
+- [x] T161 [US7] Refactor `src/components/patient/appointments/video-consultation.tsx` to mount shared `VideoSessionShell` / waiting room only
+- [x] T162 [US7] Refactor doctor video page `src/app/[locale]/doctor/consultations/[appointmentId]/video/page.tsx` (+ join button) to shared platform video components only
+- [x] T163 [P] [US7] Grep/enforce: no `livekit-server-sdk` under `src/components/patient/**` or `src/components/doctor/**`
+
+### Participant / Device / Controls / Chat / Recovery
+
+- [x] T164 [US7] Enforce participant management (patient + assigned doctor only) in domain before token mint; audit denials via `src/lib/platform/audit.ts`
+- [x] T165 [P] [US7] Wire device management + camera preview into waiting room flow (pre-join)
+- [x] T166 [P] [US7] Wire audio/video/screen-share controls through shared `call-controls.tsx`
+- [x] T167 [P] [US7] Wire ephemeral in-call chat UI wrapper in platform video (no full chat bodies in audit/ops logs)
+- [x] T168 [US7] Implement connection recovery in `session-shell.tsx` (reconnect + re-fetch JWT when expired if still authorized)
+
+### Recording (optional) / Analytics / Call Logging / Admin
+
+- [x] T169 [US7] Implement optional recording path (LiveKit egress) gated by `isPlatformVideoRecordingEnabled` in `src/lib/platform/video.ts` + `VIDEO_RECORDING_FINALIZE` job type in `src/domain/platform/jobs.ts` (default off)
+- [x] T170 [US7] Implement Admin-facing session analytics summary in `src/lib/platform/video.ts` (`getSessionAnalytics`) and surface in Admin health/ops UI path (e.g. `src/components/admin/` or existing AI Operations / health area — no redesign)
+- [x] T171 [US7] Expose call logging list for Admin (and authorized parties) via facade + thin Admin view consuming platform only
+- [x] T172 [US7] Harden `src/app/api/webhooks/video/route.ts` for LiveKit webhook signature + ≤5m skew + idempotent `WebhookReceipt`; enqueue side effects
+
+### Shared AI components (plan UI validation)
+
+- [x] T173 [P] [US7] Add shared AI chrome shells under `src/components/platform/ai/` (assistant shell / disclaimer) per [contracts/ui.md](./contracts/ui.md); Patient/Doctor AI pages import shell only (no redesign)
+
+### Health / monitoring / logging
+
+- [x] T174 [US7] Extend `src/lib/platform/health.ts` / Admin health to ping LiveKit adapter when configured (TELEMEDICINE component)
+- [x] T175 [P] [US7] Ensure operational logs for video redact tokens/media; call events use redacted metadata via `src/lib/platform/redact.ts`
+
+### DoD checks for Phase 19
+
+- [x] T176 [US7] Update [quickstart.md](./quickstart.md) scenario 7 evidence in `specs/006-platform-services/quickstart-results.md` for LiveKit path
+- [x] T177 Update `specs/006-platform-services/design/manifest.json` video/AI screen entries after shared components land (exported remains honest)
+
+**Checkpoint**: LiveKit Video Communication Service centralized; Patient/Doctor consume shared UI; Admin monitors; recording optional/off; tests green for authz + webhook security + boundary.
+
+---
+
+## Dependencies (updated)
+
+```text
+Phase 1 Setup → Phase 2 Foundation
+  → US1 In-app → US2 Email/SMS → US3 Push
+  → US4 Payments → US13 Jobs/Webhooks
+  → US5 AI | US6 Storage | US7 baseline
+  → US8 Search | US9 Audit/Timeline | US10 i18n | US11 Flags/Health
+  → US12 Consumer migration
+  → Phase 17–18 Convergence (done)
+  → Phase 19 LiveKit Video Communication (OPEN) ← after US7 baseline + US11
+  → Polish / DoD
+```
+
+**Parallel (Phase 19)**: T135–T137, T138–T144 tests, T153–T157 UI components can run in parallel after T145–T148 adapter exists; T161–T162 after T158–T160.
+
+## Parallel example (Phase 19)
+
+```bash
+# After T146 LiveKit adapter
+T153 T154 T155 T156 T157   # shared video UI in parallel
+T138 T139 T141             # unit/security tests in parallel
+```
+
+## Implementation strategy (remaining)
+
+1. **Done**: Foundation, notifications, payments, AI, storage, search, audit/timeline, i18n, flags, jobs/webhooks, consumer migration (T001–T134).
+2. **Next MVP slice**: Phase 19 T135–T152 (LiveKit adapter + session/JWT) + T153–T163 (shared UI + portal mount).
+3. **Then**: recording optional, analytics, Admin call logs, webhook harden, security/e2e tests, DoD evidence.
+
+## Suggested MVP scope (remaining)
+
+T135–T163 + T164 + T168 + T172 + T141 + T144 — LiveKit join path reusable across Patient/Doctor with shared UI and security boundary.
+
+## Format validation
+
+All tasks use `- [ ]` / `- [x]`, sequential `Tnnn`, optional `[P]`, story `[USn]` on story phases only, and include explicit file paths.
+
+## Definition of Done checklist
+
+- [ ] Shared services reusable across all modules (facades only)
+- [ ] LiveKit integrated and reusable (adapter + shared video kit)
+- [ ] AI services centralized (`lib/platform/ai` + shared AI chrome)
+- [ ] Notification services operational (in-app/email/SMS/push)
+- [ ] Payment services operational (gateway/billing/refunds)
+- [ ] No duplicated business logic (no portal-local LiveKit/payment/AI vendor stacks)
+- [ ] Production ready (quickstart + health + webhook verify + tests)
+
+## Phase 20: Convergence
+
+**Purpose**: Close remaining gaps after Phase 19 LiveKit implement (FR-044–048 residual + US12 safety-check facade + Admin call-log UI + video redaction).
+
+### HIGH
+
+- [x] T178 HIGH: Enforce payment webhook timestamp freshness skew (default <=5 minutes) in `src/app/api/webhooks/payments/route.ts` and/or `src/lib/platform/payments.ts` / `src/domain/platform/webhooks.ts`; reject stale signed events with no billing state change; persist `freshnessValid` on `WebhookReceipt` when applicable per FR-045 / SC-019 (missing)
+- [x] T179 HIGH: Add abuse-oriented rate limiting for public/anonymous doctor discovery in `src/lib/platform/search.ts` (return `RATE_LIMITED`) and ensure Public `src/app/[locale]/doctors` / Patient doctor search honor it without blocking normal browsing per FR-046 / SC-020 (missing)
+- [x] T180 HIGH: Enforce per-type soft concurrency bounds when claiming `BackgroundJob` rows in `src/domain/platform/jobs.ts` (env-configurable) so cron ticks cannot thundering-herd providers per FR-048 / plan:queue strategy (missing)
+- [x] T181 HIGH: Route Doctor prescription safety checks through a platform facade/port (do not import `stubSafetyCheckAdapter` directly from `src/actions/doctor/prescriptions.ts`) per FR-025 / US12 (partial)
+
+### MEDIUM
+
+- [x] T182 MEDIUM: Add thin Admin call-log UI consuming `listVideoCallEvents` / `platformListVideoCallEvents` (e.g. under Admin health/ops) so session analytics is not the only Admin video monitor surface per plan:Video Call Logging / US7 (partial)
+- [x] T183 MEDIUM: Apply `src/lib/platform/redact.ts` when writing video operational logs / `VideoCallEvent` metadata in `src/lib/platform/video.ts` and webhook handlers so tokens/media never land in diagnostics per FR-038 / T175 (partial)
+- [x] T184 MEDIUM: Implement or document enforceable operational-diagnostic retention (>=30 days accessible, distinct from audit >=365d) via platform policy/job or host config check referenced from `src/lib/platform/` per FR-047 (missing)
+- [x] T185 MEDIUM: Add HTTPS/TLS assertion helper for provider base URLs and download link issuance in `src/lib/platform/` (reject non-HTTPS in production) per FR-044 (partial)
+
+**Checkpoint**: After `/speckit-implement` on Phase 20, re-run `/speckit-converge` to confirm closure.
+
+## Phase 21: Convergence
+
+**Purpose**: Close remaining gap after Phase 20 implement — public discovery must honor `RATE_LIMITED` end-to-end (no CMS bypass).
+
+### HIGH
+
+- [x] T186 HIGH: When platform search returns `RATE_LIMITED` on Public `src/app/[locale]/doctors/page.tsx`, do not fall back to unrestricted CMS `listDoctors` results; show a throttled/empty/retry outcome and only filter or render discovery hits when search succeeds per FR-046 / SC-020 / T179 (partial)

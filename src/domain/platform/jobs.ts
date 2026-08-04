@@ -1,4 +1,4 @@
-import type { BackgroundJob, BackgroundJobState, Prisma } from "@prisma/client";
+import { Prisma, type BackgroundJob, type BackgroundJobState } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { redactErrorMessage } from "@/lib/platform/redact";
 import { canRetry, DEFAULT_MAX_ATTEMPTS, nextDelayMs } from "@/domain/platform/retry";
@@ -12,6 +12,7 @@ export const BACKGROUND_JOB_TYPES = [
   "SEARCH_REFRESH_DOCTOR",
   "WEBHOOK_SIDE_EFFECT",
   "NOTIFY_ADMINS_FANOUT",
+  "VIDEO_RECORDING_FINALIZE",
 ] as const;
 
 export type BackgroundJobType = (typeof BACKGROUND_JOB_TYPES)[number];
@@ -87,7 +88,43 @@ export async function enqueueJob(input: EnqueueJobInput): Promise<PlatformResult
 
 export async function claimDueJobs(limit: number, workerId = resolveWorkerId()): Promise<ClaimedJob[]> {
   const safeLimit = Math.max(1, Math.min(limit, 100));
-  const rows = await prisma.$queryRaw<ClaimedJob[]>`
+  const defaultPerType = Number(process.env.PLATFORM_JOB_CONCURRENCY_PER_TYPE ?? "5");
+  const perTypeCap = Math.max(1, Math.min(Number.isFinite(defaultPerType) ? defaultPerType : 5, 50));
+
+  // Soft per-type concurrency: skip types already at RUNNING capacity (FR-048).
+  const runningByType = await prisma.backgroundJob.groupBy({
+    by: ["type"],
+    where: { state: "RUNNING" },
+    _count: { _all: true },
+  });
+  const saturated = new Set(
+    runningByType.filter((r) => r._count._all >= perTypeCap).map((r) => r.type),
+  );
+
+  const typeFilter =
+    saturated.size > 0
+      ? prisma.$queryRaw<ClaimedJob[]>`
+    UPDATE "BackgroundJob"
+    SET
+      state = 'RUNNING'::"BackgroundJobState",
+      "lockedAt" = NOW(),
+      "lockedBy" = ${workerId},
+      attempts = attempts + 1,
+      "updatedAt" = NOW()
+    WHERE id IN (
+      SELECT id
+      FROM "BackgroundJob"
+      WHERE state = 'QUEUED'::"BackgroundJobState"
+        AND "runAfter" <= NOW()
+        AND attempts < "maxAttempts"
+        AND type::text NOT IN (${Prisma.join([...saturated])})
+      ORDER BY "runAfter" ASC
+      LIMIT ${safeLimit}
+      FOR UPDATE SKIP LOCKED
+    )
+    RETURNING *
+  `
+      : prisma.$queryRaw<ClaimedJob[]>`
     UPDATE "BackgroundJob"
     SET
       state = 'RUNNING'::"BackgroundJobState",
@@ -107,7 +144,8 @@ export async function claimDueJobs(limit: number, workerId = resolveWorkerId()):
     )
     RETURNING *
   `;
-  return rows;
+
+  return typeFilter;
 }
 
 export async function completeJob(jobId: string): Promise<void> {

@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   canJoinVideo,
+  canTransitionVideoSession,
+  computeJoinTokenTtlSeconds,
   isAuthorizedVideoParticipant,
+  isStubTelemedicineUrl,
   type VideoAppointment,
 } from "@/domain/platform/video";
 
@@ -61,5 +64,30 @@ describe("video join window", () => {
   it("denies join outside window or wrong mode", () => {
     expect(canJoinVideo(appointment, new Date("2026-07-30T10:00:00Z"))).toBe(false);
     expect(canJoinVideo({ ...appointment, mode: "IN_PERSON" })).toBe(false);
+  });
+});
+
+describe("video session state machine", () => {
+  it("allows waiting to in_call and ends", () => {
+    expect(canTransitionVideoSession("SCHEDULED", "WAITING")).toBe(true);
+    expect(canTransitionVideoSession("WAITING", "IN_CALL")).toBe(true);
+    expect(canTransitionVideoSession("IN_CALL", "ENDED")).toBe(true);
+    expect(canTransitionVideoSession("ENDED", "IN_CALL")).toBe(false);
+  });
+});
+
+describe("join token TTL", () => {
+  it("caps at 2 hours and floors at 60s", () => {
+    const far = computeJoinTokenTtlSeconds(new Date(Date.now() + 10 * 60 * 60 * 1000));
+    expect(far).toBe(2 * 60 * 60);
+    const near = computeJoinTokenTtlSeconds(new Date(Date.now() - 40 * 60 * 1000));
+    expect(near).toBe(60);
+  });
+});
+
+describe("stub url detection", () => {
+  it("detects stub telemedicine urls", () => {
+    expect(isStubTelemedicineUrl("https://stub-telemedicine.local/join/x")).toBe(true);
+    expect(isStubTelemedicineUrl("wss://project.livekit.cloud")).toBe(false);
   });
 });

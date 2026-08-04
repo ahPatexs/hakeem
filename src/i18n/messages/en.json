@@ -93,7 +93,9 @@
     "searchAria": "Search doctors",
     "specialty": "Specialty",
     "clearAll": "Clear all",
-    "noResults": "No doctors match your filters. Try a different name or specialty."
+    "noResults": "No doctors match your filters. Try a different name or specialty.",
+    "rateLimitedTitle": "Too many searches",
+    "rateLimited": "Please wait a moment and try again. Normal browsing is unaffected after a short pause."
   },
   "auth": {
     "loginTitle": "Welcome back",
@@ -1091,6 +1093,26 @@
       "scanPending": "Scanning file for safety…",
       "ready": "File is ready.",
       "rejected": "File was rejected during safety scan."
+    },
+    "video": {
+      "waitingTitle": "Waiting room",
+      "waitingPatientHint": "Check your camera and microphone, then join when you are ready.",
+      "waitingDoctorHint": "Preview your devices, then join as host for this consultation.",
+      "joinCall": "Join consultation",
+      "joining": "Joining…",
+      "joinError": "Unable to join the consultation. Please try again.",
+      "callEnded": "The consultation has ended.",
+      "mute": "Mute microphone",
+      "unmute": "Unmute microphone",
+      "cameraOff": "Turn camera off",
+      "cameraOn": "Turn camera on",
+      "screenShare": "Share screen",
+      "chat": "In-call chat",
+      "send": "Send",
+      "leave": "Leave call"
+    },
+    "ai": {
+      "disclaimer": "AI suggestions are supportive only and are not a medical diagnosis or prescription."
     }
   }
 }

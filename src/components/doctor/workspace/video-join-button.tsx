@@ -3,35 +3,25 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Video, UserCheck } from "lucide-react";
-import { joinVideoAsHost, admitVideoPatient } from "@/actions/doctor/video";
+import { UserCheck } from "lucide-react";
+import { admitVideoPatient } from "@/actions/doctor/video";
+import { VideoSessionShell } from "@/components/platform/video";
 
 export function VideoJoinButton({ appointmentId }: { appointmentId: string }) {
   const t = useTranslations("doctor.video");
-  const [pending, startTransition] = useTransition();
   const [admitPending, startAdmitTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [admitted, setAdmitted] = useState(false);
+  const [showSession, setShowSession] = useState(false);
+
+  if (showSession) {
+    return <VideoSessionShell appointmentId={appointmentId} role="doctor" />;
+  }
 
   return (
-    <div className="flex flex-col items-start gap-1">
+    <div className="flex flex-col items-start gap-2">
       <div className="flex flex-wrap gap-2">
-        <Button
-          variant="soft"
-          disabled={pending}
-          onClick={() => {
-            setError(null);
-            startTransition(async () => {
-              const res = await joinVideoAsHost({ appointmentId });
-              if (!res.ok) {
-                setError(res.code === "JOIN_WINDOW_CLOSED" ? t("windowClosed") : t("loadError"));
-                return;
-              }
-              window.open(res.data.url, "_blank", "noopener,noreferrer");
-            });
-          }}
-        >
-          <Video className="me-2 h-4 w-4" aria-hidden />
+        <Button variant="soft" onClick={() => setShowSession(true)}>
           {t("joinAsHost")}
         </Button>
         <Button

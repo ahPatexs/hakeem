@@ -3,39 +3,94 @@
   "projectTitle": "Hakeem AI Healthcare Landing Page",
   "module": "006-platform-services",
   "exported": false,
-  "note": "Stitch MCP auth unavailable. Placeholder 1×1 PNGs removed from claims. Shared UI SoT remains existing portal components listed in source paths; re-export when Stitch is authenticated.",
+  "note": "Stitch MCP list_screens available. PNG export deferred; shared UI SoT is Stitch screen ids below + src/components/platform/* (incl. video LiveKit wrappers + AI shell). Do not redesign.",
+  "reviewedAt": "2026-07-30",
+  "phase19": {
+    "livekit": true,
+    "videoComponents": "src/components/platform/video/",
+    "aiComponents": "src/components/platform/ai/"
+  },
   "screens": [
     {
-      "id": "shared-dialog",
-      "title": "Shared Confirm / Reason Dialog",
-      "route": "platform/dialogs",
-      "device": "DESKTOP",
-      "file": null,
-      "source": "src/components/platform/dialogs/confirm-reason-dialog.tsx"
-    },
-    {
-      "id": "shared-notifications",
-      "title": "Shared Notification List",
+      "id": "shared-notifications-center",
+      "stitchScreenId": "58b2271654e94d33a5b9744b776ead8f",
+      "title": "Notification Center - Hakeem",
       "route": "platform/notifications",
       "device": "DESKTOP",
       "file": null,
       "source": "src/components/platform/notifications/notification-list.tsx"
     },
     {
-      "id": "shared-empty-error",
-      "title": "Shared Empty / Error / Loading States",
-      "route": "platform/feedback",
+      "id": "shared-notifications-empty",
+      "stitchScreenId": "f9cd867d207b433ba675a565340166b6",
+      "title": "All Caught Up - Hakeem Notifications",
+      "route": "platform/notifications/empty",
       "device": "DESKTOP",
       "file": null,
       "source": "src/components/platform/empty-state.tsx"
     },
     {
-      "id": "shared-payment-badge",
-      "title": "Payment Status Badge",
-      "route": "platform/payments",
+      "id": "shared-payment-checkout",
+      "stitchScreenId": "baccb518b56e49e086747e71e82b8d29",
+      "title": "Secure Checkout - Hakeem",
+      "route": "platform/payments/checkout",
       "device": "DESKTOP",
       "file": null,
       "source": "src/components/platform/payments/payment-status-badge.tsx"
+    },
+    {
+      "id": "shared-payment-status",
+      "stitchScreenId": "5d6ca3aa9af348519e002592be6ed3d8",
+      "title": "Payment Status - Hakeem",
+      "route": "platform/payments/status",
+      "device": "DESKTOP",
+      "file": null,
+      "source": "src/components/platform/payments/payment-status-badge.tsx"
+    },
+    {
+      "id": "shared-upload-documents",
+      "stitchScreenId": "10acb5ff2d9143319d6ac0882486efd8",
+      "title": "Prescriptions & Documents - Hakeem",
+      "route": "platform/upload",
+      "device": "DESKTOP",
+      "file": null,
+      "source": "src/components/platform/upload/file-upload-field.tsx"
+    },
+    {
+      "id": "shared-dialog",
+      "stitchScreenId": null,
+      "title": "Shared Confirm / Reason Dialog (embedded in flows)",
+      "route": "platform/dialogs",
+      "device": "DESKTOP",
+      "file": null,
+      "source": "src/components/platform/dialogs/confirm-reason-dialog.tsx"
+    },
+    {
+      "id": "shared-video-waiting-room",
+      "stitchScreenId": "67bd1790016743d8a85f9606c00d31f7",
+      "title": "Waiting Room - Hakeem Video Consultation",
+      "route": "platform/video/waiting-room",
+      "device": "DESKTOP",
+      "file": null,
+      "source": "src/components/platform/video/waiting-room.tsx"
+    },
+    {
+      "id": "shared-video-suite",
+      "stitchScreenId": null,
+      "title": "Shared Video Suite (preview, devices, grid, controls) — LiveKit React Components",
+      "route": "platform/video",
+      "device": "DESKTOP",
+      "file": null,
+      "source": "src/components/platform/video/"
+    },
+    {
+      "id": "shared-ai-components",
+      "stitchScreenId": null,
+      "title": "Shared AI Components (shell / disclaimer)",
+      "route": "platform/ai",
+      "device": "DESKTOP",
+      "file": null,
+      "source": "src/components/platform/ai/"
     }
   ]
 }

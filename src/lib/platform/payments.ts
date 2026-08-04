@@ -4,6 +4,7 @@ import { getPaymentsAdapter } from "@/adapters";
 import { assertCanPay } from "@/domain/patient/payments";
 import {
   buildWebhookReceipt,
+  evaluateWebhookFreshness,
   PAYMENTS_WEBHOOK_PROVIDER,
   resolveWebhookTransition,
 } from "@/domain/platform/webhooks";
@@ -66,10 +67,16 @@ export async function createPaymentIntent(input: {
 export async function applyPaymentWebhook(input: {
   rawBody: string;
   signature: string;
+  timestamp?: string | null;
 }): Promise<PlatformResult<{ eventId: string; applied: boolean }>> {
   const adapter = resolvePaymentsAdapter();
   const signatureValid = adapter.verifyWebhookSignature(input.rawBody, input.signature);
   if (!signatureValid) return platformFail("VALIDATION_ERROR", "Invalid webhook signature");
+
+  const { freshnessValid, stale } = evaluateWebhookFreshness(input.timestamp);
+  if (stale) {
+    return platformFail("VALIDATION_ERROR", "Stale webhook timestamp");
+  }
 
   let event;
   try {
@@ -82,6 +89,7 @@ export async function applyPaymentWebhook(input: {
     provider: PAYMENTS_WEBHOOK_PROVIDER,
     event,
     signatureValid,
+    freshnessValid,
     rawBody: input.rawBody,
     obligationId: event.obligationId,
   });

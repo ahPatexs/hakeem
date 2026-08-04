@@ -2,6 +2,8 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { getSystemHealth } from "@/actions/admin/health";
 import { HealthStatusPill } from "@/components/admin/shared/status-badge";
 import { HealthRefreshButton } from "@/components/admin/health/health-refresh-button";
+import { VideoSessionAnalyticsCard } from "@/components/admin/video-session-analytics-card";
+import { VideoCallLogCard } from "@/components/admin/video-call-log-card";
 
 export default async function AdminHealthPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -39,6 +41,8 @@ export default async function AdminHealthPage({ params }: { params: Promise<{ lo
           </li>
         ))}
       </ul>
+      <VideoSessionAnalyticsCard />
+      <VideoCallLogCard />
     </div>
   );
 }

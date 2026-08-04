@@ -46,11 +46,17 @@ Mandated stack: Next.js 15, TypeScript strict, Prisma, Neon, Server Actions, Rea
 - **Rationale**: Spec FR-033/034; models already present.
 - **Alternatives considered**: Public CDN URLs (PHI leak); sync scan only (blocks UX hard without jobs).
 
-## D8. Video provider
+## D8. Video provider (LiveKit Communication Service)
 
-- **Decision**: Keep `TelemedicinePort`; enforce appointment party checks in `lib/platform/video` before `createJoinToken`; recording off; optional webhook later.
-- **Rationale**: Spec FR-035; patient/doctor join buttons already stubbed.
-- **Alternatives considered**: Embed vendor SDK in UI (authz bypass risk).
+- **Decision**: Primary video provider is **LiveKit Cloud** behind `TelemedicinePort` + `adapters/livekit-telemedicine.ts`. Shared Video Communication Service owns room management, JWT AccessToken minting, session lifecycle, waiting room, media controls (audio/video/screen share), in-call chat wrapper, device management, participant authz, connection recovery, optional recording (egress, off by default), session analytics, and call logging. Patient and Doctor portals **only** consume `lib/platform/video` + `components/platform/video/*` + `use-video-session`; Admin monitors health/analytics/call logs. **No LiveKit Server SDK or token logic in portals.** Client media uses LiveKit React Components / WebRTC.
+- **Rationale**: Spec FR-016/017/035 + product requirement for a complete shared telemedicine stack spanning Patient/Doctor with Admin observability; centralization prevents duplicated JWT/room logic.
+- **Alternatives considered**: Keep stub-only forever (insufficient for production telemedicine); embed LiveKit in each portal (forbidden duplication); Twilio/Agora as primary (rejected — LiveKit mandated for this plan extension).
+
+## D8b. Video recording & analytics
+
+- **Decision**: Recording remains **optional / off by default** via feature flag; when enabled, LiveKit egress + `VIDEO_RECORDING_FINALIZE` job; media never in audit. Analytics are aggregate counters (duration, joins, disconnects) for Admin — not a full APM product.
+- **Rationale**: Aligns FR-035 with expanded capability list without forcing recording vault in v1.
+- **Alternatives considered**: Always-on recording (privacy/compliance risk); no Admin visibility (ops blind spot).
 
 ## D9. Search projection
 
@@ -90,9 +96,39 @@ Mandated stack: Next.js 15, TypeScript strict, Prisma, Neon, Server Actions, Rea
 
 ## D15. Stitch MCP availability
 
-- **Decision**: UI review uses local design manifests (001/003/004/005) + component inventory; re-export screens when Stitch OAuth available.
-- **Rationale**: Plan-time Stitch `list_screens` returned 401; must not block plan.
-- **Alternatives considered**: Block plan on MCP (unnecessary); invent new UI (forbidden).
+- **Decision**: Stitch project `2408493713147971043` is SoT; live `list_screens` used for UI review mapping. PNG export into `design/` remains optional follow-up when implement needs pixel QA; code consolidates under `components/platform` without redesign.
+- **Rationale**: MCP auth restored; shared surfaces exist as Notification Center/Details/All Caught Up, Secure Checkout / Payment Status / Successful, Prescriptions & Documents, Access Denied patterns.
+- **Alternatives considered**: Block plan on PNG export (unnecessary); invent new UI (forbidden).
+
+## D16. Transport & download security (FR-044)
+
+- **Decision**: All provider and download paths HTTPS/TLS; no public ACLs; short-lived signed URLs or authenticated streams only.
+- **Rationale**: Clarified medical/file security + enterprise residual pass.
+- **Alternatives considered**: Public CDN with token query only (leak risk).
+
+## D17. Webhook freshness skew (FR-045)
+
+- **Decision**: When provider signs a timestamp, reject outside ≤5 minutes skew in addition to signature + event-id idempotency.
+- **Rationale**: Reduces replay risk; SC-019.
+- **Alternatives considered**: Event-id only (weaker against delayed replays of unused ids).
+
+## D18. Public search rate limit (FR-046)
+
+- **Decision**: Rate-limit anonymous/public doctor discovery; return `RATE_LIMITED`; keep query-time bookable checks.
+- **Rationale**: Abuse/scraping protection without blocking normal browsing (SC-020).
+- **Alternatives considered**: CAPTCHA day-one; no limit.
+
+## D19. Operational log retention (FR-047)
+
+- **Decision**: Ops diagnostics ≥30 days accessible; security audit ≥365 days floor — distinct streams.
+- **Rationale**: Spec residual clarify; avoid conflating compliance and diagnostics retention.
+- **Alternatives considered**: Single retention for all logs.
+
+## D20. Job concurrency bounds (FR-048)
+
+- **Decision**: Soft per-type concurrency on claim worker so provider rate limits are respected; DLQ after max attempts unchanged.
+- **Rationale**: Prevents thundering herds on cron ticks.
+- **Alternatives considered**: Unlimited parallel claim; external queue concurrency only.
 
 ## Resolved Technical Context
 
@@ -101,7 +137,11 @@ Mandated stack: Next.js 15, TypeScript strict, Prisma, Neon, Server Actions, Rea
 | Language | TypeScript strict |
 | Framework | Next.js 15 App Router |
 | ORM/DB | Prisma + Neon |
-| Jobs | Postgres BackgroundJob + Cron |
-| UI | Tailwind + shadcn + Stitch SoT |
-| Client data | React Query islands only |
+| Jobs | Postgres BackgroundJob + Cron + per-type concurrency |
+| UI | Tailwind + shadcn + Stitch SoT (no redesign); shared video + AI kit |
+| Client data | React Query islands + LiveKit React Components for video |
+| Video | LiveKit Cloud + Server SDK + WebRTC; centralized Video Communication Service |
+| Webhooks | Signature + optional ≤5m skew + idempotent event id |
+| Transport | TLS/HTTPS; private storage |
+| Search | Projection + query-time bookable + public rate limit |
 | Unknowns | None remaining for Phase 1 |

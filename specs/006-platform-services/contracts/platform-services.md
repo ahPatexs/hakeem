@@ -81,16 +81,53 @@ getDownloadUrl(input: { userId: string; documentId: string }): Promise<PlatformR
 ### Video
 
 ```ts
-createConsultationSession(input: { appointmentId: string; actorUserId: string }): Promise<PlatformResult<{ roomId: string }>>;
-getJoinCredentials(input: { appointmentId: string; actorUserId: string }): Promise<PlatformResult<{ token: string; url: string; expiresAt: string }>>;
+createConsultationSession(input: {
+  appointmentId: string;
+  actorUserId: string;
+}): Promise<PlatformResult<{ sessionId: string; roomId: string; state: "WAITING" | "IN_CALL" }>>;
+
+getJoinCredentials(input: {
+  appointmentId: string;
+  actorUserId: string;
+}): Promise<PlatformResult<{
+  token: string;          // LiveKit AccessToken JWT (short-lived)
+  url: string;            // LiveKit room / ws URL
+  roomName: string;
+  expiresAt: string;
+  role: "patient" | "doctor";
+}>>;
+
+endConsultationSession(input: {
+  appointmentId: string;
+  actorUserId: string;
+}): Promise<PlatformResult<void>>;
+
+listVideoCallEvents(input: {
+  appointmentId: string;
+  actorUserId: string;    // Admin or party
+}): Promise<PlatformResult<{ events: VideoCallEventDto[] }>>;
+
+getSessionAnalytics(input: {
+  from: string;
+  to: string;
+}): Promise<PlatformResult<VideoSessionAnalyticsSummary>>; // Admin
 ```
+
+**Rules**:
+- JWT minted only in platform (`livekit-server-sdk`); portals never hold LiveKit API secrets.
+- Participants limited to appointment patient + assigned doctor; denials audited.
+- Waiting room / device preview / participant grid / call controls live in `components/platform/video/*`.
+- Recording optional, off by default; media never written to audit logs.
+- LiveKit webhooks → `POST /api/webhooks/video` (verify + skew + idempotent).
 
 ### Search
 
 ```ts
-searchDoctors(input: { q?: string; specialty?: string; locale: "en" | "ar"; bookableOnly?: boolean }): Promise<PlatformResult<{ items: DoctorSearchHit[] }>>;
+searchDoctors(input: { q?: string; specialty?: string; locale: "en" | "ar"; bookableOnly?: boolean; clientKey?: string }): Promise<PlatformResult<{ items: DoctorSearchHit[] }>>;
 enqueueDoctorSearchRefresh(doctorId: string): Promise<void>;
 ```
+
+Public/anonymous callers: abuse-oriented rate limiting → `RATE_LIMITED` without taking down normal browsing (FR-046 / SC-020).
 
 ### Jobs
 
@@ -105,13 +142,15 @@ processDueJobs(limit: number): Promise<{ processed: number; failed: number }>;
 
 | Item | Rule |
 |------|------|
-| Headers | Provider signature header (e.g. `x-stub-signature` / vendor equivalent) |
+| Headers | Provider signature header (e.g. `x-stub-signature` / vendor equivalent); timestamp claim when provider supports it |
 | Body | Raw bytes verified before JSON parse |
+| Verify | Signature/shared secret **and** freshness skew ≤5 minutes when timestamp present (FR-045) |
+| Transport | HTTPS only (FR-044) |
 | 200 | Processed or idempotent replay |
-| 400 | Invalid signature / malformed |
+| 400 | Invalid signature, stale skew, or malformed — **no billing state change** |
 | 500 | Unexpected (provider may retry) |
 
-Side effects (notifications) enqueued; handler stays fast.
+Side effects (notifications) enqueued; handler stays fast. Same verify+idempotency pattern for `POST /api/webhooks/video` when enabled.
 
 ### `POST /api/cron/platform-jobs`
 
@@ -136,7 +175,26 @@ interface SmsPort { send(input: SmsSendInput): Promise<{ id: string }>; ping?():
 interface PushPort { send(input: PushSendInput): Promise<void>; ping?(): Promise<boolean>; }
 ```
 
-`PaymentsPort` / `TelemedicinePort` / `AiAssistantPort` / `StoragePort` / `MalwareScanPort` remain canonical.
+`PaymentsPort` / `TelemedicinePort` (LiveKit-capable) / `AiAssistantPort` / `StoragePort` / `MalwareScanPort` remain canonical.
+
+`TelemedicinePort` extensions for LiveKit:
+
+```ts
+interface TelemedicinePort {
+  createRoom(input: { roomName: string; appointmentId: string; metadata?: Record<string, string> }): Promise<{ roomId: string }>;
+  createJoinToken(input: {
+    roomId: string;
+    identity: string;
+    role: "patient" | "doctor";
+    ttlSeconds: number;
+  }): Promise<{ token: string; url: string; expiresAt: Date }>;
+  closeRoom?(input: { roomId: string }): Promise<void>;
+  startRecording?(input: { roomId: string }): Promise<{ egressId: string }>; // optional; off by default
+  stopRecording?(input: { egressId: string }): Promise<void>;
+  ping?(): Promise<boolean>;
+}
+```
+
 
 ## Authorization matrix (summary)
 

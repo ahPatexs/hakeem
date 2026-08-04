@@ -4,9 +4,13 @@ import { applyPaymentWebhook } from "@/lib/platform/payments";
 export async function POST(request: Request) {
   try {
     const signature = request.headers.get("x-stub-signature") ?? "";
+    const timestamp =
+      request.headers.get("x-webhook-timestamp") ??
+      request.headers.get("x-stub-timestamp") ??
+      request.headers.get("x-payment-timestamp");
     const rawBody = await request.text();
 
-    const result = await applyPaymentWebhook({ rawBody, signature });
+    const result = await applyPaymentWebhook({ rawBody, signature, timestamp });
     if (!result.ok) {
       const status = result.code === "VALIDATION_ERROR" ? 400 : 500;
       return NextResponse.json({ error: result.code, message: result.message }, { status });

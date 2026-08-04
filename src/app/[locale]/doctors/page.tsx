@@ -3,7 +3,7 @@ import { FeaturedDoctors } from "@/components/sections/featured-doctors";
 import { SearchFilters } from "@/components/doctors/search-filters";
 import { getContentProvider } from "@/content/static-provider";
 import { buildMetadata } from "@/lib/seo";
-import type { Locale } from "@/content/types";
+import type { Locale, DoctorSummary } from "@/content/types";
 
 export async function generateMetadata({
   params,
@@ -49,52 +49,64 @@ export default async function DoctorsPage({
   const q = typeof sp.q === "string" ? sp.q : Array.isArray(sp.q) ? sp.q[0] : "";
   const specialtySlugs = parseSpecialtyParam(sp.specialty);
 
-  const result = await getContentProvider().listDoctors({
-    locale,
-    pageSize: 12,
-    q: q || undefined,
-    specialty: specialtySlugs.length ? specialtySlugs.join(",") : undefined,
-  });
-
-  // Align public discovery with platform bookable membership (SearchDoctorProjection).
+  // Platform search first — never fall back to unrestricted CMS when throttled (FR-046).
   const { searchDoctors: platformSearch, refreshDoctorProjection } = await import(
     "@/lib/platform/search"
   );
   const { prisma } = await import("@/lib/prisma");
+  const { headers } = await import("next/headers");
+  const h = await headers();
+  const clientKey =
+    h.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    h.get("x-real-ip") ||
+    h.get("cf-connecting-ip") ||
+    "public-anonymous";
 
   let bookable = await platformSearch({
     q: q || undefined,
     specialty: specialtySlugs[0],
     locale: locale === "en" ? "en" : "ar",
     bookableOnly: true,
+    clientKey,
   });
 
+  const rateLimited = !bookable.ok && bookable.code === "RATE_LIMITED";
+
   // Empty projection index → hydrate from DB bookable rules, then re-query (FR-018).
-  const projectionCount = await prisma.searchDoctorProjection.count();
-  if (bookable.ok && bookable.data.items.length === 0 && projectionCount === 0) {
-    const candidates = await prisma.doctor.findMany({
-      where: { status: "PUBLISHED", isAvailable: true },
-      select: { id: true },
-      take: 50,
-    });
-    for (const c of candidates) {
-      await refreshDoctorProjection(c.id);
+  // Skip hydration when already rate-limited (would consume more of the budget).
+  if (!rateLimited && bookable.ok && bookable.data.items.length === 0) {
+    const projectionCount = await prisma.searchDoctorProjection.count();
+    if (projectionCount === 0) {
+      const candidates = await prisma.doctor.findMany({
+        where: { status: "PUBLISHED", isAvailable: true },
+        select: { id: true },
+        take: 50,
+      });
+      for (const c of candidates) {
+        await refreshDoctorProjection(c.id);
+      }
+      bookable = await platformSearch({
+        q: q || undefined,
+        specialty: specialtySlugs[0],
+        locale: locale === "en" ? "en" : "ar",
+        bookableOnly: true,
+        clientKey,
+      });
     }
-    bookable = await platformSearch({
-      q: q || undefined,
-      specialty: specialtySlugs[0],
-      locale: locale === "en" ? "en" : "ar",
-      bookableOnly: true,
-    });
   }
 
-  const bookableIds = new Set(bookable.ok ? bookable.data.items.map((h) => h.doctorId) : []);
+  const stillRateLimited = !bookable.ok && bookable.code === "RATE_LIMITED";
 
-  let items = result.items;
+  let items: DoctorSummary[] = [];
   if (bookable.ok) {
-    if (bookable.data.items.length === 0) {
-      items = [];
-    } else {
+    if (bookable.data.items.length > 0) {
+      const result = await getContentProvider().listDoctors({
+        locale,
+        pageSize: 12,
+        q: q || undefined,
+        specialty: specialtySlugs.length ? specialtySlugs.join(",") : undefined,
+      });
+      const bookableIds = new Set(bookable.data.items.map((hit) => hit.doctorId));
       const doctors = await prisma.doctor.findMany({
         where: { id: { in: [...bookableIds] } },
         select: { slug: true },
@@ -103,6 +115,7 @@ export default async function DoctorsPage({
       items = result.items.filter((d) => bookableSlugs.has(d.slug));
     }
   }
+  // !bookable.ok (including RATE_LIMITED and other failures): keep items empty — no CMS bypass.
 
   return (
     <div className="mx-auto grid max-w-7xl gap-8 px-margin-mobile pb-20 pt-28 md:grid-cols-[280px_1fr] md:px-margin-desktop">
@@ -122,7 +135,17 @@ export default async function DoctorsPage({
           clearAll: tFilters("clearAll"),
         }}
       />
-      {items.length === 0 ? (
+      {stillRateLimited ? (
+        <div
+          className="rounded-2xl border border-warm-coral/30 bg-warm-coral/5 p-10 text-center"
+          role="alert"
+        >
+          <h2 className="font-headline text-headline-lg text-primary">
+            {tFilters("rateLimitedTitle")}
+          </h2>
+          <p className="mt-2 text-on-surface-variant">{tFilters("rateLimited")}</p>
+        </div>
+      ) : items.length === 0 ? (
         <div className="rounded-2xl border border-outline-variant/30 bg-white p-10 text-center">
           <h2 className="font-headline text-headline-lg text-primary">{t("doctorsTitle")}</h2>
           <p className="mt-2 text-on-surface-variant">{tFilters("noResults")}</p>

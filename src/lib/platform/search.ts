@@ -5,8 +5,27 @@ import {
   type DoctorSearchHit,
   type DoctorSearchProjection,
 } from "@/domain/platform/search";
-import { platformOk, type PlatformResult } from "@/domain/platform/outcomes";
+import { platformFail, platformOk, type PlatformResult } from "@/domain/platform/outcomes";
 import { enqueue } from "@/lib/platform/jobs";
+
+/** Sliding-window rate limit for anonymous/public discovery (FR-046). */
+const PUBLIC_SEARCH_WINDOW_MS = 60_000;
+const PUBLIC_SEARCH_MAX = Number(process.env.PLATFORM_SEARCH_RATE_LIMIT_MAX ?? "60");
+
+const publicSearchBuckets = new Map<string, { count: number; windowStart: number }>();
+
+function checkPublicSearchRateLimit(clientKey: string): boolean {
+  const now = Date.now();
+  const key = clientKey.trim() || "anonymous";
+  const bucket = publicSearchBuckets.get(key);
+  if (!bucket || now - bucket.windowStart >= PUBLIC_SEARCH_WINDOW_MS) {
+    publicSearchBuckets.set(key, { count: 1, windowStart: now });
+    return true;
+  }
+  if (bucket.count >= PUBLIC_SEARCH_MAX) return false;
+  bucket.count += 1;
+  return true;
+}
 
 export async function refreshDoctorProjection(doctorId: string): Promise<void> {
   const doctor = await prisma.doctor.findUnique({
@@ -79,7 +98,15 @@ export async function searchDoctors(input: {
   specialty?: string;
   locale: "en" | "ar";
   bookableOnly?: boolean;
+  /** When set (anonymous/public), applies abuse rate limiting. */
+  clientKey?: string;
 }): Promise<PlatformResult<{ items: DoctorSearchHit[] }>> {
+  if (input.clientKey != null) {
+    if (!checkPublicSearchRateLimit(input.clientKey)) {
+      return platformFail("RATE_LIMITED", "Too many search requests");
+    }
+  }
+
   const rows = await prisma.searchDoctorProjection.findMany({
     orderBy: { indexedAt: "desc" },
     take: 200,

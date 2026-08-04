@@ -6,15 +6,19 @@
 
 ## Surfaces in scope
 
-| Surface | Expected behavior | Notes |
-|---------|-------------------|-------|
-| Shared dialogs | Modal overlay, title, description, primary/secondary actions; reason textarea min 10 where destructive | Align with existing ConfirmReasonDialog + Stitch dialogs |
-| Shared notifications | List rows, unread emphasis, mark read, optional deep link | Patient/Doctor/Admin centers consume same row primitive |
-| Shared upload | Dropzone/button, filename, progress, PENDING scan state, rejection message | No public URL display |
-| Shared payment | Amount/currency SAR, status badge, pay CTA / processing / success-failure | Intent client secret or redirect only |
-| Empty states | Short title + optional hint; no decorative card spam | Reuse EmptyState |
-| Error states | Safe message + retry when applicable | Reuse ErrorState |
-| Loading states | Skeleton / aria-busy | Reuse ListSkeleton / WidgetSkeleton |
+| Surface | Stitch reference | Expected behavior |
+|---------|------------------|-------------------|
+| Shared dialogs | Embedded in flows + ConfirmReasonDialog | Modal overlay, title, description, primary/secondary; reason textarea min 10 where destructive |
+| Shared notifications | Notification Center / Details / All Caught Up | List rows, unread emphasis, mark read, optional deep link; empty state copy from All Caught Up |
+| Shared upload | Prescriptions & Documents / Lab & Radiology | Dropzone/button, filename, progress, PENDING scan, rejection message; no public URL display |
+| Shared payment | Secure Checkout / Payment Status / Successful | Amount/currency SAR, status badge, pay CTA / processing / success-failure; intent client secret or redirect only |
+| Empty states | All Caught Up + portal empties | Short title + optional hint; no decorative card spam |
+| Error states | Access Denied + portal ErrorState | Safe message + retry when applicable |
+| Loading states | In-flow skeletons | Skeleton / aria-busy |
+| Shared video components | Waiting Room + Video Consultation | Waiting room, camera preview, device selector, participant grid, call controls (audio/video/screen/chat), session shell |
+| Shared AI components | AI Consultation / Prescription Stitch | Shell + disclaimer chrome only; portals own clinical actions |
+
+Full mapping: [ui-review.md](../ui-review.md).
 
 ## Component contracts
 
@@ -32,6 +36,17 @@
 // Payments
 <PaymentStatusBadge status={PaymentStatus} />
 <PaymentCheckoutPanel obligation={{ amountCents, currency, description }} onPay={() => ...} />
+
+// Video (shared — Patient + Doctor)
+<VideoWaitingRoom appointmentId role="patient" | "doctor" onReady={() => ...} />
+<CameraPreview />
+<DeviceSelector onChange={(devices) => ...} />
+<ParticipantGrid />
+<CallControls enableScreenShare enableInCallChat />
+<VideoSessionShell appointmentId role />  // connects with platform JWT; handles recovery
+
+// AI (shared chrome)
+<AiAssistantShell feature="patient" | "doctorDocumentation" | "doctorPrescription" children />
 
 // Feedback
 <EmptyState title description? />
@@ -59,5 +74,3 @@ All user-visible strings via `next-intl` namespace `platform.*` (and existing po
 - New marketing pages
 - Redesign of portal shells
 - Pixel changes “for consistency” that diverge from Stitch
-
-Full review findings: [ui-review.md](../ui-review.md).
