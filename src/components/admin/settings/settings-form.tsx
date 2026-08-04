@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PlatformSettingValueType } from "@prisma/client";
-import { updatePlatformSetting } from "@/actions/admin/settings";
+import { updatePlatformSetting } from "@/actions/admin/ai-ops";
 
 export function SettingsForm({
   settings,

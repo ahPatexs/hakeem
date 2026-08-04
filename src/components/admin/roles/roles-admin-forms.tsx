@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { inviteAdmin, assignRole } from "@/actions/admin/roles";
+import { inviteAdmin, assignRole } from "@/actions/auth/admin";
 
 const ROLES = ["PATIENT", "DOCTOR", "ADMIN"] as const;
 

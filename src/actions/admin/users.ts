@@ -6,13 +6,12 @@ import { prisma } from "@/lib/prisma";
 import { revokeAllUserSessions } from "@/auth/session";
 import { revokeRefreshFamiliesForUser } from "@/auth/refresh";
 import {
-  PAGE_SIZE,
-  REASON_MIN,
   requestMeta,
   withAdminPermission,
   type AdminActionResult,
   type AdminMutationResult,
 } from "@/actions/admin/_helpers";
+import { PAGE_SIZE, REASON_MIN } from "@/domain/admin/constants";
 import { adminAudit, ADMIN_AUDIT_TYPES } from "@/lib/admin/audit";
 import {
   assertNotLastAdmin,
@@ -192,5 +191,3 @@ export async function revokeUserSessions(input: unknown): Promise<AdminMutationR
     return { ok: false, code: "UNKNOWN" };
   }
 }
-
-export { setUserStatus } from "@/actions/auth/admin";

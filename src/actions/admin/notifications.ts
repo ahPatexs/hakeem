@@ -4,11 +4,11 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import {
-  PAGE_SIZE,
   withAdminPermission,
   type AdminActionResult,
   type AdminMutationResult,
 } from "@/actions/admin/_helpers";
+import { PAGE_SIZE } from "@/domain/admin/constants";
 
 export async function listAdminNotifications(input: unknown): Promise<
   AdminActionResult<{

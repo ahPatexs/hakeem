@@ -4,13 +4,12 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import {
-  PAGE_SIZE,
-  REASON_MIN,
   requestMeta,
   withAdminPermission,
   type AdminActionResult,
   type AdminMutationResult,
 } from "@/actions/admin/_helpers";
+import { PAGE_SIZE, REASON_MIN } from "@/domain/admin/constants";
 import { adminAudit, ADMIN_AUDIT_TYPES } from "@/lib/admin/audit";
 import { validateReason } from "@/domain/admin/user-lifecycle";
 import { periodStart } from "@/lib/admin/dashboard";

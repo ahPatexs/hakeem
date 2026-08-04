@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminPermission, requestMeta } from "@/actions/admin/_helpers";
-import { getAnalyticsSeries } from "@/actions/admin/analytics";
+import { getAnalyticsSeries } from "@/actions/admin/ai-ops";
 import { adminAudit, ADMIN_AUDIT_TYPES } from "@/lib/admin/audit";
 import { assertSameOriginMutation, isCsrfError } from "@/auth/csrf";
 import { isAuthDomainError } from "@/auth/errors";

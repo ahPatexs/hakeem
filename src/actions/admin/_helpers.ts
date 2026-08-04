@@ -101,7 +101,3 @@ export async function withAdminMutation(
     return { ok: false, code: "UNKNOWN" };
   }
 }
-
-export const REASON_MIN = 10;
-export const PAGE_SIZE = 20;
-export const EXPORT_ROW_CAP = Number(process.env.ADMIN_EXPORT_ROW_CAP ?? 10_000);

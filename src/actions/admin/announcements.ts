@@ -5,10 +5,10 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { AnnouncementSegment } from "@prisma/client";
 import {
-  REASON_MIN,
   requestMeta,
   type AdminMutationResult,
 } from "@/actions/admin/_helpers";
+import { REASON_MIN } from "@/domain/admin/constants";
 import { adminAudit, ADMIN_AUDIT_TYPES } from "@/lib/admin/audit";
 import { validateReason } from "@/domain/admin/user-lifecycle";
 

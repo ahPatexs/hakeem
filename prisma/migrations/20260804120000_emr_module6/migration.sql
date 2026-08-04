@@ -47,7 +47,7 @@ ALTER TABLE "Prescription" ADD COLUMN     "deletedAt" TIMESTAMP(3),
 ADD COLUMN     "renewedFromId" TEXT;
 
 -- AlterTable
-ALTER TABLE "WebhookReceipt" ADD COLUMN     "freshnessValid" BOOLEAN;
+ALTER TABLE "WebhookReceipt" ADD COLUMN IF NOT EXISTS "freshnessValid" BOOLEAN;
 
 -- CreateTable
 CREATE TABLE "AllergyEntry" (

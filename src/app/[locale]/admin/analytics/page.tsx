@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
-import { getAnalyticsSeries } from "@/actions/admin/analytics";
+import { getAnalyticsSeries } from "@/actions/admin/ai-ops";
 import { KpiCard } from "@/components/admin/shared/kpi-card";
 
 export default async function AdminAnalyticsPage({

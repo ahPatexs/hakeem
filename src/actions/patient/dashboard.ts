@@ -6,5 +6,3 @@ import { withPatient } from "@/actions/patient/_helpers";
 export async function getDashboard() {
   return withPatient((userId) => getDashboardBundle(userId));
 }
-
-export { getDashboardBundle };

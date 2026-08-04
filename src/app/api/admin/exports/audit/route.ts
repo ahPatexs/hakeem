@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdminPermission, EXPORT_ROW_CAP, requestMeta } from "@/actions/admin/_helpers";
+import { requireAdminPermission, requestMeta } from "@/actions/admin/_helpers";
+import { EXPORT_ROW_CAP } from "@/domain/admin/constants";
 import { adminAudit, ADMIN_AUDIT_TYPES } from "@/lib/admin/audit";
 import { assertExportCap } from "@/domain/admin/analytics";
 import { buildAuditWhere } from "@/domain/admin/audit";

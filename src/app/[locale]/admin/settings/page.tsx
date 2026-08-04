@@ -1,5 +1,5 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { getPlatformSettings } from "@/actions/admin/settings";
+import { getPlatformSettings } from "@/actions/admin/ai-ops";
 import { SettingsForm } from "@/components/admin/settings/settings-form";
 
 export default async function AdminSettingsPage({ params }: { params: Promise<{ locale: string }> }) {

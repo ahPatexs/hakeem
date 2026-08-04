@@ -2,7 +2,8 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { PAGE_SIZE, withAdminPermission, type AdminActionResult } from "@/actions/admin/_helpers";
+import { withAdminPermission, type AdminActionResult } from "@/actions/admin/_helpers";
+import { PAGE_SIZE } from "@/domain/admin/constants";
 import { buildAuditWhere } from "@/domain/admin/audit";
 
 export async function listAuditEvents(input: unknown): Promise<

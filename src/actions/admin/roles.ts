@@ -1,7 +1,5 @@
 "use server";
 
-export { assignRole, inviteAdmin } from "@/actions/auth/admin";
-
 import { prisma } from "@/lib/prisma";
 import { can, type Permission } from "@/auth/rbac";
 import { withAdminPermission, type AdminActionResult } from "@/actions/admin/_helpers";
@@ -53,5 +51,3 @@ export async function listAdminUsers(): Promise<
     }),
   );
 }
-
-export { assignRole as assignUserRole } from "@/actions/auth/admin";

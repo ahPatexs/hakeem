@@ -5,12 +5,12 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { PlatformSettingValueType } from "@prisma/client";
 import {
-  REASON_MIN,
   requestMeta,
   withAdminPermission,
   type AdminActionResult,
   type AdminMutationResult,
 } from "@/actions/admin/_helpers";
+import { REASON_MIN } from "@/domain/admin/constants";
 import { adminAudit, ADMIN_AUDIT_TYPES } from "@/lib/admin/audit";
 import { getAllPlatformSettings } from "@/lib/admin/maintenance";
 import { parseSettingValue, SETTING_KEYS } from "@/domain/admin/settings";
