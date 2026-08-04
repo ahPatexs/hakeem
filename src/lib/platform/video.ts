@@ -257,6 +257,33 @@ export async function getJoinCredentials(input: {
     return platformFail("FORBIDDEN", "Not a participant on this appointment");
   }
 
+  // TELEHEALTH consent fail-closed for video joins (T145 / FR-045)
+  {
+    const { requireConsent } = await import("@/lib/emr/consents");
+    const emrActor =
+      participant.role === "patient"
+        ? { userId: input.actorUserId, role: "PATIENT" as const }
+        : {
+            userId: input.actorUserId,
+            role: "DOCTOR" as const,
+            doctorId: appointment.doctorId,
+          };
+    const consent = await requireConsent(emrActor, {
+      patientUserId: appointment.patientUserId,
+      typeCode: "TELEHEALTH",
+    });
+    if (!consent.ok) {
+      await platformAudit({
+        type: "platform.video.join_credentials",
+        outcome: "DENIED",
+        actorUserId: input.actorUserId,
+        targetUserId: appointment.patientUserId,
+        meta: { appointmentId: appointment.id, reason: "consent_required", code: consent.code },
+      });
+      return platformFail("FORBIDDEN", consent.message ?? "Telehealth consent required");
+    }
+  }
+
   const videoCheck = assertVideoAppointment(appointment);
   if (!videoCheck.ok) return videoCheck;
 

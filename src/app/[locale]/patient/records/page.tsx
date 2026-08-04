@@ -1,8 +1,13 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/routing";
-import { listRecords, getMyActivityTimeline } from "@/actions/patient/records";
+import { auth } from "@/auth";
+import { emrGetSummary } from "@/actions/emr/summary";
+import { emrListDocuments } from "@/actions/emr/documents";
+import { emrListMedicalRecords } from "@/actions/emr/records";
 import { RecordsList } from "@/components/patient/records/records-list";
 import { ErrorState } from "@/components/patient/shared/error-state";
+import { PatientSummary, DocumentList, MedicalTimeline } from "@/components/emr";
+import { DocumentUploadForm } from "@/components/emr/documents/document-upload-form";
+import { DocumentActionsList } from "@/components/emr/documents/document-actions-list";
 
 export default async function RecordsPage({
   params,
@@ -15,55 +20,82 @@ export default async function RecordsPage({
   const sp = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("patient.records");
+  const temr = await getTranslations("emr");
+  const session = await auth();
+  const patientUserId = session?.user?.id;
 
-  const page = Number(sp.page ?? "1") || 1;
-  const [result, timelineResult] = await Promise.all([
-    listRecords({ page }),
-    getMyActivityTimeline(),
-  ]);
-  if (!result.ok) {
+  if (!patientUserId) {
     return <ErrorState title={t("loadError")} />;
   }
 
-  const timeline = timelineResult.ok ? timelineResult.data : [];
-  const isAr = locale === "ar";
-  const fmtDate = (d: string) =>
-    new Date(d).toLocaleDateString(isAr ? "ar-SA" : "en-US", { dateStyle: "medium" });
+  const page = Number(sp.page ?? "1") || 1;
+  const [recordsResult, summaryResult, documentsResult] = await Promise.all([
+    emrListMedicalRecords({ patientUserId, page }),
+    emrGetSummary({ patientUserId }),
+    emrListDocuments({ patientUserId, includeDeleted: true }),
+  ]);
+
+  if (!recordsResult.ok) {
+    return <ErrorState title={t("loadError")} />;
+  }
 
   return (
     <div className="space-y-6">
       <h1 className="font-headline text-2xl text-primary">{t("title")}</h1>
 
-      {timeline.length > 0 ? (
-        <section className="glass-card rounded-2xl border border-outline-variant/20 p-5">
-          <h2 className="font-headline text-lg text-primary">{t("timelineTitle")}</h2>
-          <ul className="mt-3 divide-y divide-outline-variant/15">
-            {timeline.map((ev) => (
-              <li key={ev.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
-                <div className="min-w-0">
-                  <p className="font-medium text-primary">{ev.title}</p>
-                  <p className="text-xs text-on-surface-variant">{ev.kind}</p>
-                </div>
-                <div className="shrink-0 text-end">
-                  <p className="text-xs text-on-surface-variant">{fmtDate(ev.occurredAt)}</p>
-                  {ev.href ? (
-                    <Link href={ev.href} className="text-xs font-medium text-primary underline">
-                      {t("openEvent")}
-                    </Link>
-                  ) : null}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
+      {summaryResult.ok ? (
+        <PatientSummary
+          summary={summaryResult.data}
+          labels={{
+            title: temr("summary.title"),
+            allergies: temr("summary.allergies"),
+            medications: temr("summary.medications"),
+            empty: temr("summary.empty"),
+            criticalAlertsTitle: temr("criticalAlerts.title"),
+            criticalAlertsEmpty: temr("criticalAlerts.empty"),
+          }}
+        />
       ) : null}
 
+      <MedicalTimeline patientUserId={patientUserId} locale={locale} />
+
       <RecordsList
-        items={result.data.items}
-        total={result.data.total}
-        page={result.data.page}
-        pageSize={result.data.pageSize}
+        items={recordsResult.data.items}
+        total={recordsResult.data.total}
+        page={recordsResult.data.page}
+        pageSize={recordsResult.data.pageSize}
       />
+
+      <DocumentUploadForm
+        patientUserId={patientUserId}
+        allowedKinds={["PATIENT_UPLOAD", "OTHER"]}
+      />
+
+      {documentsResult.ok ? (
+        <DocumentActionsList
+          patientUserId={patientUserId}
+          items={documentsResult.data.items.map((d) => ({
+            id: d.id,
+            title: d.title,
+            kind: d.kind,
+            classification: d.classification,
+            createdAt: d.createdAt,
+            deletedAt: d.deletedAt,
+            legalHold: d.legalHold,
+          }))}
+          title={temr("documents.title")}
+          emptyLabel={temr("empty")}
+          locale={locale}
+          canMutate
+        />
+      ) : (
+        <DocumentList
+          items={[]}
+          title={temr("documents.title")}
+          emptyLabel={temr("empty")}
+          locale={locale}
+        />
+      )}
     </div>
   );
 }

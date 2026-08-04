@@ -46,7 +46,17 @@ export function LabsList({
   );
 }
 
-export function LabDetail({ lab }: { lab: LabRow & { document: ClinicalDocument | null } }) {
+export function LabDetail({
+  lab,
+}: {
+  lab: {
+    title: string;
+    resultedAt: Date | string;
+    summary: string | null;
+    criticalFlag: boolean;
+    document: Pick<ClinicalDocument, "id"> | null;
+  };
+}) {
   const t = useTranslations("patient.labs");
 
   return (

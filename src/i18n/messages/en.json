@@ -722,7 +722,10 @@
       "immutableNote": "Signed prescriptions are immutable. Issue a new prescription for changes.",
       "aiDraftNote": "AI-drafted — review every line before signing.",
       "loadError": "Could not load prescriptions",
-      "missingPatient": "Select a patient from their chart or workspace to create a prescription."
+      "missingPatient": "Select a patient from their chart or workspace to create a prescription.",
+      "renew": "Renew",
+      "renewing": "Renewing…",
+      "renewFailed": "Could not renew this prescription."
     },
     "appointments": {
       "title": "Upcoming appointments",
@@ -839,7 +842,8 @@
       "health": "System Health",
       "audit": "Audit Logs",
       "notifications": "Notifications",
-      "roles": "Roles"
+      "roles": "Roles",
+      "emr": "EMR Oversight"
     },
     "dashboard": {
       "title": "Admin Dashboard",
@@ -1114,5 +1118,144 @@
     "ai": {
       "disclaimer": "AI suggestions are supportive only and are not a medical diagnosis or prescription."
     }
+  },
+  "emr": {
+    "summary": {
+      "title": "Health summary",
+      "allergies": "Allergies",
+      "medications": "Active medications",
+      "empty": "No summary details yet."
+    },
+    "timeline": {
+      "title": "Medical timeline",
+      "empty": "No timeline events yet.",
+      "filterAll": "All",
+      "filterType": "Filter by type",
+      "search": "Search",
+      "searchPlaceholder": "Search timeline…",
+      "from": "From",
+      "to": "To"
+    },
+    "history": {
+      "title": "Medical history",
+      "allergies": "Allergies",
+      "conditions": "Conditions",
+      "lifestyle": "Lifestyle",
+      "immunizations": "Immunizations",
+      "family": "Family history",
+      "emergency": "Emergency information",
+      "emergencyContactName": "Contact name",
+      "emergencyContactPhone": "Contact phone",
+      "emergencyCriticalAlerts": "Critical alerts",
+      "empty": "No medical history recorded yet.",
+      "sourcePatient": "Patient reported",
+      "sourceClinician": "Clinician attested",
+      "editTitle": "Update medical history",
+      "editHint": "Allergies and conditions you add here are stored in your EMR chart and appear on your health summary.",
+      "saved": "Saved.",
+      "remove": "Remove",
+      "allergySubstance": "Allergy substance",
+      "allergyReaction": "Reaction (optional)",
+      "addAllergy": "Add allergy",
+      "conditionDisplay": "Condition",
+      "addCondition": "Add condition",
+      "smoking": "Smoking",
+      "alcohol": "Alcohol",
+      "activity": "Activity",
+      "notes": "Notes",
+      "saveLifestyle": "Save lifestyle",
+      "saveEmergency": "Save emergency info",
+      "vaccineName": "Vaccine name",
+      "addImmunization": "Add immunization",
+      "familyRelation": "Relation",
+      "familyCondition": "Condition",
+      "addFamily": "Add family history"
+    },
+    "rateLimitedTitle": "Too many requests",
+    "rateLimited": "Please wait a moment and try again.",
+    "criticalAlerts": {
+      "title": "Critical alerts",
+      "empty": "No critical alerts"
+    },
+    "prescriptions": {
+      "title": "Prescriptions",
+      "active": "Active prescriptions",
+      "history": "Prescription history",
+      "empty": "No prescriptions yet.",
+      "renew": "Renew prescription"
+    },
+    "labs": {
+      "title": "Lab results"
+    },
+    "imaging": {
+      "title": "Medical imaging"
+    },
+    "documents": {
+      "title": "Documents",
+      "upload": "Upload document",
+      "titleField": "Document title",
+      "kind": "Document kind",
+      "download": "Download",
+      "hide": "Hide",
+      "restore": "Restore"
+    },
+    "diagnoses": {
+      "title": "Diagnoses",
+      "add": "Add diagnosis",
+      "display": "Diagnosis",
+      "icd10": "ICD-10 (optional)",
+      "icdSearch": "Search ICD-10 or type a code",
+      "icdFreeText": "No catalog match — free-text code allowed",
+      "save": "Save diagnosis"
+    },
+    "plans": {
+      "title": "Care plans",
+      "add": "New care plan",
+      "titleField": "Plan title",
+      "kind": "Plan kind",
+      "goals": "Goals",
+      "goalsHint": "One goal per line",
+      "interventions": "Interventions",
+      "interventionsHint": "One intervention per line",
+      "saveDraft": "Save draft",
+      "publish": "Publish"
+    },
+    "notes": {
+      "title": "Doctor notes",
+      "add": "Add note",
+      "body": "Note text",
+      "save": "Save note",
+      "sign": "Sign note"
+    },
+    "versionHistory": {
+      "title": "Version history"
+    },
+    "admin": {
+      "title": "EMR oversight",
+      "banner": "Administrator oversight — clinical sign and prescribe actions are disabled.",
+      "searchTitle": "Find patient chart",
+      "searchPlaceholder": "Name or email",
+      "search": "Search",
+      "openChart": "Open",
+      "legalHoldCount": "{count} documents on legal hold",
+      "setHold": "Set legal hold",
+      "clearHold": "Clear legal hold"
+    },
+    "consent": {
+      "acknowledge": "Acknowledge",
+      "withdraw": "Withdraw",
+      "title": "Consents",
+      "acknowledged": "Acknowledged",
+      "withdrawn": "Withdrawn",
+      "none": "Not acknowledged"
+    },
+    "add": "Add",
+    "save": "Save",
+    "renew": "Renew",
+    "publish": "Publish",
+    "icd10": "ICD-10",
+    "empty": "Nothing here yet",
+    "error": "Something went wrong. Please try again.",
+    "loading": "Loading…"
   }
 }

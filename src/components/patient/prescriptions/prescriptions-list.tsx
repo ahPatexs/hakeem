@@ -52,7 +52,13 @@ export function PrescriptionsList({
 export function PrescriptionDetail({
   rx,
 }: {
-  rx: RxRow & { document: ClinicalDocument | null };
+  rx: {
+    medicationName: string;
+    status: Prescription["status"];
+    prescribedAt: Date | string;
+    instructions: string;
+    document: Pick<ClinicalDocument, "id"> | null;
+  };
 }) {
   const t = useTranslations("patient.prescriptions");
 

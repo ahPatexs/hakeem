@@ -1,7 +1,9 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { getChart } from "@/actions/doctor/patients";
-import { ErrorState, StatusBadge } from "@/components/doctor/shared";
+import { emrListLabResults } from "@/actions/emr/diagnostics";
+import { ErrorState } from "@/components/doctor/shared";
+import { LabResultsList } from "@/components/emr";
 
 export default async function PatientLabsPage({
   params,
@@ -12,17 +14,16 @@ export default async function PatientLabsPage({
   setRequestLocale(locale);
   const t = await getTranslations("doctor.chart");
 
-  const result = await getChart({ patientUserId: id });
+  const [result, labsResult] = await Promise.all([
+    getChart({ patientUserId: id }),
+    emrListLabResults({ patientUserId: id }),
+  ]);
   if (!result.ok) {
     return <ErrorState title={t("labs")} message={t("accessDenied")} />;
   }
 
   const chart = result.data;
-  const fmtDateTime = (d: Date | string) =>
-    new Date(d).toLocaleString(locale === "ar" ? "ar-SA" : "en-US", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
+  const labs = labsResult.ok ? labsResult.data.items : [];
 
   return (
     <div className="space-y-6">
@@ -43,37 +44,21 @@ export default async function PatientLabsPage({
         </p>
       </div>
 
-      {chart.labs.length === 0 ? (
-        <p className="glass-card rounded-2xl border border-outline-variant/20 bg-surface-container-low p-6 text-sm text-on-surface-variant">
-          {t("emptyLabs")}
-        </p>
-      ) : (
-        <ul className="space-y-3">
-          {chart.labs.map((lab) => (
-            <li
-              key={lab.id}
-              className="glass-card flex items-center justify-between gap-3 rounded-2xl border border-outline-variant/20 bg-surface-container-low p-4"
-            >
-              <div className="min-w-0">
-                <p className="font-medium text-primary">
-                  {lab.title}
-                  {lab.criticalFlag ? (
-                    <span className="ms-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-800">
-                      {t("critical")}
-                    </span>
-                  ) : null}
-                </p>
-                <p className="text-xs text-on-surface-variant">{fmtDateTime(lab.resultedAt)}</p>
-              </div>
-              <StatusBadge
-                status={lab.releaseStatus}
-                label={lab.releaseStatus === "PENDING_REVIEW" ? t("pendingReview") : undefined}
-                variant="lab"
-              />
-            </li>
-          ))}
-        </ul>
-      )}
+      <LabResultsList
+        items={labs.map((lab) => ({
+          id: lab.id,
+          title: lab.title,
+          releaseStatus: lab.releaseStatus,
+          phase: lab.phase,
+          criticalFlag: lab.criticalFlag,
+          resultedAt: lab.resultedAt,
+          summary: lab.summary,
+        }))}
+        title={t("labs")}
+        emptyLabel={t("emptyLabs")}
+        locale={locale}
+        criticalLabel={t("critical")}
+      />
     </div>
   );
 }

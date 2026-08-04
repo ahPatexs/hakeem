@@ -1,9 +1,11 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
-import { getPrescription } from "@/actions/doctor/prescriptions";
+import { getPrescription, listPrescriptionVersions } from "@/actions/doctor/prescriptions";
 import { PrescriptionForm } from "@/components/doctor/prescriptions/prescription-form";
 import { PrescriptionReviewSign } from "@/components/doctor/prescriptions/prescription-review-sign";
+import { RenewPrescriptionButton } from "@/components/doctor/prescriptions/renew-prescription-button";
 import { ErrorState, StatusBadge } from "@/components/doctor/shared";
+import { VersionHistoryList } from "@/components/emr";
 
 export default async function PrescriptionDetailPage({
   params,
@@ -15,13 +17,28 @@ export default async function PrescriptionDetailPage({
   const t = await getTranslations("doctor.rx");
   const tc = await getTranslations("doctor.common");
   const ts = await getTranslations("doctor.status");
+  const temr = await getTranslations("emr");
 
-  const result = await getPrescription({ prescriptionId: id });
+  const [result, versionsResult] = await Promise.all([
+    getPrescription({ prescriptionId: id }),
+    listPrescriptionVersions({ prescriptionId: id }),
+  ]);
   if (!result.ok) {
     return <ErrorState title={t("viewTitle")} message={tc("notFound")} />;
   }
 
   const { rx, safety, allergies } = result.data;
+  const versionItems =
+    versionsResult.ok
+      ? versionsResult.data.map((v) => ({
+          id: v.id,
+          version: v.version,
+          status: v.status,
+          labeledAt: v.labeledAt,
+          reason: v.reason,
+        }))
+      : [];
+
   const fmtDate = (d: Date | null) =>
     d
       ? new Date(d).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US", {
@@ -110,6 +127,15 @@ export default async function PrescriptionDetailPage({
               <p className="mt-1 text-sm text-primary">{rx.instructions}</p>
             </div>
           ) : null}
+          {rx.status === "ACTIVE" || rx.status === "COMPLETED" || rx.status === "EXPIRED" ? (
+            <RenewPrescriptionButton prescriptionId={rx.id} />
+          ) : null}
+          <VersionHistoryList
+            title={temr("versionHistory.title")}
+            items={versionItems}
+            emptyLabel={temr("empty")}
+            locale={locale}
+          />
         </div>
       )}
     </div>

@@ -310,6 +310,17 @@ model User {
   panelAsPatient     DoctorPatientPanel[] @relation("PanelPatient")
   doctorProfileExtras DoctorProfileExtras?
   pushDevices        PushDeviceRegistration[]
+  allergyEntries     AllergyEntry[]
+  conditionEntries   ConditionEntry[]
+  immunizationEntries ImmunizationEntry[]
+  familyHistoryEntries FamilyHistoryEntry[]
+  lifestyleProfile   LifestyleProfile?
+  emergencyInfo      EmergencyInfo?
+  diagnoses          Diagnosis[]
+  carePlans          CarePlan[]
+  consentEvents      ConsentEvent[]
+  emrTimelineEvents  EmrTimelineEvent[]
+  doctorNotesAsPatient DoctorNote[] @relation("DoctorNotePatient")
 
   @@index([role, status])
   @@index([doctorApproval])
@@ -536,6 +547,68 @@ enum ClinicalDocumentKind {
   LAB_ATTACHMENT
   PATIENT_UPLOAD
   RECEIPT
+  REFERRAL
+  CERTIFICATE
+  CONSENT_EVIDENCE
+  IMAGING_REPORT
+  OTHER
+}
+
+enum EmrAttestationSource {
+  PATIENT_REPORTED
+  CLINICIAN_ATTESTED
+}
+
+enum EmrSeverity {
+  MILD
+  MODERATE
+  SEVERE
+  CRITICAL
+}
+
+enum EmrConditionStatus {
+  ACTIVE
+  RESOLVED
+  INACTIVE
+}
+
+enum EmrPlanStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum EmrConsentEventKind {
+  ACKNOWLEDGE
+  WITHDRAW
+}
+
+enum EmrTimelineEventType {
+  ENCOUNTER
+  APPOINTMENT
+  PRESCRIPTION
+  LAB
+  IMAGING
+  DOCUMENT
+  CONSENT
+  DIAGNOSIS
+  PLAN
+  NOTE
+  SYSTEM
+}
+
+enum EmrTimelineVisibility {
+  PATIENT
+  CLINICIAN
+  ADMIN
+  ALL_AUTHORIZED
+}
+
+enum EmrTimelineEventStatus {
+  ACTIVE
+  SUPERSEDED
+  HIDDEN
 }
 
 model PatientProfile {
@@ -635,6 +708,10 @@ model ClinicalDocument {
   contentType   String
   storageKey    String
   byteSize      Int
+  classification String?
+  deletedAt     DateTime?
+  deletedByUserId String?
+  legalHold     Boolean              @default(false)
   createdAt     DateTime             @default(now())
   patient       User                 @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
   medicalRecords MedicalRecord[]
@@ -643,6 +720,7 @@ model ClinicalDocument {
   paymentReceipts PaymentObligation[]
 
   @@index([patientUserId, createdAt])
+  @@index([patientUserId, deletedAt])
 }
 
 model MedicalRecord {
@@ -697,6 +775,8 @@ model Prescription {
   signedAt       DateTime?
   signerUserId   String?
   contentVersion Int                @default(1)
+  renewedFromId  String?
+  deletedAt      DateTime?
   allergyAckAt   DateTime?
   interactionAckAt DateTime?
   aiAssisted     Boolean            @default(false)
@@ -705,11 +785,14 @@ model Prescription {
   document       ClinicalDocument?  @relation(fields: [documentId], references: [id])
   appointment    Appointment?       @relation("AppointmentPrescriptions", fields: [appointmentId], references: [id])
   lines          PrescriptionLine[]
+  renewedFrom    Prescription?      @relation("PrescriptionRenewals", fields: [renewedFromId], references: [id])
+  renewals       Prescription[]     @relation("PrescriptionRenewals")
 
   @@index([patientUserId, status])
   @@index([patientUserId, prescribedAt])
   @@index([doctorId, status])
   @@index([appointmentId])
+  @@index([renewedFromId])
 }
 
 model PrescriptionLine {
@@ -1119,4 +1202,216 @@ model VideoCallEvent {
 
   @@index([sessionId, createdAt])
   @@index([kind, createdAt])
+}
+
+// ── EMR Module 6 ──────────────────────────────────────────────────────────
+
+model AllergyEntry {
+  id                String              @id @default(cuid())
+  patientUserId     String
+  substance         String
+  reaction          String?
+  severity          EmrSeverity?
+  source            EmrAttestationSource
+  criticalFlag      Boolean             @default(false)
+  recordedByUserId  String
+  deletedAt         DateTime?
+  deletedByUserId   String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  patient           User                @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+
+  @@index([patientUserId, deletedAt])
+}
+
+model ConditionEntry {
+  id               String              @id @default(cuid())
+  patientUserId    String
+  display          String
+  icd10Code        String?
+  status           EmrConditionStatus  @default(ACTIVE)
+  source           EmrAttestationSource
+  onsetDate        DateTime?
+  recordedByUserId String
+  deletedAt        DateTime?
+  deletedByUserId  String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  patient          User                @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+
+  @@index([patientUserId, status, deletedAt])
+}
+
+model ImmunizationEntry {
+  id               String              @id @default(cuid())
+  patientUserId    String
+  vaccineName      String
+  administeredOn   DateTime?
+  source           EmrAttestationSource
+  lotNumber        String?
+  recordedByUserId String
+  deletedAt        DateTime?
+  deletedByUserId  String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  patient          User                @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+
+  @@index([patientUserId, deletedAt])
+}
+
+model FamilyHistoryEntry {
+  id               String              @id @default(cuid())
+  patientUserId    String
+  relation         String
+  conditionDisplay String
+  notes            String?
+  source           EmrAttestationSource @default(PATIENT_REPORTED)
+  recordedByUserId String
+  deletedAt        DateTime?
+  deletedByUserId  String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  patient          User                @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+
+  @@index([patientUserId, deletedAt])
+}
+
+model LifestyleProfile {
+  patientUserId String   @id
+  smoking       String?
+  alcohol       String?
+  activity      String?
+  notes         String?
+  updatedAt     DateTime @updatedAt
+  patient       User     @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+}
+
+model EmergencyInfo {
+  patientUserId         String   @id
+  contactName           String?
+  contactPhone          String?
+  criticalAlertsText    String?
+  clinicianCriticalFlag Boolean  @default(false)
+  updatedAt             DateTime @updatedAt
+  patient               User     @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+}
+
+model Diagnosis {
+  id               String    @id @default(cuid())
+  patientUserId    String
+  appointmentId    String?
+  display          String
+  icd10Code        String?
+  status           String    @default("ACTIVE")
+  recordedByUserId String
+  recordedAt       DateTime  @default(now())
+  deletedAt        DateTime?
+  deletedByUserId  String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  patient          User      @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+
+  @@index([patientUserId, recordedAt])
+  @@index([appointmentId])
+}
+
+model DoctorNote {
+  id              String             @id @default(cuid())
+  appointmentId   String?
+  patientUserId   String
+  doctorId        String
+  authorUserId    String
+  status          ClinicalNoteStatus @default(DRAFT)
+  version         Int                @default(1)
+  parentNoteId    String?
+  body            String             @default("")
+  contentHash     String?
+  signedAt        DateTime?
+  signerUserId    String?
+  amendmentReason String?
+  deletedAt       DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  patient         User               @relation("DoctorNotePatient", fields: [patientUserId], references: [id], onDelete: Cascade)
+
+  @@index([patientUserId, createdAt])
+  @@index([appointmentId, version])
+}
+
+model CarePlan {
+  id               String        @id @default(cuid())
+  patientUserId    String
+  title            String
+  kind             String        @default("CARE")
+  status           EmrPlanStatus @default(DRAFT)
+  goals            Json?
+  interventions    Json?
+  version          Int           @default(1)
+  parentPlanId     String?
+  signedAt         DateTime?
+  signerUserId     String?
+  recordedByUserId String
+  deletedAt        DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  patient          User          @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+
+  @@index([patientUserId, status])
+}
+
+model ConsentType {
+  id        String               @id @default(cuid())
+  code      String               @unique
+  nameEn    String
+  nameAr    String
+  versions  ConsentTextVersion[]
+}
+
+model ConsentTextVersion {
+  id          String         @id @default(cuid())
+  typeId      String
+  version     Int
+  locale      LocaleCode     @default(AR)
+  body        String
+  bodyHash    String
+  effectiveAt DateTime       @default(now())
+  type        ConsentType    @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  events      ConsentEvent[]
+
+  @@unique([typeId, version, locale])
+}
+
+model ConsentEvent {
+  id              String             @id @default(cuid())
+  patientUserId   String
+  textVersionId   String
+  kind            EmrConsentEventKind
+  actorUserId     String
+  at              DateTime           @default(now())
+  evidenceDocumentId String?
+  patient         User               @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+  textVersion     ConsentTextVersion @relation(fields: [textVersionId], references: [id])
+
+  @@index([patientUserId, at])
+  @@index([textVersionId])
+}
+
+model EmrTimelineEvent {
+  id            String                 @id @default(cuid())
+  patientUserId String
+  type          EmrTimelineEventType
+  effectiveAt   DateTime
+  actorUserId   String?
+  refType       String
+  refId         String
+  visibility    EmrTimelineVisibility  @default(ALL_AUTHORIZED)
+  status        EmrTimelineEventStatus @default(ACTIVE)
+  title         String
+  summary       String?
+  createdAt     DateTime               @default(now())
+  patient       User                   @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+
+  @@unique([refType, refId, type])
+  @@index([patientUserId, effectiveAt])
+  @@index([patientUserId, type, status])
 }

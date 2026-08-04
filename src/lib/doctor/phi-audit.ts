@@ -15,6 +15,7 @@ export type DoctorAuditType =
   | "doctor.soap.finalize"
   | "doctor.soap.amend"
   | "doctor.soap.dismiss"
+  | "doctor.summary.save"
   | "doctor.summary.finalize"
   | "doctor.summary.dismiss"
   | "doctor.rx.create"

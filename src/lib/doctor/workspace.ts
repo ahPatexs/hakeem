@@ -8,7 +8,7 @@ export async function getWorkspaceBundle(doctorId: string, appointmentId: string
 
   const patientUserId = appointment.patientUserId;
 
-  const [medicalProfile, profile, latestSoap, latestSummary, prescriptions, recentRecords, recentLabs] =
+  const [medicalProfile, profile, latestSoap, latestSummary, soapVersions, prescriptions, recentRecords, recentLabs] =
     await Promise.all([
       prisma.medicalProfile.findUnique({ where: { userId: patientUserId } }),
       prisma.patientProfile.findUnique({ where: { userId: patientUserId } }),
@@ -19,6 +19,18 @@ export async function getWorkspaceBundle(doctorId: string, appointmentId: string
       prisma.clinicalSummary.findFirst({
         where: { appointmentId, status: { in: ["DRAFT", "FINAL"] } },
         orderBy: [{ version: "desc" }, { createdAt: "desc" }],
+      }),
+      prisma.soapNote.findMany({
+        where: { appointmentId },
+        orderBy: [{ version: "asc" }, { createdAt: "asc" }],
+        select: {
+          id: true,
+          version: true,
+          status: true,
+          createdAt: true,
+          signedAt: true,
+          amendmentReason: true,
+        },
       }),
       prisma.prescription.findMany({
         where: { appointmentId },
@@ -43,6 +55,7 @@ export async function getWorkspaceBundle(doctorId: string, appointmentId: string
     profile,
     latestSoap,
     latestSummary,
+    soapVersions,
     prescriptions,
     recentRecords,
     recentLabs,

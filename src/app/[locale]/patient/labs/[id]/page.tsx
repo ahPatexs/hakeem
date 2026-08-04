@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { getLab } from "@/actions/patient/labs";
+import { emrGetLabResult } from "@/actions/emr/diagnostics";
 import { LabDetail } from "@/components/patient/labs/labs-list";
 import { ErrorState } from "@/components/patient/shared/error-state";
 
@@ -13,9 +13,9 @@ export default async function LabDetailPage({
   setRequestLocale(locale);
   const t = await getTranslations("patient.labs");
 
-  const result = await getLab(id);
+  const result = await emrGetLabResult({ labResultId: id });
   if (!result.ok) {
-    if (result.code === "FORBIDDEN") notFound();
+    if (result.code === "FORBIDDEN" || result.code === "NOT_FOUND") notFound();
     return <ErrorState title={t("loadError")} />;
   }
 

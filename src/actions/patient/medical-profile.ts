@@ -5,10 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { withPatient, withPatientMutation } from "@/actions/patient/_helpers";
 import { auditPhiAccess } from "@/lib/patient/phi-audit";
 
+/** Non-history fields only — allergies/conditions live in EMR typed tables (T136). */
 const medicalProfileSchema = z.object({
   bloodType: z.string().max(8).optional().nullable(),
-  allergies: z.array(z.string().max(120)).optional(),
-  conditions: z.array(z.string().max(120)).optional(),
   currentMedications: z.array(z.string().max(120)).optional(),
   notes: z.string().max(2000).optional().nullable(),
 });
@@ -31,17 +30,16 @@ export async function updateMedicalProfile(input: unknown) {
       create: {
         userId,
         bloodType: parsed.data.bloodType ?? null,
-        allergies: parsed.data.allergies ?? [],
-        conditions: parsed.data.conditions ?? [],
+        allergies: [],
+        conditions: [],
         currentMedications: parsed.data.currentMedications ?? [],
         notes: parsed.data.notes ?? null,
       },
       update: {
         bloodType: parsed.data.bloodType ?? null,
-        allergies: parsed.data.allergies ?? [],
-        conditions: parsed.data.conditions ?? [],
         currentMedications: parsed.data.currentMedications ?? [],
         notes: parsed.data.notes ?? null,
+        // Do not overwrite allergies/conditions — EMR HistoryEditor is SoT (T136)
       },
     });
     await auditPhiAccess("phi.view.record", userId, { scope: "medical-profile.update" });

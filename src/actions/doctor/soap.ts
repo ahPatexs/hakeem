@@ -5,13 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { withDoctor } from "./_helpers";
 import { getOwnedAppointment } from "@/lib/doctor/schedule";
 import { isTerminalForClinicalWork } from "@/domain/doctor/consultation";
-import {
-  assertSoapFinalizable,
-  assertSummaryFinalizable,
-  hashSoapContent,
-  hashSummaryContent,
-  isLateAmendment,
-} from "@/domain/doctor/soap";
 import { DomainRuleError } from "@/domain/doctor/errors";
 import {
   saveSoapDraftSchema,
@@ -35,7 +28,7 @@ type SaveSoapInput = {
   aiAssisted?: boolean;
 };
 
-/** Create or update a SOAP draft with optimistic concurrency (FR-013). */
+/** Create or update a SOAP draft via EMR notes facade (T045). */
 export async function saveSoapDraft(raw: SaveSoapInput) {
   const input = saveSoapDraftSchema.parse(raw);
   return withDoctor(async (ctx) => {
@@ -43,70 +36,68 @@ export async function saveSoapDraft(raw: SaveSoapInput) {
     if (!appointment) throw new DomainRuleError("NOT_FOUND");
     if (isTerminalForClinicalWork(appointment.status)) throw new DomainRuleError("INVALID_STATUS");
 
-    const content = {
-      subjective: input.subjective,
-      objective: input.objective,
-      assessment: input.assessment,
-      plan: input.plan,
-    };
-
-    let note;
-    if (input.noteId) {
-      const { assertSignedArtifactMutable } = await import("@/lib/platform/documents");
-      const mutable = await assertSignedArtifactMutable({ kind: "soap", id: input.noteId });
-      if (!mutable.ok) throw new DomainRuleError("CONFLICT");
-
-      const updated = await prisma.soapNote.updateMany({
-        where: {
-          id: input.noteId,
-          doctorId: ctx.doctorId,
-          status: "DRAFT",
-          ...(input.expectedVersion ? { version: input.expectedVersion } : {}),
-        },
-        data: { ...content, aiAssisted: input.aiAssisted },
-      });
-      if (updated.count === 0) throw new DomainRuleError("CONFLICT");
-      note = await prisma.soapNote.findUnique({ where: { id: input.noteId } });
-    } else {
-      note = await prisma.soapNote.create({
-        data: {
-          appointmentId: appointment.id,
-          patientUserId: appointment.patientUserId,
-          doctorId: ctx.doctorId,
-          authorUserId: ctx.userId,
-          status: "DRAFT",
-          aiAssisted: input.aiAssisted,
-          ...content,
-        },
-      });
+    const { saveSoapDraft: emrSave } = await import("@/lib/emr/notes");
+    const result = await emrSave(
+      { userId: ctx.userId, role: "DOCTOR", doctorId: ctx.doctorId },
+      {
+        appointmentId: input.appointmentId,
+        noteId: input.noteId,
+        expectedVersion: input.expectedVersion,
+        subjective: input.subjective,
+        objective: input.objective,
+        assessment: input.assessment,
+        plan: input.plan,
+        aiAssisted: input.aiAssisted,
+      },
+    );
+    if (!result.ok) {
+      if (result.code === "NOT_FOUND") throw new DomainRuleError("NOT_FOUND");
+      if (result.code === "CONFLICT") throw new DomainRuleError("CONFLICT");
+      if (result.code === "FORBIDDEN") throw new DomainRuleError("NOT_FOUND");
+      throw new DomainRuleError("VALIDATION_ERROR", result.message);
     }
 
-    await auditDoctorEvent("doctor.soap.save", ctx.userId, { noteId: note!.id }, appointment.patientUserId);
-    return { noteId: note!.id, version: note!.version, savedAt: note!.updatedAt.toISOString() };
+    await auditDoctorEvent(
+      "doctor.soap.save",
+      ctx.userId,
+      { noteId: result.data.noteId },
+      appointment.patientUserId,
+    );
+    return {
+      noteId: result.data.noteId,
+      version: result.data.version,
+      savedAt: result.data.savedAt.toISOString(),
+    };
   });
 }
 
 export async function finalizeSoap(raw: { noteId: string; expectedVersion: number }) {
   const input = finalizeSoapSchema.parse(raw);
   return withDoctor(async (ctx) => {
-    const note = await prisma.soapNote.findFirst({
-      where: { id: input.noteId, doctorId: ctx.doctorId, status: "DRAFT" },
+    const { signSoapNote } = await import("@/lib/emr/notes");
+    const result = await signSoapNote(
+      { userId: ctx.userId, role: "DOCTOR", doctorId: ctx.doctorId },
+      { noteId: input.noteId, expectedVersion: input.expectedVersion },
+    );
+    if (!result.ok) {
+      if (result.code === "NOT_FOUND") throw new DomainRuleError("NOT_FOUND");
+      if (result.code === "CONFLICT") throw new DomainRuleError("CONFLICT");
+      if (result.code === "FORBIDDEN") throw new DomainRuleError("NOT_FOUND");
+      throw new DomainRuleError("VALIDATION_ERROR", result.message);
+    }
+
+    const note = await prisma.soapNote.findUnique({
+      where: { id: result.data.noteId },
+      select: { patientUserId: true, contentHash: true },
     });
-    if (!note) throw new DomainRuleError("NOT_FOUND");
-    if (note.version !== input.expectedVersion) throw new DomainRuleError("CONFLICT");
-
-    assertSoapFinalizable(note);
-
-    const contentHash = hashSoapContent(note);
-    const updated = await prisma.soapNote.updateMany({
-      where: { id: note.id, version: input.expectedVersion, status: "DRAFT" },
-      data: { status: "FINAL", signedAt: new Date(), signerUserId: ctx.userId, contentHash },
-    });
-    if (updated.count === 0) throw new DomainRuleError("CONFLICT");
-
-    await auditDoctorEvent("doctor.soap.finalize", ctx.userId, { noteId: note.id, contentHash }, note.patientUserId);
+    await auditDoctorEvent(
+      "doctor.soap.finalize",
+      ctx.userId,
+      { noteId: result.data.noteId, contentHash: note?.contentHash },
+      note?.patientUserId,
+    );
     revalidatePath("/[locale]/doctor", "layout");
-    return { noteId: note.id };
+    return { noteId: result.data.noteId };
   });
 }
 
@@ -121,72 +112,78 @@ export async function amendSoap(raw: {
 }) {
   const input = amendSoapSchema.parse(raw);
   return withDoctor(async (ctx) => {
-    const original = await prisma.soapNote.findFirst({
-      where: { id: input.noteId, doctorId: ctx.doctorId, status: "FINAL" },
-    });
-    if (!original?.signedAt) throw new DomainRuleError("NOT_FOUND");
-
-    const content = {
-      subjective: input.subjective,
-      objective: input.objective,
-      assessment: input.assessment,
-      plan: input.plan,
-    };
-    assertSoapFinalizable(content);
-
-    const late = isLateAmendment(original.signedAt);
-    const amendment = await prisma.soapNote.create({
-      data: {
-        appointmentId: original.appointmentId,
-        patientUserId: original.patientUserId,
-        doctorId: ctx.doctorId,
-        authorUserId: ctx.userId,
-        status: "FINAL",
-        version: original.version + 1,
-        parentNoteId: original.id,
-        signedAt: new Date(),
-        signerUserId: ctx.userId,
-        amendmentReason: input.reason,
-        lateAmendment: late,
-        contentHash: hashSoapContent(content),
-        ...content,
+    const { amendSoapNote } = await import("@/lib/emr/notes");
+    const result = await amendSoapNote(
+      { userId: ctx.userId, role: "DOCTOR", doctorId: ctx.doctorId },
+      {
+        noteId: input.noteId,
+        reason: input.reason,
+        subjective: input.subjective,
+        objective: input.objective,
+        assessment: input.assessment,
+        plan: input.plan,
       },
-    });
+    );
+    if (!result.ok) {
+      if (result.code === "NOT_FOUND") throw new DomainRuleError("NOT_FOUND");
+      if (result.code === "CONFLICT") throw new DomainRuleError("CONFLICT");
+      if (result.code === "FORBIDDEN") throw new DomainRuleError("NOT_FOUND");
+      throw new DomainRuleError("VALIDATION_ERROR", result.message);
+    }
 
+    const amendment = await prisma.soapNote.findUnique({
+      where: { id: result.data.noteId },
+      select: { patientUserId: true, parentNoteId: true, lateAmendment: true },
+    });
     await auditDoctorEvent(
       "doctor.soap.amend",
       ctx.userId,
-      { noteId: amendment.id, parentNoteId: original.id, late },
-      original.patientUserId,
+      {
+        noteId: result.data.noteId,
+        parentNoteId: amendment?.parentNoteId,
+        late: amendment?.lateAmendment,
+      },
+      amendment?.patientUserId,
     );
     revalidatePath("/[locale]/doctor", "layout");
-    return { noteId: amendment.id };
+    return { noteId: result.data.noteId };
   });
 }
 
-/** Discard a draft SOAP note without finalizing (FR-013). */
+/** Discard a draft SOAP note without finalizing — EMR notes facade (T134). */
 export async function dismissSoap(raw: { noteId: string; reason: string }) {
   const input = dismissSoapSchema.parse(raw);
   return withDoctor(async (ctx) => {
-    const note = await prisma.soapNote.findFirst({
-      where: { id: input.noteId, doctorId: ctx.doctorId, status: "DRAFT" },
-    });
-    if (!note) throw new DomainRuleError("NOT_FOUND");
+    const { dismissSoapNote } = await import("@/lib/emr/notes");
+    const result = await dismissSoapNote(
+      { userId: ctx.userId, role: "DOCTOR", doctorId: ctx.doctorId },
+      { noteId: input.noteId, reason: input.reason },
+    );
+    if (!result.ok) {
+      if (result.code === "NOT_FOUND") throw new DomainRuleError("NOT_FOUND");
+      if (result.code === "CONFLICT") throw new DomainRuleError("CONFLICT");
+      if (result.code === "FORBIDDEN") throw new DomainRuleError("NOT_FOUND");
+      throw new DomainRuleError("VALIDATION_ERROR", result.message);
+    }
 
-    const updated = await prisma.soapNote.updateMany({
-      where: { id: note.id, status: "DRAFT" },
-      data: { status: "DISMISSED", dismissedAt: new Date(), dismissReason: input.reason },
+    const note = await prisma.soapNote.findUnique({
+      where: { id: result.data.noteId },
+      select: { patientUserId: true },
     });
-    if (updated.count === 0) throw new DomainRuleError("CONFLICT");
-
-    await auditDoctorEvent("doctor.soap.dismiss", ctx.userId, { noteId: note.id, reason: input.reason }, note.patientUserId);
+    await auditDoctorEvent(
+      "doctor.soap.dismiss",
+      ctx.userId,
+      { noteId: result.data.noteId, reason: input.reason },
+      note?.patientUserId,
+    );
     revalidatePath("/[locale]/doctor", "layout");
-    return { noteId: note.id };
+    return { noteId: result.data.noteId };
   });
 }
 
 // ── Clinical summary ──────────────────────────────────────────────────────
 
+/** Create or update a clinical summary draft via EMR notes facade (T122). */
 export async function saveSummaryDraft(raw: {
   appointmentId: string;
   summaryId?: string;
@@ -200,112 +197,96 @@ export async function saveSummaryDraft(raw: {
     if (!appointment) throw new DomainRuleError("NOT_FOUND");
     if (isTerminalForClinicalWork(appointment.status)) throw new DomainRuleError("INVALID_STATUS");
 
-    let summary;
-    if (input.summaryId) {
-      const updated = await prisma.clinicalSummary.updateMany({
-        where: {
-          id: input.summaryId,
-          doctorId: ctx.doctorId,
-          status: "DRAFT",
-          ...(input.expectedVersion ? { version: input.expectedVersion } : {}),
-        },
-        data: { body: input.body, aiAssisted: input.aiAssisted },
-      });
-      if (updated.count === 0) throw new DomainRuleError("CONFLICT");
-      summary = await prisma.clinicalSummary.findUnique({ where: { id: input.summaryId } });
-    } else {
-      summary = await prisma.clinicalSummary.create({
-        data: {
-          appointmentId: appointment.id,
-          patientUserId: appointment.patientUserId,
-          doctorId: ctx.doctorId,
-          authorUserId: ctx.userId,
-          status: "DRAFT",
-          body: input.body,
-          aiAssisted: input.aiAssisted,
-        },
-      });
+    const { saveSummaryDraft: emrSaveSummary } = await import("@/lib/emr/notes");
+    const result = await emrSaveSummary(
+      { userId: ctx.userId, role: "DOCTOR", doctorId: ctx.doctorId },
+      {
+        appointmentId: input.appointmentId,
+        summaryId: input.summaryId,
+        expectedVersion: input.expectedVersion,
+        body: input.body,
+        aiAssisted: input.aiAssisted,
+      },
+    );
+    if (!result.ok) {
+      if (result.code === "NOT_FOUND") throw new DomainRuleError("NOT_FOUND");
+      if (result.code === "CONFLICT") throw new DomainRuleError("CONFLICT");
+      if (result.code === "FORBIDDEN") throw new DomainRuleError("NOT_FOUND");
+      throw new DomainRuleError("VALIDATION_ERROR", result.message);
     }
 
-    return { summaryId: summary!.id, version: summary!.version, savedAt: summary!.updatedAt.toISOString() };
+    await auditDoctorEvent(
+      "doctor.summary.save",
+      ctx.userId,
+      { summaryId: result.data.summaryId },
+      appointment.patientUserId,
+    );
+    return {
+      summaryId: result.data.summaryId,
+      version: result.data.version,
+      savedAt: result.data.savedAt.toISOString(),
+    };
   });
 }
 
-/** Finalizing the summary releases it to the patient timeline (FR-011). */
+/** Finalizing the summary releases it to the patient timeline (FR-011). Routed through EMR notes facade (T122). */
 export async function finalizeSummary(raw: { summaryId: string; expectedVersion: number }) {
   const input = finalizeSummarySchema.parse(raw);
   return withDoctor(async (ctx) => {
-    const summary = await prisma.clinicalSummary.findFirst({
-      where: { id: input.summaryId, doctorId: ctx.doctorId, status: "DRAFT" },
+    const { finalizeClinicalSummary } = await import("@/lib/emr/notes");
+    const result = await finalizeClinicalSummary(
+      { userId: ctx.userId, role: "DOCTOR", doctorId: ctx.doctorId },
+      { summaryId: input.summaryId, expectedVersion: input.expectedVersion },
+    );
+    if (!result.ok) {
+      if (result.code === "NOT_FOUND") throw new DomainRuleError("NOT_FOUND");
+      if (result.code === "CONFLICT") throw new DomainRuleError("CONFLICT");
+      if (result.code === "FORBIDDEN") throw new DomainRuleError("NOT_FOUND");
+      throw new DomainRuleError("VALIDATION_ERROR", result.message);
+    }
+
+    const summary = await prisma.clinicalSummary.findUnique({
+      where: { id: result.data.summaryId },
+      select: { patientUserId: true },
     });
-    if (!summary) throw new DomainRuleError("NOT_FOUND");
-    if (summary.version !== input.expectedVersion) throw new DomainRuleError("CONFLICT");
-
-    assertSummaryFinalizable(summary.body);
-
-    await prisma.$transaction(async (tx) => {
-      const updated = await tx.clinicalSummary.updateMany({
-        where: { id: summary.id, version: input.expectedVersion, status: "DRAFT" },
-        data: {
-          status: "FINAL",
-          signedAt: new Date(),
-          signerUserId: ctx.userId,
-          contentHash: hashSummaryContent(summary.body),
-        },
-      });
-      if (updated.count === 0) throw new DomainRuleError("CONFLICT");
-
-      // Release to patient's medical timeline
-      await tx.medicalRecord.create({
-        data: {
-          patientUserId: summary.patientUserId,
-          title: "Visit summary",
-          recordType: "VISIT_SUMMARY",
-          summary: summary.body.slice(0, 2_000),
-          recordedAt: new Date(),
-          doctorId: ctx.doctorId,
-        },
-      });
-
-      await tx.notification.create({
-        data: {
-          recipientUserId: summary.patientUserId,
-          category: "CLINICAL",
-          title: "Visit summary available",
-          body: "Your doctor has published a summary of your recent visit.",
-          href: "/patient/records",
-        },
-      });
-    });
-
-    await auditDoctorEvent("doctor.summary.finalize", ctx.userId, { summaryId: summary.id }, summary.patientUserId);
+    await auditDoctorEvent(
+      "doctor.summary.finalize",
+      ctx.userId,
+      { summaryId: result.data.summaryId },
+      summary?.patientUserId,
+    );
     revalidatePath("/[locale]/doctor", "layout");
-    return { summaryId: summary.id };
+    return { summaryId: result.data.summaryId };
   });
 }
 
-/** Discard a draft clinical summary without releasing to the patient. */
+/** Discard a draft clinical summary without releasing to the patient (EMR facade, T122). */
 export async function dismissSummary(raw: { summaryId: string; reason: string }) {
   const input = dismissSummarySchema.parse(raw);
   return withDoctor(async (ctx) => {
-    const summary = await prisma.clinicalSummary.findFirst({
-      where: { id: input.summaryId, doctorId: ctx.doctorId, status: "DRAFT" },
-    });
-    if (!summary) throw new DomainRuleError("NOT_FOUND");
+    const { dismissClinicalSummary } = await import("@/lib/emr/notes");
+    const result = await dismissClinicalSummary(
+      { userId: ctx.userId, role: "DOCTOR", doctorId: ctx.doctorId },
+      { summaryId: input.summaryId, reason: input.reason },
+    );
+    if (!result.ok) {
+      if (result.code === "NOT_FOUND") throw new DomainRuleError("NOT_FOUND");
+      if (result.code === "CONFLICT") throw new DomainRuleError("CONFLICT");
+      if (result.code === "FORBIDDEN") throw new DomainRuleError("NOT_FOUND");
+      throw new DomainRuleError("VALIDATION_ERROR", result.message);
+    }
 
-    const updated = await prisma.clinicalSummary.updateMany({
-      where: { id: summary.id, status: "DRAFT" },
-      data: { status: "DISMISSED", dismissedAt: new Date(), dismissReason: input.reason },
+    const summary = await prisma.clinicalSummary.findUnique({
+      where: { id: result.data.summaryId },
+      select: { patientUserId: true },
     });
-    if (updated.count === 0) throw new DomainRuleError("CONFLICT");
-
     await auditDoctorEvent(
       "doctor.summary.dismiss",
       ctx.userId,
-      { summaryId: summary.id, reason: input.reason },
-      summary.patientUserId,
+      { summaryId: result.data.summaryId, reason: input.reason },
+      summary?.patientUserId,
     );
     revalidatePath("/[locale]/doctor", "layout");
-    return { summaryId: summary.id };
+    return { summaryId: result.data.summaryId };
   });
 }

@@ -50,7 +50,13 @@ export function RecordsList({
 export function RecordDetail({
   record,
 }: {
-  record: RecordRow & { document: ClinicalDocument | null };
+  record: {
+    title: string;
+    recordedAt: Date | string;
+    recordType: string;
+    summary: string | null;
+    document: Pick<ClinicalDocument, "id"> | null;
+  };
 }) {
   const t = useTranslations("patient.records");
 

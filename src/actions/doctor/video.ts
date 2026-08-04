@@ -8,13 +8,20 @@ import { DomainRuleError } from "@/domain/doctor/errors";
 import { appointmentIdSchema } from "@/lib/doctor/schemas";
 import { auditDoctorEvent } from "@/lib/doctor/phi-audit";
 
-/** Doctor joins as host within the join window (FR-024..FR-026). */
+/** Doctor joins as host within the join window (FR-024..FR-026). Gated by TELEHEALTH consent (T145). */
 export async function joinVideoAsHost(raw: { appointmentId: string }) {
   const input = appointmentIdSchema.parse(raw);
   return withDoctor(async (ctx) => {
     const appointment = await getOwnedAppointment(ctx.doctorId, input.appointmentId);
     if (!appointment) throw new DomainRuleError("NOT_FOUND");
     assertDoctorCanJoinVideo(appointment);
+
+    const { requireConsent } = await import("@/lib/emr/consents");
+    const consent = await requireConsent(
+      { userId: ctx.userId, role: "DOCTOR", doctorId: ctx.doctorId },
+      { patientUserId: appointment.patientUserId, typeCode: "TELEHEALTH" },
+    );
+    if (!consent.ok) throw new DomainRuleError("SIGN_REQUIREMENTS", consent.message);
 
     const { createConsultationSession, getJoinCredentials } = await import("@/lib/platform/video");
     const session = await createConsultationSession({

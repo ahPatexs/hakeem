@@ -721,7 +721,10 @@
       "immutableNote": "الوصفات الموقّعة غير قابلة للتعديل. أصدر وصفة جديدة للتغييرات.",
       "aiDraftNote": "مسودة بالذكاء الاصطناعي — راجع كل سطر قبل التوقيع.",
       "loadError": "تعذّر تحميل الوصفات",
-      "missingPatient": "اختر مريضاً من ملفه أو مساحة العمل لإنشاء وصفة."
+      "missingPatient": "اختر مريضاً من ملفه أو مساحة العمل لإنشاء وصفة.",
+      "renew": "تجديد",
+      "renewing": "جارٍ التجديد…",
+      "renewFailed": "تعذّر تجديد هذه الوصفة."
     },
     "appointments": {
       "title": "المواعيد القادمة",
@@ -838,7 +841,8 @@
       "health": "صحة النظام",
       "audit": "سجل التدقيق",
       "notifications": "الإشعارات",
-      "roles": "الأدوار"
+      "roles": "الأدوار",
+      "emr": "إشراف السجلات الطبية"
     },
     "dashboard": {
       "title": "لوحة تحكم الإدارة",
@@ -1113,5 +1117,144 @@
     "ai": {
       "disclaimer": "اقتراحات الذكاء الاصطناعي داعمة فقط وليست تشخيصاً أو وصفة طبية."
     }
+  },
+  "emr": {
+    "summary": {
+      "title": "الملخص الصحي",
+      "allergies": "الحساسية",
+      "medications": "الأدوية الحالية",
+      "empty": "لا توجد تفاصيل في الملخص بعد."
+    },
+    "timeline": {
+      "title": "الجدول الطبي",
+      "empty": "لا توجد أحداث في الجدول بعد.",
+      "filterAll": "الكل",
+      "filterType": "تصفية حسب النوع",
+      "search": "بحث",
+      "searchPlaceholder": "ابحث في الجدول الزمني…",
+      "from": "من",
+      "to": "إلى"
+    },
+    "history": {
+      "title": "التاريخ الطبي",
+      "allergies": "الحساسية",
+      "conditions": "الحالات",
+      "lifestyle": "نمط الحياة",
+      "immunizations": "التطعيمات",
+      "family": "التاريخ العائلي",
+      "emergency": "معلومات الطوارئ",
+      "emergencyContactName": "اسم جهة الاتصال",
+      "emergencyContactPhone": "هاتف جهة الاتصال",
+      "emergencyCriticalAlerts": "تنبيهات حرجة",
+      "empty": "لا يوجد تاريخ طبي مسجل بعد.",
+      "sourcePatient": "مبلّغ من المريض",
+      "sourceClinician": "موثّق من الطبيب",
+      "editTitle": "تحديث التاريخ الطبي",
+      "editHint": "الحساسية والحالات التي تضيفها تُحفظ في سجل EMR وتظهر في الملخص الصحي.",
+      "saved": "تم الحفظ.",
+      "remove": "إزالة",
+      "allergySubstance": "المادة المسببة للحساسية",
+      "allergyReaction": "التفاعل (اختياري)",
+      "addAllergy": "إضافة حساسية",
+      "conditionDisplay": "الحالة",
+      "addCondition": "إضافة حالة",
+      "smoking": "التدخين",
+      "alcohol": "الكحول",
+      "activity": "النشاط",
+      "notes": "ملاحظات",
+      "saveLifestyle": "حفظ نمط الحياة",
+      "saveEmergency": "حفظ معلومات الطوارئ",
+      "vaccineName": "اسم اللقاح",
+      "addImmunization": "إضافة تطعيم",
+      "familyRelation": "صلة القرابة",
+      "familyCondition": "الحالة",
+      "addFamily": "إضافة تاريخ عائلي"
+    },
+    "rateLimitedTitle": "طلبات كثيرة جداً",
+    "rateLimited": "يرجى الانتظار قليلاً ثم المحاولة مرة أخرى.",
+    "criticalAlerts": {
+      "title": "تنبيهات حرجة",
+      "empty": "لا توجد تنبيهات حرجة"
+    },
+    "prescriptions": {
+      "title": "الوصفات الطبية",
+      "active": "الوصفات النشطة",
+      "history": "سجل الوصفات",
+      "empty": "لا توجد وصفات بعد.",
+      "renew": "تجديد الوصفة"
+    },
+    "labs": {
+      "title": "نتائج المختبر"
+    },
+    "imaging": {
+      "title": "التصوير الطبي"
+    },
+    "documents": {
+      "title": "المستندات",
+      "upload": "رفع مستند",
+      "titleField": "عنوان المستند",
+      "kind": "نوع المستند",
+      "download": "تنزيل",
+      "hide": "إخفاء",
+      "restore": "استعادة"
+    },
+    "diagnoses": {
+      "title": "التشخيصات",
+      "add": "إضافة تشخيص",
+      "display": "التشخيص",
+      "icd10": "ICD-10 (اختياري)",
+      "icdSearch": "ابحث عن ICD-10 أو اكتب رمزاً",
+      "icdFreeText": "لا تطابق في الكتالوج — يمكن إدخال رمز حر",
+      "save": "حفظ التشخيص"
+    },
+    "plans": {
+      "title": "خطط الرعاية",
+      "add": "خطة رعاية جديدة",
+      "titleField": "عنوان الخطة",
+      "kind": "نوع الخطة",
+      "goals": "الأهداف",
+      "goalsHint": "هدف واحد في كل سطر",
+      "interventions": "التدخلات",
+      "interventionsHint": "تدخل واحد في كل سطر",
+      "saveDraft": "حفظ مسودة",
+      "publish": "نشر"
+    },
+    "notes": {
+      "title": "ملاحظات الطبيب",
+      "add": "إضافة ملاحظة",
+      "body": "نص الملاحظة",
+      "save": "حفظ الملاحظة",
+      "sign": "توقيع الملاحظة"
+    },
+    "versionHistory": {
+      "title": "سجل الإصدارات"
+    },
+    "admin": {
+      "title": "إشراف السجلات الطبية",
+      "banner": "إشراف المسؤول — إجراءات التوقيع والوصف السريرية معطّلة.",
+      "searchTitle": "البحث عن سجل مريض",
+      "searchPlaceholder": "الاسم أو البريد",
+      "search": "بحث",
+      "openChart": "فتح",
+      "legalHoldCount": "{count} مستندات تحت الحجز القانوني",
+      "setHold": "تفعيل الحجز القانوني",
+      "clearHold": "إلغاء الحجز القانوني"
+    },
+    "consent": {
+      "acknowledge": "إقرار",
+      "withdraw": "سحب",
+      "title": "الموافقات",
+      "acknowledged": "تم الإقرار",
+      "withdrawn": "تم السحب",
+      "none": "لم يتم الإقرار"
+    },
+    "add": "إضافة",
+    "save": "حفظ",
+    "renew": "تجديد",
+    "publish": "نشر",
+    "icd10": "ICD-10",
+    "empty": "لا يوجد محتوى بعد",
+    "error": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+    "loading": "جاري التحميل…"
   }
 }

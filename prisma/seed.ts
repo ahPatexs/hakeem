@@ -4,10 +4,70 @@
  *
  * Run: npm run prisma:seed
  */
-import { PrismaClient, PublishStatus } from "@prisma/client";
+import { createHash } from "node:crypto";
+import { PrismaClient, PublishStatus, type LabResult, type Prescription } from "@prisma/client";
 import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
+
+/**
+ * One-time backfill (T034): migrates legacy `MedicalProfile.allergies` /
+ * `.conditions` free-text string arrays into the typed `AllergyEntry` /
+ * `ConditionEntry` tables introduced by EMR Module 6. This is the documented
+ * migration path for patients whose history predates the typed EMR tables —
+ * it is safe to re-run because entries are matched by patient + substance/
+ * display (case-insensitive) and only created when missing, so it never
+ * duplicates rows.
+ *
+ * `currentMedications` is intentionally NOT backfilled here: EMR Module 6
+ * models active medications via `Prescription`/`PrescriptionLine`, not a
+ * dedicated typed "entry" table, so there is no 1:1 migration target.
+ */
+async function backfillMedicalProfileToTypedEntries(userId: string): Promise<void> {
+  const profile = await prisma.medicalProfile.findUnique({ where: { userId } });
+  if (!profile) return;
+
+  const existingAllergies = await prisma.allergyEntry.findMany({
+    where: { patientUserId: userId, deletedAt: null },
+    select: { substance: true },
+  });
+  const existingAllergyNames = new Set(
+    existingAllergies.map((a) => a.substance.trim().toLowerCase()),
+  );
+  for (const allergy of profile.allergies) {
+    const substance = allergy.trim();
+    if (!substance || existingAllergyNames.has(substance.toLowerCase())) continue;
+    await prisma.allergyEntry.create({
+      data: {
+        patientUserId: userId,
+        substance,
+        source: "PATIENT_REPORTED",
+        recordedByUserId: userId,
+      },
+    });
+  }
+
+  const existingConditions = await prisma.conditionEntry.findMany({
+    where: { patientUserId: userId, deletedAt: null },
+    select: { display: true },
+  });
+  const existingConditionNames = new Set(
+    existingConditions.map((c) => c.display.trim().toLowerCase()),
+  );
+  for (const condition of profile.conditions) {
+    const display = condition.trim();
+    if (!display || existingConditionNames.has(display.toLowerCase())) continue;
+    await prisma.conditionEntry.create({
+      data: {
+        patientUserId: userId,
+        display,
+        status: "ACTIVE",
+        source: "PATIENT_REPORTED",
+        recordedByUserId: userId,
+      },
+    });
+  }
+}
 
 async function main() {
   const cardiology = await prisma.specialty.upsert({
@@ -106,6 +166,169 @@ async function main() {
     },
   });
 
+  // ── EMR Module 6 typed history (T007) ────────────────────────────────────
+  // Sample typed entries for the demo patient, mirroring the free-text
+  // MedicalProfile fields above but modeled via the dedicated EMR tables
+  // consumed by src/lib/emr/history.ts.
+  const seedAllergy = await prisma.allergyEntry.findFirst({
+    where: { patientUserId: patient.id, substance: "Penicillin", deletedAt: null },
+  });
+  if (!seedAllergy) {
+    await prisma.allergyEntry.create({
+      data: {
+        patientUserId: patient.id,
+        substance: "Penicillin",
+        reaction: "Hives and rash",
+        severity: "MODERATE",
+        source: "PATIENT_REPORTED",
+        criticalFlag: true,
+        recordedByUserId: patient.id,
+      },
+    });
+  }
+
+  const seedCondition = await prisma.conditionEntry.findFirst({
+    where: { patientUserId: patient.id, display: "Mild asthma", deletedAt: null },
+  });
+  if (!seedCondition) {
+    await prisma.conditionEntry.create({
+      data: {
+        patientUserId: patient.id,
+        display: "Mild asthma",
+        icd10Code: "J45.20",
+        status: "ACTIVE",
+        source: "CLINICIAN_ATTESTED",
+        onsetDate: new Date("2018-05-01"),
+        recordedByUserId: patient.id,
+      },
+    });
+  }
+
+  const seedImmunization = await prisma.immunizationEntry.findFirst({
+    where: { patientUserId: patient.id, vaccineName: "Influenza (seasonal)", deletedAt: null },
+  });
+  if (!seedImmunization) {
+    await prisma.immunizationEntry.create({
+      data: {
+        patientUserId: patient.id,
+        vaccineName: "Influenza (seasonal)",
+        administeredOn: new Date(new Date().getFullYear() - 1, 9, 15),
+        source: "CLINICIAN_ATTESTED",
+        lotNumber: "FLU-2025-118",
+        recordedByUserId: patient.id,
+      },
+    });
+  }
+
+  const seedFamilyHistory = await prisma.familyHistoryEntry.findFirst({
+    where: {
+      patientUserId: patient.id,
+      relation: "Father",
+      conditionDisplay: "Type 2 diabetes",
+      deletedAt: null,
+    },
+  });
+  if (!seedFamilyHistory) {
+    await prisma.familyHistoryEntry.create({
+      data: {
+        patientUserId: patient.id,
+        relation: "Father",
+        conditionDisplay: "Type 2 diabetes",
+        notes: "Diagnosed in his 50s (demo)",
+        source: "PATIENT_REPORTED",
+        recordedByUserId: patient.id,
+      },
+    });
+  }
+
+  // Applies the T034 backfill helper to the demo patient. For this patient
+  // it is a no-op (the entries above already cover "Penicillin"/"Mild
+  // asthma"), which demonstrates the helper's idempotency.
+  await backfillMedicalProfileToTypedEntries(patient.id);
+
+  await prisma.lifestyleProfile.upsert({
+    where: { patientUserId: patient.id },
+    update: {},
+    create: {
+      patientUserId: patient.id,
+      smoking: "Never",
+      alcohol: "Occasional",
+      activity: "Moderate (2-3x/week)",
+      notes: "Demo lifestyle profile",
+    },
+  });
+
+  await prisma.emergencyInfo.upsert({
+    where: { patientUserId: patient.id },
+    update: {},
+    create: {
+      patientUserId: patient.id,
+      contactName: "Family Contact",
+      contactPhone: "+966500000002",
+      criticalAlertsText: "Penicillin allergy - avoid beta-lactam antibiotics",
+      clinicianCriticalFlag: true,
+    },
+  });
+
+  // ── EMR consent config (T075) ────────────────────────────────────────────
+  // ConsentType + ConsentTextVersion reference data consumed by
+  // src/lib/emr/consents.ts. Not patient-specific; seeded once globally.
+  const consentSeeds: Array<{
+    code: string;
+    nameEn: string;
+    nameAr: string;
+    bodyEn: string;
+    bodyAr: string;
+  }> = [
+    {
+      code: "TELEHEALTH",
+      nameEn: "Telehealth Consent",
+      nameAr: "موافقة الطب عن بعد",
+      bodyEn:
+        "I consent to receive medical care via telehealth/video consultation, understanding its benefits and limitations compared to in-person care.",
+      bodyAr:
+        "أوافق على تلقي الرعاية الطبية عبر الطب عن بعد/الاستشارة بالفيديو، مع إدراكي لفوائدها وحدودها مقارنة بالرعاية الحضورية.",
+    },
+    {
+      code: "DATA_SHARING",
+      nameEn: "Data Sharing Consent",
+      nameAr: "موافقة مشاركة البيانات",
+      bodyEn:
+        "I consent to sharing my medical records with authorized clinicians involved in my care for coordination and continuity purposes.",
+      bodyAr:
+        "أوافق على مشاركة سجلاتي الطبية مع الأطباء المخولين المشاركين في رعايتي لأغراض التنسيق واستمرارية الرعاية.",
+    },
+  ];
+  for (const consentSeed of consentSeeds) {
+    const consentType = await prisma.consentType.upsert({
+      where: { code: consentSeed.code },
+      update: { nameEn: consentSeed.nameEn, nameAr: consentSeed.nameAr },
+      create: {
+        code: consentSeed.code,
+        nameEn: consentSeed.nameEn,
+        nameAr: consentSeed.nameAr,
+      },
+    });
+
+    const versionsByLocale: Array<{ locale: "EN" | "AR"; body: string }> = [
+      { locale: "EN", body: consentSeed.bodyEn },
+      { locale: "AR", body: consentSeed.bodyAr },
+    ];
+    for (const { locale, body } of versionsByLocale) {
+      await prisma.consentTextVersion.upsert({
+        where: { typeId_version_locale: { typeId: consentType.id, version: 1, locale } },
+        update: { body, bodyHash: createHash("sha256").update(body).digest("hex") },
+        create: {
+          typeId: consentType.id,
+          version: 1,
+          locale,
+          body,
+          bodyHash: createHash("sha256").update(body).digest("hex"),
+        },
+      });
+    }
+  }
+
   await prisma.portalSettings.upsert({
     where: { userId: patient.id },
     update: {},
@@ -115,6 +338,11 @@ async function main() {
   const publishedDoctor = await prisma.doctor.findFirst({
     where: { status: "PUBLISHED" },
   });
+
+  // Captured so the EMR timeline seeding below (T007) can reference the
+  // exact rows created here without a second lookup.
+  let timelinePrescriptionSeed: Prescription | undefined;
+  let timelineLabSeed: LabResult | undefined;
 
   // Linked doctor account for portal QA (Module 4)
   const doctorEmail = "doctor@hakeem.local";
@@ -222,7 +450,7 @@ async function main() {
       });
     }
 
-    await prisma.prescription.create({
+    timelinePrescriptionSeed = await prisma.prescription.create({
       data: {
         patientUserId: patient.id,
         medicationName: "Vitamin D3",
@@ -255,7 +483,7 @@ async function main() {
       },
     }).catch(() => undefined);
 
-    await prisma.labResult.create({
+    timelineLabSeed = await prisma.labResult.create({
       data: {
         patientUserId: patient.id,
         title: "Complete Blood Count",
@@ -364,6 +592,85 @@ async function main() {
       ],
     },
   }).catch(() => undefined);
+
+  // ── EMR timeline events (T007) ───────────────────────────────────────────
+  // A few representative EmrTimelineEvent rows spanning ENCOUNTER,
+  // PRESCRIPTION, and LAB — the same shape src/lib/emr/timeline.ts'
+  // `upsertTimelineEvent`/`backfillTimelineForPatient` produce, upserted
+  // directly here (keyed by refType+refId+type, matching the model's
+  // @@unique) to stay idempotent across repeated `prisma db seed` runs.
+  const encounterRecord = await prisma.medicalRecord.findFirst({
+    where: { patientUserId: patient.id, recordType: "encounter" },
+    orderBy: { recordedAt: "desc" },
+  });
+  if (encounterRecord) {
+    await prisma.emrTimelineEvent.upsert({
+      where: {
+        refType_refId_type: {
+          refType: "MedicalRecord",
+          refId: encounterRecord.id,
+          type: "ENCOUNTER",
+        },
+      },
+      update: {},
+      create: {
+        patientUserId: patient.id,
+        type: "ENCOUNTER",
+        effectiveAt: encounterRecord.recordedAt,
+        refType: "MedicalRecord",
+        refId: encounterRecord.id,
+        title: encounterRecord.title,
+        summary: encounterRecord.summary,
+        visibility: "ALL_AUTHORIZED",
+      },
+    });
+  }
+
+  if (timelinePrescriptionSeed) {
+    await prisma.emrTimelineEvent.upsert({
+      where: {
+        refType_refId_type: {
+          refType: "Prescription",
+          refId: timelinePrescriptionSeed.id,
+          type: "PRESCRIPTION",
+        },
+      },
+      update: {},
+      create: {
+        patientUserId: patient.id,
+        type: "PRESCRIPTION",
+        effectiveAt: timelinePrescriptionSeed.prescribedAt,
+        refType: "Prescription",
+        refId: timelinePrescriptionSeed.id,
+        title: `Prescription (${timelinePrescriptionSeed.status})`,
+        summary: timelinePrescriptionSeed.medicationName,
+        visibility: "ALL_AUTHORIZED",
+      },
+    });
+  }
+
+  if (timelineLabSeed) {
+    await prisma.emrTimelineEvent.upsert({
+      where: {
+        refType_refId_type: {
+          refType: "LabResult",
+          refId: timelineLabSeed.id,
+          type: "LAB",
+        },
+      },
+      update: {},
+      create: {
+        patientUserId: patient.id,
+        type: "LAB",
+        effectiveAt: timelineLabSeed.resultedAt,
+        refType: "LabResult",
+        refId: timelineLabSeed.id,
+        title: timelineLabSeed.title,
+        summary: timelineLabSeed.releaseStatus,
+        visibility: "ALL_AUTHORIZED",
+      },
+    });
+  }
 
   console.log(
     "Seed complete (admin@hakeem.local / patient@hakeem.local / doctor@hakeem.local Doctor!Pass1234)",

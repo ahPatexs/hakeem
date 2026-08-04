@@ -7,7 +7,9 @@ export default defineConfig({
     include: [
       "tests/unit/**/*.test.ts",
       "tests/integration/**/*.test.ts",
+      "tests/security/**/*.test.ts",
       "tests/perf/**/*.test.ts",
+      "tests/a11y/**/*.test.ts",
       "tests/a11y/**/*.a11y.ts",
     ],
   },

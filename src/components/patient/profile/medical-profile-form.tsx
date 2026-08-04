@@ -19,6 +19,10 @@ function stringToList(value: string) {
     .filter(Boolean);
 }
 
+/**
+ * Legacy fields only (blood type, medication free-text, notes).
+ * Allergies/conditions/lifestyle/emergency are edited via EMR HistoryEditor (T120).
+ */
 export function MedicalProfileForm({ profile }: { profile: MedicalProfile | null }) {
   const t = useTranslations("patient.medicalProfile");
   const router = useRouter();
@@ -31,8 +35,6 @@ export function MedicalProfileForm({ profile }: { profile: MedicalProfile | null
     startTransition(async () => {
       const result = await updateMedicalProfile({
         bloodType: (fd.get("bloodType") as string) || null,
-        allergies: stringToList(fd.get("allergies") as string),
-        conditions: stringToList(fd.get("conditions") as string),
         currentMedications: stringToList(fd.get("currentMedications") as string),
         notes: (fd.get("notes") as string) || null,
       });
@@ -48,18 +50,6 @@ export function MedicalProfileForm({ profile }: { profile: MedicalProfile | null
         <p className="text-sm text-on-surface-variant">{t("disclaimer")}</p>
         <div className="grid gap-4">
           <Field label={t("bloodType")} name="bloodType" defaultValue={profile?.bloodType ?? ""} />
-          <Field
-            label={t("allergies")}
-            name="allergies"
-            defaultValue={listToString(profile?.allergies ?? [])}
-            hint={t("commaSeparated")}
-          />
-          <Field
-            label={t("conditions")}
-            name="conditions"
-            defaultValue={listToString(profile?.conditions ?? [])}
-            hint={t("commaSeparated")}
-          />
           <Field
             label={t("medications")}
             name="currentMedications"

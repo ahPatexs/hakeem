@@ -1,0 +1,28 @@
+{
+  "feature": "007-electronic-medical-records",
+  "stitchProjectId": "2408493713147971043",
+  "exported": false,
+  "note": "Stitch MCP returned 401 during plan generation. Reuse specs/004-doctor-portal/design and specs/003-patient-portal/design assets until export succeeds.",
+  "surfaces": [
+    "patient-summary",
+    "medical-timeline",
+    "medical-history",
+    "diagnoses",
+    "soap-notes",
+    "prescriptions",
+    "lab-results",
+    "medical-imaging",
+    "documents",
+    "loading",
+    "empty",
+    "error"
+  ],
+  "borrowedFrom": [
+    "specs/004-doctor-portal/design/d-medical-timeline.png",
+    "specs/004-doctor-portal/design/d-patient-overview.png",
+    "specs/004-doctor-portal/design/d-lab-results-radiology.png",
+    "specs/004-doctor-portal/design/d-consultation-workspace.png",
+    "specs/004-doctor-portal/design/d-create-prescription.png",
+    "specs/004-doctor-portal/design/d-review-sign-prescription.png"
+  ]
+}
