@@ -9,9 +9,11 @@ import {
   ClipboardList,
   CreditCard,
   FolderHeart,
+  Gauge,
   LayoutDashboard,
   Settings,
   Shield,
+  Sparkles,
   Stethoscope,
   Users,
   Wallet,
@@ -26,7 +28,12 @@ const NAV_ITEMS = [
   { href: "/admin/doctors", labelKey: "doctors", icon: Stethoscope },
   { href: "/admin/appointments", labelKey: "appointments", icon: CalendarDays },
   { href: "/admin/emr", labelKey: "emr", icon: FolderHeart },
-  { href: "/admin/ai", labelKey: "aiOps", icon: Bot },
+  { href: "/admin/ai", labelKey: "aiOps", icon: Bot, exact: true },
+  { href: "/admin/ai/usage", labelKey: "aiUsage", icon: BarChart3 },
+  { href: "/admin/ai/prompts", labelKey: "aiPrompts", icon: Sparkles },
+  { href: "/admin/ai/models", labelKey: "aiModels", icon: Settings },
+  { href: "/admin/ai/budgets", labelKey: "aiBudgets", icon: Wallet },
+  { href: "/admin/ai/monitoring", labelKey: "aiMonitoring", icon: Gauge },
   { href: "/admin/billing", labelKey: "billing", icon: CreditCard },
   { href: "/admin/revenue", labelKey: "revenue", icon: Wallet },
   { href: "/admin/analytics", labelKey: "analytics", icon: BarChart3 },
@@ -49,7 +56,11 @@ export function AdminNav({ onNavigate, className }: { onNavigate?: () => void; c
   return (
     <nav className={cn("flex flex-col gap-1", className)} aria-label="Admin portal">
       {NAV_ITEMS.map((item) => {
-        const active = isActive(pathname, item.href, "exact" in item && item.exact);
+        const active = isActive(
+          pathname,
+          item.href,
+          "exact" in item ? Boolean(item.exact) : false,
+        );
         const Icon = item.icon;
         return (
           <Link

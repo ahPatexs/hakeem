@@ -27,6 +27,7 @@ import { HistoryEditor } from "@/components/emr/history/history-editor";
 import { ImagingList } from "@/components/emr/imaging/imaging-list";
 import { DocumentUploadForm } from "@/components/emr/documents/document-upload-form";
 import { DocumentActionsList } from "@/components/emr/documents/document-actions-list";
+import { CdsInsights } from "@/components/ai/doctor/cds-insights";
 
 export default async function DoctorPatientChartPage({
   params,
@@ -125,6 +126,8 @@ export default async function DoctorPatientChartPage({
         listLabel={t("allergies")}
         noneLabel={t("noAllergies")}
       />
+
+      <CdsInsights patientUserId={chart.user.id} />
 
       {summaryResult.ok ? (
         <PatientSummary

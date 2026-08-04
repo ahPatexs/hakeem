@@ -19,6 +19,7 @@ export function DoctorSearch({
   specialties,
   initialQ,
   initialSpecialty,
+  symptomSessionId,
 }: {
   doctors: DoctorWithSpecialty[];
   total: number;
@@ -27,6 +28,7 @@ export function DoctorSearch({
   specialties: Specialty[];
   initialQ?: string;
   initialSpecialty?: string;
+  symptomSessionId?: string;
 }) {
   const t = useTranslations("patient.doctors");
   const router = useRouter();
@@ -39,7 +41,13 @@ export function DoctorSearch({
     const params = new URLSearchParams();
     if (q) params.set("q", q);
     if (specialty) params.set("specialty", specialty);
+    if (symptomSessionId) params.set("symptomSessionId", symptomSessionId);
     router.push(`/patient/doctors?${params.toString()}`);
+  }
+
+  function doctorHref(slug: string) {
+    if (!symptomSessionId) return `/patient/doctors/${slug}`;
+    return `/patient/doctors/${slug}?symptomSessionId=${encodeURIComponent(symptomSessionId)}`;
   }
 
   return (
@@ -70,7 +78,7 @@ export function DoctorSearch({
           {doctors.map((doc) => (
             <li key={doc.id}>
               <Link
-                href={`/patient/doctors/${doc.slug}`}
+                href={doctorHref(doc.slug)}
                 className="glass-card block rounded-2xl border border-outline-variant/20 p-5 transition hover:border-med-green/30"
               >
                 <p className="font-headline text-lg text-primary">{doc.nameEn}</p>

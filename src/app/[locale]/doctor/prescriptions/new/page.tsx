@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
+import { RxSuggestPanel } from "@/components/ai/doctor/rx-suggest-panel";
 import { PrescriptionForm } from "@/components/doctor/prescriptions/prescription-form";
 import { ErrorState } from "@/components/doctor/shared";
 
@@ -39,6 +40,7 @@ export default async function NewPrescriptionPage({
         </Link>
         <h1 className="mt-2 font-headline text-2xl text-primary md:text-3xl">{t("createTitle")}</h1>
       </div>
+      <RxSuggestPanel patientUserId={patient} />
       <PrescriptionForm patientUserId={patient} appointmentId={appointment} />
     </div>
   );

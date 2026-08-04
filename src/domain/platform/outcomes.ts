@@ -8,7 +8,10 @@ export type PlatformCode =
   | "CONFLICT"
   | "RATE_LIMITED"
   | "DEPENDENCY_UNAVAILABLE"
-  | "INTERNAL_FAILURE";
+  | "INTERNAL_FAILURE"
+  | "BUDGET_EXHAUSTED"
+  /** Unused by AI chat SoT (FR-030 uses CONSENT_GENERAL_MODE notice); retained for taxonomy / consent-check mocks. */
+  | "CONSENT_REQUIRED";
 
 export type PlatformResult<T> =
   | {

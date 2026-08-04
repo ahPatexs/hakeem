@@ -6,6 +6,7 @@ import {
   CreditCard,
   FileText,
   FlaskConical,
+  HeartPulse,
   LayoutDashboard,
   Bell,
   Pill,
@@ -34,6 +35,7 @@ const NAV_KEYS = {
   payments: true,
   notifications: true,
   ai: true,
+  aiHealth: true,
   profile: true,
   settings: true,
 } as const;
@@ -48,13 +50,28 @@ export const PORTAL_NAV_ITEMS: PortalNavItem[] = [
   { href: "/patient/payments", labelKey: "payments", icon: CreditCard },
   { href: "/patient/notifications", labelKey: "notifications", icon: Bell },
   { href: "/patient/ai", labelKey: "ai", icon: Bot },
+  { href: "/patient/ai/health", labelKey: "aiHealth", icon: HeartPulse },
   { href: "/patient/profile", labelKey: "profile", icon: User },
   { href: "/patient/settings", labelKey: "settings", icon: Settings },
 ];
 
-function isActive(pathname: string, href: string, exact?: boolean): boolean {
+function isActive(
+  pathname: string,
+  href: string,
+  exact?: boolean,
+  allHrefs: string[] = [],
+): boolean {
   if (exact) return pathname === href;
-  return pathname === href || pathname.startsWith(`${href}/`);
+  if (pathname === href) return true;
+  if (!pathname.startsWith(`${href}/`)) return false;
+  // Prefer a more specific sibling nav item when one matches this path
+  const hasMoreSpecific = allHrefs.some(
+    (other) =>
+      other !== href &&
+      other.startsWith(`${href}/`) &&
+      (pathname === other || pathname.startsWith(`${other}/`)),
+  );
+  return !hasMoreSpecific;
 }
 
 export function PortalNav({
@@ -68,11 +85,12 @@ export function PortalNav({
 }) {
   const pathname = usePathname();
   const t = useTranslations("patient.nav");
+  const allHrefs = items.map((i) => i.href);
 
   return (
     <nav className={cn("flex flex-col gap-1", className)} aria-label="Patient portal">
       {items.map((item) => {
-        const active = isActive(pathname, item.href, item.exact);
+        const active = isActive(pathname, item.href, item.exact, allHrefs);
         const Icon = item.icon;
         return (
           <Link

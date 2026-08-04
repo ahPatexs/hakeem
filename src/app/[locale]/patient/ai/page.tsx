@@ -1,7 +1,8 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { ensureConversation, listMessages } from "@/actions/patient/ai";
-import { AiChatPanel } from "@/components/patient/ai/ai-chat-panel";
+import { AssistantChat } from "@/components/ai/chat/assistant-chat";
 import { ErrorState } from "@/components/patient/shared/error-state";
+import { aiListConversations, aiGetConversation, aiStartConversation } from "@/actions/ai/conversations";
+import type { MessageDto } from "@/lib/ai/conversations";
 
 export default async function AiPage({
   params,
@@ -10,25 +11,42 @@ export default async function AiPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("patient.ai");
+  const t = await getTranslations("ai.chat");
+  const tPatient = await getTranslations("patient.ai");
+  const portLocale = locale === "ar" ? "ar" : "en";
 
-  const convResult = await ensureConversation(locale === "ar" ? "AR" : "EN");
-  if (!convResult.ok) {
-    return <ErrorState title={t("loadError")} />;
+  const listResult = await aiListConversations({});
+  if (!listResult.ok) {
+    return <ErrorState title={tPatient("loadError")} />;
   }
 
-  const messagesResult = await listMessages(convResult.data.id);
-  if (!messagesResult.ok) {
-    return <ErrorState title={t("loadError")} />;
+  let conversationId: string | null = listResult.data.items[0]?.id ?? null;
+  let initialMessages: MessageDto[] = [];
+
+  if (!conversationId) {
+    const started = await aiStartConversation({
+      feature: "PATIENT_ASSISTANT",
+      locale: portLocale,
+    });
+    if (!started.ok) {
+      return <ErrorState title={tPatient("loadError")} />;
+    }
+    conversationId = started.data.conversationId;
+  } else {
+    const detail = await aiGetConversation({ conversationId });
+    if (detail.ok) {
+      initialMessages = detail.data.messages;
+    }
   }
 
   return (
     <div className="space-y-4">
-      <h1 className="font-headline text-2xl text-primary">{t("title")}</h1>
-      <AiChatPanel
-        conversationId={convResult.data.id}
-        initialMessages={messagesResult.data.messages}
+      <h1 className="font-headline text-2xl text-primary">{tPatient("title")}</h1>
+      <p className="sr-only">{t("disclaimer")}</p>
+      <AssistantChat
         locale={locale}
+        initialConversationId={conversationId}
+        initialMessages={initialMessages}
       />
     </div>
   );

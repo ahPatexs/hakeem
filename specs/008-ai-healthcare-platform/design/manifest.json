@@ -1,0 +1,77 @@
+{
+  "feature": "008-ai-healthcare-platform",
+  "stitchProjectId": null,
+  "exported": false,
+  "note": "Stitch frames not exported yet. Build against existing portal chrome + shadcn primitives matching Stitch tokens; do not invent new visual language. Surfaces listed from contracts/ui.md.",
+  "surfaces": [
+    {
+      "id": "patient-ai-assistant",
+      "route": "patient/ai",
+      "exported": false
+    },
+    {
+      "id": "patient-ai-conversation-history",
+      "route": "patient/ai",
+      "exported": false
+    },
+    {
+      "id": "patient-symptom-checker",
+      "route": "patient/ai/symptom-checker",
+      "exported": false
+    },
+    {
+      "id": "patient-education-recommendations",
+      "route": "patient/ai/health",
+      "exported": false
+    },
+    {
+      "id": "doctor-ai-documentation",
+      "route": "doctor/consultations/[appointmentId]",
+      "exported": false
+    },
+    {
+      "id": "doctor-rx-assistant",
+      "route": "doctor/prescriptions/new",
+      "exported": false
+    },
+    {
+      "id": "doctor-cds-insights",
+      "route": "doctor/patients/[id]",
+      "exported": false
+    },
+    {
+      "id": "admin-ai-ops",
+      "route": "admin/ai",
+      "exported": false
+    },
+    {
+      "id": "admin-ai-usage",
+      "route": "admin/ai/usage",
+      "exported": false
+    },
+    {
+      "id": "admin-ai-prompts",
+      "route": "admin/ai/prompts",
+      "exported": false
+    },
+    {
+      "id": "admin-ai-models",
+      "route": "admin/ai/models",
+      "exported": false
+    },
+    {
+      "id": "admin-ai-budgets",
+      "route": "admin/ai/budgets",
+      "exported": false
+    },
+    {
+      "id": "admin-ai-monitoring",
+      "route": "admin/ai/monitoring",
+      "exported": false
+    }
+  ],
+  "borrowedFrom": [
+    "specs/003-patient-portal/design",
+    "specs/004-doctor-portal/design"
+  ]
+}

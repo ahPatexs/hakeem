@@ -1,5 +1,7 @@
 import { localStorageAdapter } from "@/adapters/local-storage";
-import { stubAiAssistantAdapter } from "@/adapters/stub-ai";
+import { openAiAssistantAdapter } from "@/adapters/openai-ai";
+import { openAiEmbeddingsAdapter } from "@/adapters/openai-embeddings";
+import { stubAiAssistantAdapter, stubEmbeddingsAdapter } from "@/adapters/stub-ai";
 import { stubEmailAdapter } from "@/adapters/stub-email";
 import { stubMalwareScanAdapter } from "@/adapters/stub-malware";
 import { stubPaymentsAdapter } from "@/adapters/stub-payments";
@@ -9,6 +11,7 @@ import { stubSmsAdapter } from "@/adapters/stub-sms";
 import { stubTelemedicineAdapter } from "@/adapters/stub-telemedicine";
 import { liveKitTelemedicineAdapter } from "@/adapters/livekit-telemedicine";
 import type { AiAssistantPort } from "@/ports/ai-assistant";
+import type { AiEmbeddingsPort } from "@/ports/ai-embeddings";
 import type { EmailPort } from "@/ports/email";
 import type { MalwareScanPort } from "@/ports/malware-scan";
 import type { PaymentsPort } from "@/ports/payments";
@@ -20,6 +23,20 @@ import type { TelemedicinePort } from "@/ports/telemedicine";
 
 function provider(name: string | undefined, fallback = "stub"): string {
   return (name ?? fallback).toLowerCase();
+}
+
+/**
+ * BAA gate for non-stub AI providers (inlined here to avoid circular import
+ * with `lib/platform/ai` which already consumes `getAiAdapter`).
+ */
+function assertBaaGateForProvider(providerName: string): void {
+  if (
+    process.env.NODE_ENV === "production" &&
+    providerName !== "stub" &&
+    process.env.PLATFORM_AI_BAA_SATISFIED !== "true"
+  ) {
+    throw new Error("PLATFORM_AI_BAA_REQUIRED");
+  }
 }
 
 export function getPaymentsAdapter(): PaymentsPort {
@@ -55,10 +72,26 @@ export function getPushAdapter(): PushPort {
 }
 
 export function getAiAdapter(): AiAssistantPort {
-  switch (provider(process.env.AI_ASSISTANT_PROVIDER)) {
+  const name = provider(process.env.AI_ASSISTANT_PROVIDER);
+  assertBaaGateForProvider(name);
+  switch (name) {
+    case "openai":
+      return openAiAssistantAdapter;
     case "stub":
     default:
       return stubAiAssistantAdapter;
+  }
+}
+
+export function getEmbeddingsAdapter(): AiEmbeddingsPort {
+  const name = provider(process.env.AI_EMBEDDINGS_PROVIDER ?? process.env.AI_ASSISTANT_PROVIDER);
+  assertBaaGateForProvider(name);
+  switch (name) {
+    case "openai":
+      return openAiEmbeddingsAdapter;
+    case "stub":
+    default:
+      return stubEmbeddingsAdapter;
   }
 }
 

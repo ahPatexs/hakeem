@@ -138,6 +138,24 @@ export default async function ConsultationWorkspacePage({
                 <dt className="text-xs uppercase text-on-surface-variant">{tc("medications")}</dt>
                 <dd className="text-primary">{medications.join(", ") || "—"}</dd>
               </div>
+              {bundle.symptomSummary ? (
+                <div data-ai="previsit-symptom">
+                  <dt className="text-xs uppercase text-on-surface-variant">{t("symptomCheck")}</dt>
+                  <dd className="text-primary">
+                    {bundle.symptomSummary.outcome
+                      ? t(`symptomOutcome.${bundle.symptomSummary.outcome}` as never)
+                      : "—"}
+                    {bundle.symptomSummary.redFlagged ? (
+                      <span className="ms-2 text-xs font-semibold text-error">{t("symptomRedFlag")}</span>
+                    ) : null}
+                  </dd>
+                  {bundle.symptomSummary.rationale ? (
+                    <dd className="mt-1 text-xs text-on-surface-variant line-clamp-3">
+                      {bundle.symptomSummary.rationale}
+                    </dd>
+                  ) : null}
+                </div>
+              ) : null}
             </dl>
           </section>
 

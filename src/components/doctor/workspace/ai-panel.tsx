@@ -1,20 +1,38 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
-import { sendAiMessage, recordAiDecision } from "@/actions/doctor/ai";
+import { Link } from "@/i18n/routing";
+import { Bot } from "lucide-react";
+import { DraftPanel } from "@/components/ai/doctor/draft-panel";
+import { RxSuggestPanel } from "@/components/ai/doctor/rx-suggest-panel";
+import { ClinicalAssistChat } from "@/components/ai/doctor/clinical-assist-chat";
 import { AiAssistantShell } from "@/components/platform/ai";
-import { Bot, Send } from "lucide-react";
-
-type ChatMessage = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-};
 
 type AiMode = "MEDICAL" | "DOCUMENTATION" | "PRESCRIPTION";
 
+function PatientContextNeeded({
+  needAppointment = false,
+}: {
+  needAppointment?: boolean;
+}) {
+  const t = useTranslations("doctor.ai");
+  return (
+    <div className="rounded-xl border border-outline-variant/20 bg-surface-container-low p-4 text-sm text-on-surface-variant">
+      <p>{needAppointment ? t("needPatientAndAppointment") : t("needPatientContext")}</p>
+      <Link
+        href="/doctor/patients"
+        className="mt-3 inline-block font-medium text-primary underline-offset-2 hover:underline"
+      >
+        {t("openPatients")}
+      </Link>
+    </div>
+  );
+}
+
+/**
+ * Doctor workspace / AI hub panel — Module 7 surfaces only (no legacy sendAiMessage).
+ */
 export function AiPanel({
   patientUserId,
   appointmentId,
@@ -24,44 +42,19 @@ export function AiPanel({
 }: {
   patientUserId?: string;
   appointmentId?: string;
-  /** When provided, assistant messages get an explicit Insert action (FR-019). */
+  /** When provided, MEDICAL mode assistant messages get Insert into the SOAP editor. */
   onInsert?: (text: string) => void;
   defaultMode?: AiMode;
   compact?: boolean;
 }) {
   const t = useTranslations("doctor.ai");
   const [mode, setMode] = useState<AiMode>(defaultMode);
-  const [conversationId, setConversationId] = useState<string | undefined>();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
 
   const modes: { key: AiMode; label: string }[] = [
     { key: "MEDICAL", label: t("modeMedical") },
     { key: "DOCUMENTATION", label: t("modeDocumentation") },
     { key: "PRESCRIPTION", label: t("modePrescription") },
   ];
-
-  function send() {
-    const content = input.trim();
-    if (!content || pending) return;
-    setError(null);
-    setInput("");
-    setMessages((m) => [...m, { id: `local-${Date.now()}`, role: "user", content }]);
-    startTransition(async () => {
-      const res = await sendAiMessage({ conversationId, mode, patientUserId, appointmentId, content });
-      if (!res.ok) {
-        setError(res.code === "RATE_LIMITED" ? t("rateLimited") : t("error"));
-        return;
-      }
-      setConversationId(res.data.conversationId);
-      setMessages((m) => [
-        ...m,
-        { id: res.data.message.id, role: "assistant", content: res.data.message.content },
-      ]);
-    });
-  }
 
   const feature =
     mode === "PRESCRIPTION"
@@ -96,83 +89,34 @@ export function AiPanel({
         ))}
       </div>
 
-      <div
-        className={`flex-1 space-y-3 overflow-y-auto rounded-xl border border-outline-variant/20 bg-surface-container-low p-3 ${compact ? "max-h-72" : "min-h-64"}`}
-        aria-live="polite"
-      >
-        {messages.length === 0 ? (
-          <p className="text-sm text-on-surface-variant">{t("emptyChat")}</p>
+      {mode === "DOCUMENTATION" ? (
+        patientUserId && appointmentId ? (
+          <DraftPanel patientUserId={patientUserId} appointmentId={appointmentId} />
         ) : (
-          messages.map((m) => (
-            <div key={m.id} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
-              <div
-                className={
-                  m.role === "user"
-                    ? "max-w-[85%] rounded-2xl bg-primary px-3 py-2 text-sm text-on-primary"
-                    : "max-w-[85%] rounded-2xl bg-surface-container-high px-3 py-2 text-sm text-primary"
-                }
-              >
-                <p className="whitespace-pre-wrap">{m.content}</p>
-                {m.role === "assistant" && onInsert ? (
-                  <div className="mt-2 flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="soft"
-                      onClick={() => {
-                        onInsert(m.content);
-                        if (conversationId) {
-                          void recordAiDecision({ conversationId, decision: "accept", target: "soap.plan" });
-                        }
-                      }}
-                    >
-                      {t("insert")}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        setMessages((all) => all.filter((x) => x.id !== m.id));
-                        if (conversationId) {
-                          void recordAiDecision({ conversationId, decision: "discard", target: "soap.plan" });
-                        }
-                      }}
-                    >
-                      {t("discard")}
-                    </Button>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          ))
-        )}
-        {pending ? <p className="text-xs text-on-surface-variant">…</p> : null}
-      </div>
-
-      {error ? (
-        <p className="text-sm text-red-600" role="alert">
-          {error}
-        </p>
+          <PatientContextNeeded needAppointment />
+        )
       ) : null}
 
-      <form
-        className="flex gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          send();
-        }}
-      >
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={t("inputPlaceholder")}
-          aria-label={t("inputPlaceholder")}
-          className="h-10 flex-1 rounded-xl border border-outline-variant/30 bg-surface-container-low px-3 text-sm outline-none focus:border-primary"
-        />
-        <Button type="submit" size="icon" disabled={pending || !input.trim()} aria-label={t("send")}>
-          <Send className="h-4 w-4 rtl:rotate-180" aria-hidden />
-        </Button>
-      </form>
+      {mode === "PRESCRIPTION" ? (
+        patientUserId ? (
+          <RxSuggestPanel patientUserId={patientUserId} />
+        ) : (
+          <PatientContextNeeded />
+        )
+      ) : null}
+
+      {mode === "MEDICAL" ? (
+        patientUserId ? (
+          <ClinicalAssistChat
+            patientUserId={patientUserId}
+            appointmentId={appointmentId}
+            onInsert={onInsert}
+            compact={compact}
+          />
+        ) : (
+          <PatientContextNeeded />
+        )
+      ) : null}
     </AiAssistantShell>
   );
 }

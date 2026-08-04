@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { getDoctorBySlug } from "@/actions/patient/doctors";
@@ -22,6 +23,8 @@ export default async function DoctorDetailPage({
   }
 
   return (
-    <DoctorProfileView doctor={result.data.doctor} availability={result.data.availability} />
+    <Suspense fallback={null}>
+      <DoctorProfileView doctor={result.data.doctor} availability={result.data.availability} />
+    </Suspense>
   );
 }

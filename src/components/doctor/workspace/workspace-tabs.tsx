@@ -6,6 +6,7 @@ import { Link } from "@/i18n/routing";
 import { SoapEditor, type SoapEditorHandle } from "@/components/doctor/workspace/soap-editor";
 import { SummaryEditor } from "@/components/doctor/workspace/summary-editor";
 import { AiPanel } from "@/components/doctor/workspace/ai-panel";
+import { DraftPanel } from "@/components/ai/doctor/draft-panel";
 import { StatusBadge } from "@/components/doctor/shared";
 
 export type WorkspaceRx = {
@@ -75,12 +76,28 @@ export function WorkspaceTabs({
       </div>
 
       {/* Keep SOAP mounted so AI-insert works from the AI tab */}
-      <div className={tab === "soap" ? "" : "hidden"}>
+      <div className={tab === "soap" ? "space-y-4" : "hidden"}>
+        {!readOnly ? (
+          <DraftPanel
+            patientUserId={patientUserId}
+            appointmentId={appointmentId}
+            readOnly={readOnly}
+          />
+        ) : null}
         <SoapEditor ref={soapRef} appointmentId={appointmentId} initial={soap} readOnly={readOnly} />
       </div>
 
       {tab === "summary" ? (
-        <SummaryEditor appointmentId={appointmentId} initial={summary} readOnly={readOnly} />
+        <div className="space-y-4">
+          {!readOnly ? (
+            <DraftPanel
+              patientUserId={patientUserId}
+              appointmentId={appointmentId}
+              readOnly={readOnly}
+            />
+          ) : null}
+          <SummaryEditor appointmentId={appointmentId} initial={summary} readOnly={readOnly} />
+        </div>
       ) : null}
 
       {tab === "prescriptions" ? (

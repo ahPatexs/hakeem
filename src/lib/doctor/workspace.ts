@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getAttachedSymptomSummary } from "@/lib/ai/symptom";
 import { getOwnedAppointment } from "./schedule";
 
 /** Everything the consultation workspace needs, in one server load. */
@@ -8,8 +9,17 @@ export async function getWorkspaceBundle(doctorId: string, appointmentId: string
 
   const patientUserId = appointment.patientUserId;
 
-  const [medicalProfile, profile, latestSoap, latestSummary, soapVersions, prescriptions, recentRecords, recentLabs] =
-    await Promise.all([
+  const [
+    medicalProfile,
+    profile,
+    latestSoap,
+    latestSummary,
+    soapVersions,
+    prescriptions,
+    recentRecords,
+    recentLabs,
+    symptomSummary,
+  ] = await Promise.all([
       prisma.medicalProfile.findUnique({ where: { userId: patientUserId } }),
       prisma.patientProfile.findUnique({ where: { userId: patientUserId } }),
       prisma.soapNote.findFirst({
@@ -47,6 +57,7 @@ export async function getWorkspaceBundle(doctorId: string, appointmentId: string
         orderBy: { resultedAt: "desc" },
         take: 5,
       }),
+      getAttachedSymptomSummary(appointmentId),
     ]);
 
   return {
@@ -59,5 +70,6 @@ export async function getWorkspaceBundle(doctorId: string, appointmentId: string
     prescriptions,
     recentRecords,
     recentLabs,
+    symptomSummary,
   };
 }

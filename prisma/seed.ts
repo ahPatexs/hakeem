@@ -5,10 +5,250 @@
  * Run: npm run prisma:seed
  */
 import { createHash } from "node:crypto";
-import { PrismaClient, PublishStatus, type LabResult, type Prescription } from "@prisma/client";
+import {
+  PrismaClient,
+  PublishStatus,
+  type AiFeatureKey,
+  type LabResult,
+  type Prescription,
+} from "@prisma/client";
 import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
+
+const AI_FEATURE_KEYS: AiFeatureKey[] = [
+  "PATIENT_ASSISTANT",
+  "SYMPTOM_CHECKER",
+  "RECOMMENDATIONS",
+  "DOCTOR_SOAP",
+  "DOCTOR_SUMMARY",
+  "RX_ASSIST",
+  "CDS",
+];
+
+const AI_PROMPT_DEFAULTS: Record<
+  AiFeatureKey,
+  { name: string; bodyEn: string; bodyAr: string; modelName: string }
+> = {
+  PATIENT_ASSISTANT: {
+    name: "Patient medical assistant",
+    bodyEn:
+      "You are Hakeem's patient health assistant. Answer general health questions clearly, never diagnose or prescribe, and remind users to seek professional care when appropriate.",
+    bodyAr:
+      "أنت مساعد صحة المرضى في حكيم. أجب عن الأسئلة الصحية العامة بوضوح، ولا تشخّص ولا تصف أدوية، وذكّر المستخدم بطلب الرعاية المهنية عند الحاجة.",
+    modelName: "gpt-4o-mini",
+  },
+  SYMPTOM_CHECKER: {
+    name: "Symptom checker",
+    bodyEn:
+      "Guide the patient through a non-diagnostic symptom triage. Ask one focused question at a time and propose a triage outcome with plain-language rationale.",
+    bodyAr:
+      "وجّه المريض عبر فرز أعراض غير تشخيصي. اطرح سؤالاً مركزاً واحداً في كل مرة واقترح نتيجة فرز مع تبرير بلغة بسيطة.",
+    modelName: "gpt-4o-mini",
+  },
+  RECOMMENDATIONS: {
+    name: "Health recommendations",
+    bodyEn:
+      "Produce concise, explainable wellness or education recommendations. Cite only allowed chart categories when personalization is enabled.",
+    bodyAr:
+      "قدّم توصيات عافية أو تثقيف صحي موجزة وقابلة للتفسير. استشهد فقط بفئات السجل المسموح بها عند تفعيل التخصيص.",
+    modelName: "gpt-4o-mini",
+  },
+  DOCTOR_SOAP: {
+    name: "Doctor SOAP draft",
+    bodyEn:
+      "Draft a clinician SOAP note from the encounter context. Mark uncertainty explicitly. Never finalize or sign; output is a draft for clinician review.",
+    bodyAr:
+      "امسودة ملاحظة SOAP سريرية من سياق الزيارة. وضّح عدم اليقين صراحة. لا تعتمد أو توقّع؛ الناتج مسودة لمراجعة الطبيب.",
+    modelName: "gpt-4o",
+  },
+  DOCTOR_SUMMARY: {
+    name: "Consultation summary draft",
+    bodyEn:
+      "Draft a patient-facing consultation summary in the patient's locale. Keep clinical accuracy and leave final wording to the clinician.",
+    bodyAr:
+      "امسودة ملخص استشارة موجّه للمريض بلغة المريض. حافظ على الدقة السريرية واترك الصياغة النهائية للطبيب.",
+    modelName: "gpt-4o",
+  },
+  RX_ASSIST: {
+    name: "Prescription assistance",
+    bodyEn:
+      "Suggest prescription options with evidence citations and surface allergy or interaction conflicts before any acceptance step.",
+    bodyAr:
+      "اقترح خيارات وصفات مع استشهادات بالأدلة وأظهر تعارضات الحساسية أو التفاعلات قبل أي خطوة قبول.",
+    modelName: "gpt-4o",
+  },
+  CDS: {
+    name: "Clinical decision support",
+    bodyEn:
+      "Provide dismissible clinical decision-support insights grounded in chart evidence. Do not write to the chart.",
+    bodyAr:
+      "قدّم رؤى دعم قرار سريري قابلة للتجاهل مستندة إلى أدلة السجل. لا تكتب في السجل الطبي.",
+    modelName: "gpt-4o",
+  },
+};
+
+/**
+ * Module 7 AI defaults (T004): published prompt versions, STUB model configs,
+ * GLOBAL budget, and bilingual KB docs. Safe to re-run (idempotent).
+ */
+async function seedAiModuleDefaults(): Promise<void> {
+  const now = new Date();
+
+  for (const feature of AI_FEATURE_KEYS) {
+    const defaults = AI_PROMPT_DEFAULTS[feature];
+    const template = await prisma.aiPromptTemplate.upsert({
+      where: { feature },
+      update: { name: defaults.name },
+      create: { feature, name: defaults.name },
+    });
+
+    const existingVersion = await prisma.aiPromptVersion.findUnique({
+      where: { templateId_version: { templateId: template.id, version: 1 } },
+    });
+    if (!existingVersion) {
+      await prisma.aiPromptVersion.create({
+        data: {
+          templateId: template.id,
+          version: 1,
+          bodyEn: defaults.bodyEn,
+          bodyAr: defaults.bodyAr,
+          status: "PUBLISHED",
+          publishedAt: now,
+          changeNote: "Seed default published prompt",
+        },
+      });
+    } else if (existingVersion.status !== "PUBLISHED") {
+      await prisma.aiPromptVersion.update({
+        where: { id: existingVersion.id },
+        data: {
+          bodyEn: defaults.bodyEn,
+          bodyAr: defaults.bodyAr,
+          status: "PUBLISHED",
+          publishedAt: existingVersion.publishedAt ?? now,
+          changeNote: existingVersion.changeNote ?? "Seed default published prompt",
+        },
+      });
+    }
+
+    const activeConfig = await prisma.aiModelConfig.findFirst({
+      where: { feature, active: true },
+      orderBy: { version: "desc" },
+    });
+    if (!activeConfig) {
+      await prisma.aiModelConfig.create({
+        data: {
+          feature,
+          provider: "STUB",
+          modelName: defaults.modelName,
+          fallbackModel: "gpt-4o-mini",
+          temperature: 0.3,
+          maxOutputTokens: 1024,
+          active: true,
+          version: 1,
+        },
+      });
+    } else if (activeConfig.provider !== "STUB") {
+      // Keep existing admin overrides; only ensure a STUB seed exists when none active.
+    }
+  }
+
+  const globalBudget = await prisma.aiCostBudget.findFirst({
+    where: { scope: "GLOBAL", feature: null },
+  });
+  if (!globalBudget) {
+    await prisma.aiCostBudget.create({
+      data: {
+        scope: "GLOBAL",
+        feature: null,
+        monthlyUsd: 500,
+        alertThreshold: 80,
+        hardCap: false,
+      },
+    });
+  }
+
+  const kbDocs: Array<{
+    slug: string;
+    title: string;
+    locale: "EN" | "AR";
+    kind: string;
+    content: string;
+  }> = [
+    {
+      slug: "education-hand-hygiene-en",
+      title: "Hand hygiene basics",
+      locale: "EN",
+      kind: "education",
+      content:
+        "Wash hands with soap and water for at least 20 seconds before eating, after using the restroom, and after coughing or sneezing. Alcohol-based sanitizer is an alternative when hands are not visibly soiled.",
+    },
+    {
+      slug: "education-hand-hygiene-ar",
+      title: "أساسيات نظافة اليدين",
+      locale: "AR",
+      kind: "education",
+      content:
+        "اغسل يديك بالماء والصابون لمدة لا تقل عن 20 ثانية قبل الأكل وبعد استخدام دورة المياه وبعد السعال أو العطاس. يمكن استخدام معقم كحولي عندما لا تكون اليدان متسختين بشكل ظاهر.",
+    },
+    {
+      slug: "self-care-hydration-en",
+      title: "Staying hydrated",
+      locale: "EN",
+      kind: "self-care",
+      content:
+        "Most adults benefit from regular water intake throughout the day. Increase fluids during heat, exercise, or illness with fever. Seek care if you cannot keep fluids down or notice dark urine with dizziness.",
+    },
+    {
+      slug: "self-care-hydration-ar",
+      title: "الحفاظ على الترطيب",
+      locale: "AR",
+      kind: "self-care",
+      content:
+        "يستفيد معظم البالغين من شرب الماء بانتظام خلال اليوم. زد السوائل في الحر أو أثناء الرياضة أو عند الحمى. اطلب الرعاية إذا لم تستطع الاحتفاظ بالسوائل أو لاحظت بولاً داكناً مع دوار.",
+    },
+    {
+      slug: "wellness-sleep-en",
+      title: "Healthy sleep habits",
+      locale: "EN",
+      kind: "wellness",
+      content:
+        "Aim for a consistent sleep schedule, a dark quiet room, and limited screens before bed. Persistent snoring, gasping, or daytime sleepiness should be discussed with a clinician.",
+    },
+    {
+      slug: "wellness-sleep-ar",
+      title: "عادات نوم صحية",
+      locale: "AR",
+      kind: "wellness",
+      content:
+        "احرص على جدول نوم ثابت وغرفة مظلمة هادئة وقلل الشاشات قبل النوم. الشخير المستمر أو توقف التنفس أو النعاس النهاري يستدعي مناقشة مع مختص رعاية صحية.",
+    },
+  ];
+
+  for (const doc of kbDocs) {
+    const contentHash = createHash("sha256").update(doc.content).digest("hex");
+    await prisma.aiKnowledgeDoc.upsert({
+      where: { slug: doc.slug },
+      update: {
+        title: doc.title,
+        locale: doc.locale,
+        kind: doc.kind,
+        status: "PUBLISHED",
+        content: doc.content,
+        contentHash,
+      },
+      create: {
+        slug: doc.slug,
+        title: doc.title,
+        locale: doc.locale,
+        kind: doc.kind,
+        status: "PUBLISHED",
+        content: doc.content,
+        contentHash,
+      },
+    });
+  }
+}
 
 /**
  * One-time backfill (T034): migrates legacy `MedicalProfile.allergies` /
@@ -671,6 +911,9 @@ async function main() {
       },
     });
   }
+
+  // ── AI Healthcare Platform Module 7 (T004) ───────────────────────────────
+  await seedAiModuleDefaults();
 
   console.log(
     "Seed complete (admin@hakeem.local / patient@hakeem.local / doctor@hakeem.local Doctor!Pass1234)",

@@ -1,4 +1,4 @@
-﻿-- CreateEnum
+-- CreateEnum
 CREATE TYPE "EmrAttestationSource" AS ENUM ('PATIENT_REPORTED', 'CLINICIAN_ATTESTED');
 
 -- CreateEnum

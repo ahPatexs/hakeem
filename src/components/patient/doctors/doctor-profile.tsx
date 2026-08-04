@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { holdAppointmentSlot, confirmAppointment } from "@/actions/patient/appointments";
+import { aiAttachSessionToBooking } from "@/actions/ai/symptom";
 import type { AvailabilitySlot } from "@/lib/patient/availability-stub";
 import type { Doctor, Specialty } from "@prisma/client";
 
@@ -19,6 +21,8 @@ export function DoctorProfileView({
 }) {
   const t = useTranslations("patient.doctors");
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const symptomSessionId = searchParams.get("symptomSessionId");
   const [mode, setMode] = useState<"IN_PERSON" | "VIDEO">("IN_PERSON");
   const [selected, setSelected] = useState<AvailabilitySlot | null>(null);
   const [pending, startTransition] = useTransition();
@@ -43,6 +47,14 @@ export function DoctorProfileView({
         setError(t("confirmError"));
         return;
       }
+
+      if (symptomSessionId) {
+        await aiAttachSessionToBooking({
+          sessionId: symptomSessionId,
+          appointmentId: confirmed.data.id,
+        });
+      }
+
       router.push(`/patient/appointments/${confirmed.data.id}`);
     });
   }

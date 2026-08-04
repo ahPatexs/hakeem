@@ -8,7 +8,12 @@ export default async function DoctorsPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ q?: string; specialty?: string; page?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    specialty?: string;
+    page?: string;
+    symptomSessionId?: string;
+  }>;
 }) {
   const { locale } = await params;
   const sp = await searchParams;
@@ -36,6 +41,7 @@ export default async function DoctorsPage({
         specialties={specialtiesResult.data}
         initialQ={sp.q}
         initialSpecialty={sp.specialty}
+        symptomSessionId={sp.symptomSessionId}
       />
     </div>
   );
