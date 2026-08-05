@@ -9,22 +9,28 @@ import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function AdminSidebar({ className }: { className?: string }) {
+function BrandBlock({ onNavigate }: { onNavigate?: () => void }) {
   const t = useTranslations("admin.shell");
   return (
-    <aside
-      className={cn(
-        "hidden w-64 shrink-0 flex-col border-e border-outline-variant/20 bg-surface-container-low lg:flex",
-        className,
-      )}
-    >
-      <div className="border-b border-outline-variant/20 px-5 py-6">
-        <Link href="/admin" className="font-headline text-xl font-bold text-primary">
-          Hakeem
-        </Link>
-        <p className="mt-1 text-xs font-medium text-med-green">{t("portalLabel")}</p>
-      </div>
-      <div className="flex-1 overflow-y-auto px-3 py-4">
+    <div className="border-b border-outline-variant/20 px-5 py-6">
+      <Link href="/admin" className="flex items-center gap-2" onClick={onNavigate}>
+        <span className="font-headline text-xl font-bold leading-none text-primary">Hakeem</span>
+        <span className="rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-on-primary">
+          {t("badge")}
+        </span>
+      </Link>
+      <span className="mt-1.5 block text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">
+        {t("portalLabel")}
+      </span>
+    </div>
+  );
+}
+
+export function AdminSidebar({ className }: { className?: string }) {
+  return (
+    <aside className={cn("portal-sidebar", className)}>
+      <BrandBlock />
+      <div className="flex-1 overflow-y-auto py-3">
         <AdminNav />
       </div>
     </aside>
@@ -38,18 +44,13 @@ export function AdminMobileNav() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="lg:hidden" aria-label={t("openMenu")}>
+        <Button variant="ghost" size="icon" className="rounded-full lg:hidden" aria-label={t("openMenu")}>
           <Menu className="h-5 w-5 text-primary" />
         </Button>
       </SheetTrigger>
-      <SheetContent className="bg-surface-container-low p-0">
-        <div className="border-b border-outline-variant/20 px-6 py-5">
-          <Link href="/admin" className="font-headline text-xl font-bold text-primary" onClick={() => setOpen(false)}>
-            Hakeem
-          </Link>
-          <p className="mt-1 text-xs font-medium text-med-green">{t("portalLabel")}</p>
-        </div>
-        <div className="px-3 py-4">
+      <SheetContent className="bg-surface-container-lowest p-0">
+        <BrandBlock onNavigate={() => setOpen(false)} />
+        <div className="py-3">
           <AdminNav onNavigate={() => setOpen(false)} />
         </div>
       </SheetContent>

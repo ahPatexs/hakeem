@@ -67,7 +67,7 @@ function WidgetShell({
   children: React.ReactNode;
 }) {
   return (
-    <section className="glass-card rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5">
+    <section className="glass-card rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-5 md:p-6 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="font-headline text-lg text-primary">{title}</h2>
         {href ? (

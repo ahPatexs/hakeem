@@ -53,7 +53,7 @@ export function StatsRow({ result }: { result: WidgetResult<DoctorDashboardStats
       {cells.map((c) => (
         <div
           key={c.label}
-          className="glass-card rounded-2xl border border-outline-variant/20 bg-surface-container-low p-4"
+          className="glass-card rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-4 shadow-sm"
         >
           <p className="text-2xl font-bold text-primary">{c.value}</p>
           <p className="mt-1 text-xs font-medium text-on-surface-variant">{c.label}</p>

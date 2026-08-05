@@ -37,7 +37,7 @@ export function DoctorHeaderActions({
         href="/doctor/profile"
         className="hidden items-center gap-2 rounded-full border border-outline-variant/30 bg-surface-container-low py-1 pe-3 ps-1 sm:flex"
       >
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-on-primary">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-on-primary ring-2 ring-primary/10">
           {displayName.slice(0, 1).toUpperCase()}
         </span>
         <span className="flex flex-col leading-tight">

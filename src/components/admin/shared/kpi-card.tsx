@@ -17,7 +17,7 @@ export function KpiCard({
   const body = (
     <div
       className={cn(
-        "glass-card rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5 transition-shadow hover:shadow-md",
+        "glass-card rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-5 shadow-sm transition-shadow hover:shadow-md md:p-6",
         href && "cursor-pointer",
         className,
       )}

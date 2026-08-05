@@ -186,6 +186,12 @@
     }
   },
   "patient": {
+    "shell": {
+      "portalLabel": "بوابة المريض",
+      "openMenu": "فتح القائمة",
+      "notifications": "الإشعارات",
+      "bookCta": "حجز موعد"
+    },
     "nav": {
       "dashboard": "لوحة التحكم",
       "appointments": "المواعيد",
@@ -461,6 +467,7 @@
       "openMenu": "فتح القائمة",
       "notifications": "الإشعارات",
       "unreadCount": "{count} إشعارات غير مقروءة",
+      "newConsultCta": "استشارة جديدة",
       "unlinkedTitle": "الملف السريري غير مرتبط",
       "unlinkedBody": "حساب الطبيب غير مرتبط بعد بملف سريري. يرجى التواصل مع المسؤول لإكمال التفعيل."
     },
@@ -838,6 +845,7 @@
   "admin": {
     "shell": {
       "portalLabel": "بوابة الإدارة",
+      "badge": "إدارة",
       "openMenu": "فتح القائمة",
       "notifications": "الإشعارات",
       "signOut": "تسجيل الخروج"

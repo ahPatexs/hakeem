@@ -1,6 +1,7 @@
 import { DoctorMobileNav, DoctorSidebar } from "@/components/doctor/shell/doctor-sidebar";
 import { DoctorHeaderActions } from "@/components/doctor/shell/doctor-header";
 import { OfflineProvider } from "@/components/doctor/workspace/offline-guard";
+import { portalShellBgClass } from "@/components/portal/chrome";
 import { cn } from "@/lib/utils";
 
 export function DoctorShell({
@@ -20,10 +21,10 @@ export function DoctorShell({
 }) {
   return (
     <OfflineProvider>
-      <div className={cn("flex min-h-[calc(100vh-0px)] bg-surface-container", className)}>
+      <div className={cn("flex", portalShellBgClass, className)}>
         <DoctorSidebar />
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-outline-variant/20 bg-surface-container-low/95 px-4 py-3 backdrop-blur-sm lg:px-8">
+          <header className="portal-header flex items-center gap-3 px-4 py-3 lg:px-8">
             <DoctorMobileNav />
             <div className="min-w-0 flex-1">{header}</div>
             <DoctorHeaderActions
@@ -32,7 +33,7 @@ export function DoctorShell({
               specialty={specialty}
             />
           </header>
-          <div className="flex-1 px-4 py-6 lg:px-8">{children}</div>
+          <div className="flex-1 px-4 py-6 lg:px-8 lg:py-8">{children}</div>
         </div>
       </div>
     </OfflineProvider>

@@ -14,7 +14,7 @@ export async function DashboardGrid({ snapshot }: { snapshot: DashboardSnapshot 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-headline text-3xl text-primary">{t("title")}</h1>
+        <h1 className="font-headline text-3xl text-on-surface">{t("title")}</h1>
         <p className="mt-1 text-on-surface-variant">{t("subtitle")}</p>
       </div>
 
@@ -47,7 +47,7 @@ export async function DashboardGrid({ snapshot }: { snapshot: DashboardSnapshot 
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="glass-card rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5">
+        <section className="glass-card rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-5 md:p-6 shadow-sm">
           <h2 className="font-headline text-lg text-primary">{t("revenueSummary")}</h2>
           {snapshot.revenueSummary.status === "ok" ? (
             <div className="mt-4 space-y-2 text-sm">
@@ -69,7 +69,7 @@ export async function DashboardGrid({ snapshot }: { snapshot: DashboardSnapshot 
           )}
         </section>
 
-        <section className="glass-card rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5">
+        <section className="glass-card rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-5 md:p-6 shadow-sm">
           <h2 className="font-headline text-lg text-primary">{t("aiUsage")}</h2>
           {snapshot.aiUsage.status === "ok" ? (
             <div className="mt-4 space-y-2 text-sm">
@@ -88,7 +88,7 @@ export async function DashboardGrid({ snapshot }: { snapshot: DashboardSnapshot 
           )}
         </section>
 
-        <section className="glass-card rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5">
+        <section className="glass-card rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-5 md:p-6 shadow-sm">
           <h2 className="font-headline text-lg text-primary">{t("platformStatus")}</h2>
           {snapshot.platformStatus.status === "ok" ? (
             <div className="mt-4 flex items-center gap-3">
@@ -102,7 +102,7 @@ export async function DashboardGrid({ snapshot }: { snapshot: DashboardSnapshot 
           )}
         </section>
 
-        <section className="glass-card rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5">
+        <section className="glass-card rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-5 md:p-6 shadow-sm">
           <h2 className="font-headline text-lg text-primary">{t("notifications")}</h2>
           {snapshot.unreadNotifications.status === "ok" ? (
             <p className="mt-4 text-sm">
@@ -117,7 +117,7 @@ export async function DashboardGrid({ snapshot }: { snapshot: DashboardSnapshot 
         </section>
       </div>
 
-      <section className="glass-card rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5">
+      <section className="glass-card rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-5 md:p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-headline text-lg text-primary">{t("recentActivities")}</h2>
           <Link href="/admin/audit" className="text-sm font-medium text-med-green hover:underline">

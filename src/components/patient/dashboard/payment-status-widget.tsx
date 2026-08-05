@@ -22,7 +22,7 @@ export function PaymentStatusWidget({
 
   if (!result.ok) {
     return (
-      <section className="glass-card rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5">
+      <section className="glass-card rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-5 md:p-6 shadow-sm">
         <h2 className="font-headline text-lg text-primary">{t("title")}</h2>
         <ErrorState className="mt-3" message={t("error")} onRetry={() => router.refresh()} />
       </section>
@@ -33,7 +33,7 @@ export function PaymentStatusWidget({
 
   if (pendingCount === 0) {
     return (
-      <section className="glass-card rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5">
+      <section className="glass-card rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-5 md:p-6 shadow-sm">
         <h2 className="font-headline text-lg text-primary">{t("title")}</h2>
         <EmptyState
           className="mt-3 border-0 bg-transparent py-6"
@@ -46,7 +46,7 @@ export function PaymentStatusWidget({
   }
 
   return (
-    <section className="glass-card rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5">
+    <section className="glass-card rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-5 md:p-6 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="font-headline text-lg text-primary">{t("title")}</h2>
         <Link href="/patient/payments" className="text-sm font-medium text-med-green hover:underline">

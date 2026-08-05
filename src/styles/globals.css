@@ -25,9 +25,18 @@
 
 @layer components {
   .glass-card {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(193, 199, 209, 0.35);
+    box-shadow: 0 1px 2px rgba(15, 28, 42, 0.04), 0 8px 24px rgba(0, 67, 111, 0.06);
+  }
+
+  .portal-header {
+    @apply sticky top-0 z-40 border-b border-outline-variant/25 bg-surface-container-lowest/85 backdrop-blur-md;
+  }
+
+  .portal-sidebar {
+    @apply hidden w-64 shrink-0 flex-col border-e border-outline-variant/25 bg-surface-container-lowest shadow-[1px_0_0_0_rgba(226,232,240,0.9)] lg:flex;
   }
 
   .floating-ui {

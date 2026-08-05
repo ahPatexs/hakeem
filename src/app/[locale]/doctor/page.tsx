@@ -22,10 +22,10 @@ export default async function DoctorDashboardPage({
   const name = session?.user?.name ?? session?.user?.email ?? "";
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-headline text-2xl text-primary md:text-3xl">{t("welcome", { name })}</h1>
-        <p className="mt-1 text-on-surface-variant">{t("subtitle")}</p>
+    <div className="space-y-8">
+      <div className="rounded-3xl border border-outline-variant/20 bg-surface-container-lowest px-5 py-6 shadow-sm md:px-8 md:py-8">
+        <h1 className="font-headline text-2xl text-on-surface md:text-3xl">{t("welcome", { name })}</h1>
+        <p className="mt-2 text-on-surface-variant">{t("subtitle")}</p>
       </div>
       <DashboardWidgets bundle={result.data} />
     </div>

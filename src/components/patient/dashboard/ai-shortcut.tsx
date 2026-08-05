@@ -12,7 +12,7 @@ export function AiShortcut({ className }: { className?: string }) {
   return (
     <section
       className={cn(
-        "glass-card flex flex-col gap-4 rounded-2xl border border-outline-variant/20 bg-gradient-to-br from-primary/5 to-med-green/5 p-6 sm:flex-row sm:items-center sm:justify-between",
+        "glass-card flex flex-col gap-4 rounded-3xl border border-outline-variant/20 bg-gradient-to-br from-primary/5 to-med-green/5 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between",
         className,
       )}
     >

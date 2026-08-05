@@ -18,7 +18,7 @@ export function QuickActions() {
   const t = useTranslations("patient.dashboard.quickActions");
 
   return (
-    <section className="glass-card rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5">
+    <section className="glass-card rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-5 md:p-6 shadow-sm">
       <h2 className="font-headline text-lg text-primary">{t("title")}</h2>
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {ACTIONS.map(({ href, icon: Icon, key }) => (

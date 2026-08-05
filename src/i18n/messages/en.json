@@ -186,6 +186,12 @@
     }
   },
   "patient": {
+    "shell": {
+      "portalLabel": "Patient Portal",
+      "openMenu": "Open menu",
+      "notifications": "Notifications",
+      "bookCta": "Book appointment"
+    },
     "nav": {
       "dashboard": "Dashboard",
       "appointments": "Appointments",
@@ -461,6 +467,7 @@
       "openMenu": "Open menu",
       "notifications": "Notifications",
       "unreadCount": "{count} unread notifications",
+      "newConsultCta": "New consult",
       "unlinkedTitle": "Clinical profile not linked",
       "unlinkedBody": "Your doctor account is not yet linked to a clinical profile. Please contact an administrator to complete provisioning."
     },
@@ -839,6 +846,7 @@
   "admin": {
     "shell": {
       "portalLabel": "Administration Portal",
+      "badge": "Admin",
       "openMenu": "Open menu",
       "notifications": "Notifications",
       "signOut": "Sign out"
