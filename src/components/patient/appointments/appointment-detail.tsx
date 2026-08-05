@@ -81,7 +81,10 @@ export function AppointmentDetailView({ appointment }: { appointment: ApptDetail
       </header>
 
       <div className="flex flex-wrap gap-3">
-        {appointment.mode === "VIDEO" && appointment.status === "CONFIRMED" ? (
+        {appointment.mode === "VIDEO" &&
+        (appointment.status === "CONFIRMED" ||
+          appointment.status === "CHECKED_IN" ||
+          appointment.status === "IN_PROGRESS") ? (
           <Button asChild variant="soft">
             <Link href={`/patient/consultations/${appointment.id}`}>{t("joinVideo")}</Link>
           </Button>

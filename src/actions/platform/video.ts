@@ -56,6 +56,42 @@ export async function platformGetVideoJoinCredentials(input: unknown) {
   }
 }
 
+/** Patient self-acknowledge of current TELEHEALTH consent text (required before join). */
+export async function platformAcknowledgeTelehealthConsent() {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) return { ok: false as const, code: "UNAUTHORIZED" as const };
+    if (session.user.role !== "PATIENT" && session.user.role !== "ADMIN") {
+      // Doctors joining as host do not need patient telehealth self-ack here
+      return { ok: true as const, data: { already: true } };
+    }
+
+    const { listConsentState, acknowledgeConsent } = await import("@/lib/emr/consents");
+    const actor = {
+      userId: session.user.id,
+      role: "PATIENT" as const,
+    };
+    const listed = await listConsentState(actor, session.user.id);
+    if (!listed.ok) return { ok: false as const, code: listed.code, message: listed.message };
+    const tele = listed.data.items.find((i) => i.typeCode === "TELEHEALTH");
+    if (!tele) return { ok: false as const, code: "NOT_FOUND" as const, message: "TELEHEALTH consent type missing" };
+    if (tele.state === "ACKNOWLEDGED") return { ok: true as const, data: { already: true } };
+    if (!tele.currentTextVersionId) {
+      return { ok: false as const, code: "NOT_FOUND" as const, message: "No telehealth consent text published" };
+    }
+    const ack = await acknowledgeConsent(actor, {
+      patientUserId: session.user.id,
+      typeCode: "TELEHEALTH",
+      textVersionId: tele.currentTextVersionId,
+    });
+    if (!ack.ok) return { ok: false as const, code: ack.code, message: ack.message };
+    return { ok: true as const, data: { already: false, eventId: ack.data.eventId } };
+  } catch (error) {
+    if (isAuthDomainError(error)) return { ok: false as const, code: error.code };
+    return { ok: false as const, code: "INTERNAL_FAILURE" as const };
+  }
+}
+
 export async function platformEndVideoSession(input: unknown) {
   try {
     const parsed = appointmentSchema.safeParse(input);

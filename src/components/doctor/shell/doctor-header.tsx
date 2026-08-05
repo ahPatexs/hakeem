@@ -1,10 +1,11 @@
 "use client";
 
-import { Bell } from "lucide-react";
+import { Bell, LogOut } from "lucide-react";
 import { Link } from "@/i18n/routing";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { PatientSearch } from "@/components/doctor/patients/patient-search";
+import { logoutAction } from "@/actions/auth/login";
 
 export function DoctorHeaderActions({
   unreadCount,
@@ -16,6 +17,7 @@ export function DoctorHeaderActions({
   specialty?: string | null;
 }) {
   const t = useTranslations("doctor.shell");
+  const locale = useLocale();
 
   return (
     <div className="flex items-center gap-2">
@@ -47,6 +49,11 @@ export function DoctorHeaderActions({
           ) : null}
         </span>
       </Link>
+      <form action={logoutAction.bind(null, locale)}>
+        <Button type="submit" variant="ghost" size="icon" aria-label={t("signOut")}>
+          <LogOut className="h-5 w-5 text-on-surface-variant" />
+        </Button>
+      </form>
     </div>
   );
 }

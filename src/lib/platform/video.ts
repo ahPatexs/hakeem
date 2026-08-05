@@ -280,7 +280,7 @@ export async function getJoinCredentials(input: {
         targetUserId: appointment.patientUserId,
         meta: { appointmentId: appointment.id, reason: "consent_required", code: consent.code },
       });
-      return platformFail("FORBIDDEN", consent.message ?? "Telehealth consent required");
+      return platformFail("CONSENT_REQUIRED", consent.message ?? "Telehealth consent required");
     }
   }
 
@@ -295,7 +295,7 @@ export async function getJoinCredentials(input: {
       endAt: appointment.endAt,
     } as VideoAppointment)
   ) {
-    return platformFail("FORBIDDEN", "Video join window is closed");
+    return platformFail("FORBIDDEN", "JOIN_WINDOW_CLOSED");
   }
 
   const session = await createConsultationSession(input);

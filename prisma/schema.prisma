@@ -730,6 +730,15 @@ model ClinicalDocument {
   @@index([patientUserId, deletedAt])
 }
 
+/** Durable file bytes for serverless (Vercel) when local disk is ephemeral. */
+model StorageObject {
+  key         String   @id
+  contentType String
+  body        Bytes
+  byteSize    Int
+  createdAt   DateTime @default(now())
+}
+
 model MedicalRecord {
   id            String            @id @default(cuid())
   patientUserId String

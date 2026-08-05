@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { Link } from "@/i18n/routing";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { DoctorNav } from "@/components/doctor/shell/doctor-nav";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Plus } from "lucide-react";
+import { LogOut, Menu, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { logoutAction } from "@/actions/auth/login";
 
 function BrandBlock({ onNavigate }: { onNavigate?: () => void }) {
   const t = useTranslations("doctor.shell");
@@ -23,22 +24,35 @@ function BrandBlock({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-export function DoctorSidebar({ className }: { className?: string }) {
+function SidebarFooter({ onNavigate }: { onNavigate?: () => void }) {
   const t = useTranslations("doctor.shell");
+  const locale = useLocale();
+  return (
+    <div className="space-y-2 border-t border-outline-variant/20 p-4">
+      <Button asChild className="w-full rounded-xl">
+        <Link href="/doctor/queue" onClick={onNavigate}>
+          <Plus className="h-4 w-4" aria-hidden />
+          {t("newConsultCta")}
+        </Link>
+      </Button>
+      <form action={logoutAction.bind(null, locale)}>
+        <Button type="submit" variant="outline" className="w-full rounded-xl">
+          <LogOut className="h-4 w-4" aria-hidden />
+          {t("signOut")}
+        </Button>
+      </form>
+    </div>
+  );
+}
+
+export function DoctorSidebar({ className }: { className?: string }) {
   return (
     <aside className={cn("portal-sidebar", className)}>
       <BrandBlock />
       <div className="flex-1 overflow-y-auto py-3">
         <DoctorNav />
       </div>
-      <div className="border-t border-outline-variant/20 p-4">
-        <Button asChild className="w-full rounded-xl">
-          <Link href="/doctor/queue">
-            <Plus className="h-4 w-4" aria-hidden />
-            {t("newConsultCta")}
-          </Link>
-        </Button>
-      </div>
+      <SidebarFooter />
     </aside>
   );
 }
@@ -59,14 +73,7 @@ export function DoctorMobileNav() {
         <div className="py-3">
           <DoctorNav onNavigate={() => setOpen(false)} />
         </div>
-        <div className="border-t border-outline-variant/20 p-4">
-          <Button asChild className="w-full rounded-xl">
-            <Link href="/doctor/queue" onClick={() => setOpen(false)}>
-              <Plus className="h-4 w-4" aria-hidden />
-              {t("newConsultCta")}
-            </Link>
-          </Button>
-        </div>
+        <SidebarFooter onNavigate={() => setOpen(false)} />
       </SheetContent>
     </Sheet>
   );

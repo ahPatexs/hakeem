@@ -61,6 +61,12 @@ describe("video join window", () => {
     expect(canJoinVideo(appointment, new Date("2026-07-30T12:30:00Z"))).toBe(true);
   });
 
+  it("allows CHECKED_IN inside the join window", () => {
+    expect(canJoinVideo({ ...appointment, status: "CHECKED_IN" }, new Date("2026-07-30T12:00:00Z"))).toBe(
+      true,
+    );
+  });
+
   it("denies join outside window or wrong mode", () => {
     expect(canJoinVideo(appointment, new Date("2026-07-30T10:00:00Z"))).toBe(false);
     expect(canJoinVideo({ ...appointment, mode: "IN_PERSON" })).toBe(false);

@@ -10,6 +10,8 @@ type Props = {
   devices: MediaDeviceSelection;
   onDevicesChange: (next: MediaDeviceSelection) => void;
   onReady: () => void;
+  onAcceptConsent?: () => void;
+  needsConsent?: boolean;
   pending?: boolean;
   error?: string | null;
 };
@@ -19,6 +21,8 @@ export function VideoWaitingRoom({
   devices,
   onDevicesChange,
   onReady,
+  onAcceptConsent,
+  needsConsent,
   pending,
   error,
 }: Props) {
@@ -36,10 +40,16 @@ export function VideoWaitingRoom({
       <CameraPreview deviceId={devices.videoInputId} />
       <DeviceSelector value={devices} onChange={onDevicesChange} />
 
-      <div className="flex justify-center">
-        <Button variant="soft" disabled={pending} onClick={onReady} aria-busy={pending}>
-          {pending ? t("joining") : t("joinCall")}
-        </Button>
+      <div className="flex flex-col items-center gap-3">
+        {needsConsent && onAcceptConsent ? (
+          <Button variant="soft" disabled={pending} onClick={onAcceptConsent} aria-busy={pending}>
+            {pending ? t("joining") : t("acceptConsentAndJoin")}
+          </Button>
+        ) : (
+          <Button variant="soft" disabled={pending} onClick={onReady} aria-busy={pending}>
+            {pending ? t("joining") : t("joinCall")}
+          </Button>
+        )}
       </div>
       {error ? (
         <p className="text-center text-sm text-red-600" role="alert">

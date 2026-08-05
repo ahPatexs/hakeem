@@ -190,7 +190,8 @@
       "portalLabel": "Patient Portal",
       "openMenu": "Open menu",
       "notifications": "Notifications",
-      "bookCta": "Book appointment"
+      "bookCta": "Book appointment",
+      "signOut": "Sign out"
     },
     "nav": {
       "dashboard": "Dashboard",
@@ -267,6 +268,7 @@
     "profile": {
       "title": "Profile",
       "personalTitle": "Personal information",
+      "fullName": "Full name",
       "emergencyTitle": "Emergency contact",
       "insuranceTitle": "Insurance",
       "phone": "Phone",
@@ -468,6 +470,7 @@
       "notifications": "Notifications",
       "unreadCount": "{count} unread notifications",
       "newConsultCta": "New consult",
+      "signOut": "Sign out",
       "unlinkedTitle": "Clinical profile not linked",
       "unlinkedBody": "Your doctor account is not yet linked to a clinical profile. Please contact an administrator to complete provisioning."
     },
@@ -1132,6 +1135,10 @@
       "joinCall": "Join consultation",
       "joining": "Joining…",
       "joinError": "Unable to join the consultation. Please try again.",
+      "consentRequired": "Telehealth consent is required before joining. Accept below to continue.",
+      "acceptConsentAndJoin": "Accept telehealth consent & join",
+      "joinWindowClosed": "The join window is closed. You can join from 15 minutes before the appointment start until 60 minutes after.",
+      "joinUnauthorized": "Please sign in again to join this consultation.",
       "callEnded": "The consultation has ended.",
       "mute": "Mute microphone",
       "unmute": "Unmute microphone",
@@ -1224,7 +1231,19 @@
       "kind": "Document kind",
       "download": "Download",
       "hide": "Hide",
-      "restore": "Restore"
+      "restore": "Restore",
+      "uploadHint": "PDF, JPG, PNG, WEBP, GIF, or TXT up to 25 MB. Add a title and choose a file.",
+      "uploadSuccess": "Document uploaded successfully.",
+      "uploadInvalidType": "Unsupported file type or size. Use PDF/image/TXT under 25 MB.",
+      "uploadForbidden": "You do not have permission to upload to this chart.",
+      "kindPatientUpload": "My upload",
+      "kindOther": "Other",
+      "kindReferral": "Referral",
+      "kindCertificate": "Certificate",
+      "kindConsent": "Consent evidence",
+      "kindImaging": "Imaging report",
+      "kindRecord": "Record attachment",
+      "kindLab": "Lab attachment"
     },
     "diagnoses": {
       "title": "Diagnoses",

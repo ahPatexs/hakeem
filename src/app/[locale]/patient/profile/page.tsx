@@ -21,9 +21,9 @@ export default async function ProfilePage({
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <h1 className="font-headline text-2xl text-primary">{t("title")}</h1>
-      <PersonalForm profile={result.data} />
-      <EmergencyForm profile={result.data} />
-      <InsuranceForm profile={result.data} />
+      <PersonalForm profile={result.data.profile} name={result.data.name} />
+      <EmergencyForm profile={result.data.profile} />
+      <InsuranceForm profile={result.data.profile} />
     </div>
   );
 }

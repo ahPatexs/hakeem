@@ -8,7 +8,13 @@ import { Button } from "@/components/ui/button";
 import { updatePatientProfile } from "@/actions/patient/profile";
 import type { PatientProfile } from "@prisma/client";
 
-export function PersonalForm({ profile }: { profile: PatientProfile | null }) {
+export function PersonalForm({
+  profile,
+  name,
+}: {
+  profile: PatientProfile | null;
+  name: string;
+}) {
   const t = useTranslations("patient.profile");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -20,6 +26,7 @@ export function PersonalForm({ profile }: { profile: PatientProfile | null }) {
     const dob = fd.get("dateOfBirth") as string;
     startTransition(async () => {
       const result = await updatePatientProfile({
+        name: String(fd.get("name") ?? "").trim(),
         phone: (fd.get("phone") as string) || null,
         dateOfBirth: dob ? new Date(dob).toISOString() : null,
         sexAtBirth: (fd.get("sexAtBirth") as string) || null,
@@ -40,6 +47,7 @@ export function PersonalForm({ profile }: { profile: PatientProfile | null }) {
     <form onSubmit={handleSubmit} className="glass-card space-y-4 rounded-2xl border border-outline-variant/20 p-6">
       <h2 className="font-headline text-lg text-primary">{t("personalTitle")}</h2>
       <div className="grid gap-4 sm:grid-cols-2">
+        <Field label={t("fullName")} name="name" defaultValue={name} required className="sm:col-span-2" />
         <Field label={t("phone")} name="phone" defaultValue={profile?.phone ?? ""} />
         <Field label={t("dateOfBirth")} name="dateOfBirth" type="date" defaultValue={dobValue} />
         <Field label={t("sexAtBirth")} name="sexAtBirth" defaultValue={profile?.sexAtBirth ?? ""} />
@@ -60,16 +68,20 @@ function Field({
   name,
   type = "text",
   defaultValue,
+  required,
+  className,
 }: {
   label: string;
   name: string;
   type?: string;
   defaultValue?: string;
+  required?: boolean;
+  className?: string;
 }) {
   return (
-    <label className="block space-y-1.5">
+    <label className={`block space-y-1.5 ${className ?? ""}`}>
       <span className="text-sm font-medium text-on-surface-variant">{label}</span>
-      <Input name={name} type={type} defaultValue={defaultValue} />
+      <Input name={name} type={type} defaultValue={defaultValue} required={required} />
     </label>
   );
 }

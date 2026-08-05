@@ -23,9 +23,15 @@ export interface VideoAppointment {
   endAt: Date;
 }
 
+const JOINABLE_STATUSES = new Set<AppointmentStatus>([
+  "CONFIRMED",
+  "CHECKED_IN",
+  "IN_PROGRESS",
+]);
+
 export function canJoinVideo(appointment: VideoAppointment, now: Date = new Date()): boolean {
   if (appointment.mode !== "VIDEO") return false;
-  if (appointment.status !== "CONFIRMED" && appointment.status !== "IN_PROGRESS") return false;
+  if (!JOINABLE_STATUSES.has(appointment.status)) return false;
 
   const windowStart = appointment.startAt.getTime() - JOIN_WINDOW_BEFORE_MS;
   const windowEnd = appointment.startAt.getTime() + JOIN_WINDOW_AFTER_MS;

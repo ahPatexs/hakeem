@@ -1,0 +1,286 @@
+{
+  "base": "https://hakeem-hicqufqt5-patexs.vercel.app",
+  "accounts": {
+    "patient": {
+      "email": "qa.patient.msg1kdfl@hakeem.test",
+      "password": "QaTest!Pass1234"
+    },
+    "doctor": {
+      "email": "qa.doctor.msg1kdfl@hakeem.test",
+      "password": "QaTest!Pass1234",
+      "note": "Provisioned APPROVED (no public doctor register)"
+    },
+    "adminSeed": {
+      "email": "admin@hakeem.local",
+      "password": "Admin!Pass1234"
+    }
+  },
+  "counts": {
+    "ok": 51,
+    "fail": 1,
+    "partial": 0,
+    "skip": 0
+  },
+  "results": [
+    {
+      "feature": "Public home",
+      "status": "ok",
+      "detail": "/en (200)"
+    },
+    {
+      "feature": "Public login page",
+      "status": "ok",
+      "detail": "/en/login (200)"
+    },
+    {
+      "feature": "Public register page",
+      "status": "ok",
+      "detail": "/en/register (200)"
+    },
+    {
+      "feature": "Patient register",
+      "status": "ok",
+      "detail": "Reached verify-email for qa.patient.msg1kdfl@hakeem.test"
+    },
+    {
+      "feature": "Patient email verify (DB activate)",
+      "status": "ok",
+      "detail": "Status ACTIVE + emailVerified (no Resend inbox on Preview)"
+    },
+    {
+      "feature": "Doctor provision (admin-style)",
+      "status": "ok",
+      "detail": "No public doctor register — created APPROVED doctor qa.doctor.msg1kdfl@hakeem.test slug=dr-qa-msg1kdfl"
+    },
+    {
+      "feature": "Patient login",
+      "status": "ok",
+      "detail": "https://hakeem-hicqufqt5-patexs.vercel.app/en/patient"
+    },
+    {
+      "feature": "Patient dashboard",
+      "status": "ok",
+      "detail": "/en/patient (200)"
+    },
+    {
+      "feature": "Patient settings",
+      "status": "ok",
+      "detail": "/en/patient/settings (200)"
+    },
+    {
+      "feature": "Patient profile",
+      "status": "ok",
+      "detail": "/en/patient/profile (200)"
+    },
+    {
+      "feature": "Medical profile",
+      "status": "ok",
+      "detail": "/en/patient/medical-profile (200)"
+    },
+    {
+      "feature": "Doctors list",
+      "status": "ok",
+      "detail": "/en/patient/doctors (200)"
+    },
+    {
+      "feature": "Book entry",
+      "status": "ok",
+      "detail": "/en/patient/appointments/book (200)"
+    },
+    {
+      "feature": "Appointments",
+      "status": "ok",
+      "detail": "/en/patient/appointments (200)"
+    },
+    {
+      "feature": "Upcoming appointments",
+      "status": "ok",
+      "detail": "/en/patient/appointments/upcoming (200)"
+    },
+    {
+      "feature": "History appointments",
+      "status": "ok",
+      "detail": "/en/patient/appointments/history (200)"
+    },
+    {
+      "feature": "Records",
+      "status": "ok",
+      "detail": "/en/patient/records (200)"
+    },
+    {
+      "feature": "Labs",
+      "status": "ok",
+      "detail": "/en/patient/labs (200)"
+    },
+    {
+      "feature": "Prescriptions",
+      "status": "ok",
+      "detail": "/en/patient/prescriptions (200)"
+    },
+    {
+      "feature": "Payments",
+      "status": "ok",
+      "detail": "/en/patient/payments (200)"
+    },
+    {
+      "feature": "Notifications",
+      "status": "ok",
+      "detail": "/en/patient/notifications (200)"
+    },
+    {
+      "feature": "Timeline",
+      "status": "ok",
+      "detail": "/en/patient/timeline (200)"
+    },
+    {
+      "feature": "AI assistant",
+      "status": "ok",
+      "detail": "/en/patient/ai (200)"
+    },
+    {
+      "feature": "AI health",
+      "status": "ok",
+      "detail": "/en/patient/ai/health (200)"
+    },
+    {
+      "feature": "Symptom checker",
+      "status": "ok",
+      "detail": "/en/patient/ai/symptom-checker (200)"
+    },
+    {
+      "feature": "Patient book appointment",
+      "status": "fail",
+      "detail": "locator.click: Timeout 45000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: /book|حجز/i }).first()\n    - locator resolved to <button disabled type=\"button\" class=\"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 active:scale-95 bg-primary-fixed text-primary hover:bg-primary hover:text-white h-11 px-6 py-2.5\">Book selected slot</button>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is not enabled\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is not enabled\n    - retrying click action\n      - waiting 100ms\n    86 × waiting for element to be visible, enabled and stable\n       - element is not enabled\n     - retrying click action\n       - waiting 500ms\n"
+    },
+    {
+      "feature": "Patient AI chat send",
+      "status": "ok",
+      "detail": "Skip to content Hakeem Patient Portal Dashboard Appointments Doctors Records Labs Prescriptions Payments Notifications AI Assistant Health education Profile Settings AI health assistant This assistant provides general"
+    },
+    {
+      "feature": "Patient symptom checker",
+      "status": "ok",
+      "detail": "Skip to content Hakeem Patient Portal Dashboard Appointments Doctors Records Labs Prescriptions Payments Notifications AI Assistant Health education Profile Settings This guidan"
+    },
+    {
+      "feature": "Patient settings content",
+      "status": "ok",
+      "detail": "Skip to content Hakeem Patient Portal Dashboard Appointments Doctors Records Labs Prescriptions Payments Notifications AI Assistant Health"
+    },
+    {
+      "feature": "Doctor login",
+      "status": "ok",
+      "detail": "https://hakeem-hicqufqt5-patexs.vercel.app/en/doctor"
+    },
+    {
+      "feature": "Doctor dashboard",
+      "status": "ok",
+      "detail": "/en/doctor (200)"
+    },
+    {
+      "feature": "Doctor schedule",
+      "status": "ok",
+      "detail": "/en/doctor/schedule (200)"
+    },
+    {
+      "feature": "Doctor queue",
+      "status": "ok",
+      "detail": "/en/doctor/queue (200)"
+    },
+    {
+      "feature": "Doctor appointments",
+      "status": "ok",
+      "detail": "/en/doctor/appointments (200)"
+    },
+    {
+      "feature": "Doctor patients",
+      "status": "ok",
+      "detail": "/en/doctor/patients (200)"
+    },
+    {
+      "feature": "Doctor prescriptions",
+      "status": "ok",
+      "detail": "/en/doctor/prescriptions (200)"
+    },
+    {
+      "feature": "Doctor labs",
+      "status": "ok",
+      "detail": "/en/doctor/labs (200)"
+    },
+    {
+      "feature": "Doctor AI",
+      "status": "ok",
+      "detail": "/en/doctor/ai (200)"
+    },
+    {
+      "feature": "Doctor AI documentation",
+      "status": "ok",
+      "detail": "/en/doctor/ai/documentation (200)"
+    },
+    {
+      "feature": "Doctor AI prescription",
+      "status": "ok",
+      "detail": "/en/doctor/ai/prescription (200)"
+    },
+    {
+      "feature": "Doctor profile",
+      "status": "ok",
+      "detail": "/en/doctor/profile (200)"
+    },
+    {
+      "feature": "Doctor settings",
+      "status": "ok",
+      "detail": "/en/doctor/settings (200)"
+    },
+    {
+      "feature": "Doctor notifications",
+      "status": "ok",
+      "detail": "/en/doctor/notifications (200)"
+    },
+    {
+      "feature": "Admin login (seed)",
+      "status": "ok",
+      "detail": "https://hakeem-hicqufqt5-patexs.vercel.app/en/admin"
+    },
+    {
+      "feature": "Admin dashboard",
+      "status": "ok",
+      "detail": "/en/admin (200)"
+    },
+    {
+      "feature": "Admin users",
+      "status": "ok",
+      "detail": "/en/admin/users (200)"
+    },
+    {
+      "feature": "Admin doctors",
+      "status": "ok",
+      "detail": "/en/admin/doctors (200)"
+    },
+    {
+      "feature": "Admin AI",
+      "status": "ok",
+      "detail": "/en/admin/ai (200)"
+    },
+    {
+      "feature": "Admin AI prompts",
+      "status": "ok",
+      "detail": "/en/admin/ai/prompts (200)"
+    },
+    {
+      "feature": "Admin AI models",
+      "status": "ok",
+      "detail": "/en/admin/ai/models (200)"
+    },
+    {
+      "feature": "Admin AI budgets",
+      "status": "ok",
+      "detail": "/en/admin/ai/budgets (200)"
+    },
+    {
+      "feature": "RBAC patient→admin denied",
+      "status": "ok",
+      "detail": "https://hakeem-hicqufqt5-patexs.vercel.app/en/access-denied"
+    }
+  ]
+}

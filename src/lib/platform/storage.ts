@@ -16,6 +16,29 @@ const ALLOWED_UPLOAD_TYPES = new Set([
   "text/plain",
 ]);
 
+const EXT_CONTENT_TYPES: Record<string, string> = {
+  ".pdf": "application/pdf",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".gif": "image/gif",
+  ".txt": "text/plain",
+};
+
+/** Prefer browser MIME; fall back to extension when empty/octet-stream. */
+export function resolveUploadContentType(fileName: string, contentType?: string | null): string {
+  const ct = (contentType ?? "").trim().toLowerCase();
+  if (ct && ct !== "application/octet-stream") return ct;
+  const lower = fileName.toLowerCase();
+  const dot = lower.lastIndexOf(".");
+  if (dot >= 0) {
+    const ext = lower.slice(dot);
+    if (EXT_CONTENT_TYPES[ext]) return EXT_CONTENT_TYPES[ext]!;
+  }
+  return ct || "application/octet-stream";
+}
+
 export type UploadPatientFileInput = {
   userId: string;
   file: Buffer;
@@ -39,9 +62,12 @@ export function validateUploadInput(input: {
   if (input.sizeBytes <= 0 || input.sizeBytes > MAX_UPLOAD_BYTES) {
     return platformFail("VALIDATION_ERROR", `File must be ≤ ${MAX_UPLOAD_BYTES} bytes`);
   }
-  const ct = input.contentType.toLowerCase();
-  if (!ALLOWED_UPLOAD_TYPES.has(ct) && !isAllowedImageContentType(ct)) {
-    return platformFail("VALIDATION_ERROR", "Unsupported content type");
+  const resolved = resolveUploadContentType(input.fileName, input.contentType);
+  if (!ALLOWED_UPLOAD_TYPES.has(resolved) && !isAllowedImageContentType(resolved)) {
+    return platformFail(
+      "VALIDATION_ERROR",
+      "Unsupported file type. Use PDF, JPG, PNG, WEBP, GIF, or TXT.",
+    );
   }
   return platformOk(undefined);
 }
@@ -57,7 +83,7 @@ export async function uploadPatientFile(
   if (!validation.ok) return validation;
 
   let body = input.file;
-  let contentType = input.contentType;
+  let contentType = resolveUploadContentType(input.fileName, input.contentType);
   if (isAllowedImageContentType(contentType)) {
     const { optimizeImageBuffer } = await import("@/lib/platform/image");
     const optimized = optimizeImageBuffer({ body: input.file, contentType });

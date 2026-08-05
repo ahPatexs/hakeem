@@ -6,6 +6,7 @@ import "@livekit/components-styles";
 import { useTranslations } from "next-intl";
 import { isStubTelemedicineUrl } from "@/domain/platform/video";
 import {
+  platformAcknowledgeTelehealthConsent,
   platformEndVideoSession,
   platformGetVideoJoinCredentials,
   platformLeaveVideoSession,
@@ -38,6 +39,7 @@ export function VideoSessionShell({ appointmentId, role, className }: Props) {
   const [devices, setDevices] = useState<MediaDeviceSelection>({});
   const [creds, setCreds] = useState<Credentials | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [needsConsent, setNeedsConsent] = useState(false);
   const [pending, setPending] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [videoEnabled, setVideoEnabled] = useState(true);
@@ -51,14 +53,26 @@ export function VideoSessionShell({ appointmentId, role, className }: Props) {
     [creds],
   );
 
+  const mapJoinError = useCallback(
+    (code: string, message?: string) => {
+      if (code === "CONSENT_REQUIRED") return t("consentRequired");
+      if (code === "FORBIDDEN" && message === "JOIN_WINDOW_CLOSED") return t("joinWindowClosed");
+      if (code === "UNAUTHORIZED") return t("joinUnauthorized");
+      return t("joinError");
+    },
+    [t],
+  );
+
   const join = useCallback(async () => {
     setPending(true);
     setError(null);
+    setNeedsConsent(false);
     setPhase("connecting");
     const res = await platformGetVideoJoinCredentials({ appointmentId });
     setPending(false);
     if (!res.ok) {
-      setError(t("joinError"));
+      setNeedsConsent(res.code === "CONSENT_REQUIRED");
+      setError(mapJoinError(res.code, "message" in res ? res.message : undefined));
       setPhase("waiting");
       return;
     }
@@ -70,7 +84,22 @@ export function VideoSessionShell({ appointmentId, role, className }: Props) {
       sessionId: res.data.sessionId,
     });
     setPhase("in_call");
-  }, [appointmentId, t]);
+  }, [appointmentId, mapJoinError]);
+
+  const acceptConsentAndJoin = useCallback(async () => {
+    setPending(true);
+    setError(null);
+    const ack = await platformAcknowledgeTelehealthConsent();
+    if (!ack.ok) {
+      setPending(false);
+      setError(t("consentRequired"));
+      setNeedsConsent(true);
+      return;
+    }
+    setNeedsConsent(false);
+    setPending(false);
+    await join();
+  }, [join, t]);
 
   const leave = useCallback(async () => {
     await platformLeaveVideoSession({ appointmentId });
@@ -96,6 +125,8 @@ export function VideoSessionShell({ appointmentId, role, className }: Props) {
           devices={devices}
           onDevicesChange={setDevices}
           onReady={() => void join()}
+          onAcceptConsent={role === "patient" ? () => void acceptConsentAndJoin() : undefined}
+          needsConsent={needsConsent}
           pending={pending || phase === "connecting"}
           error={error}
         />

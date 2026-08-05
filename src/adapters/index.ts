@@ -1,4 +1,5 @@
 import { localStorageAdapter } from "@/adapters/local-storage";
+import { dbStorageAdapter } from "@/adapters/db-storage";
 import { openAiAssistantAdapter } from "@/adapters/openai-ai";
 import { openAiEmbeddingsAdapter } from "@/adapters/openai-embeddings";
 import { stubAiAssistantAdapter, stubEmbeddingsAdapter } from "@/adapters/stub-ai";
@@ -96,7 +97,12 @@ export function getEmbeddingsAdapter(): AiEmbeddingsPort {
 }
 
 export function getStorageAdapter(): StoragePort {
-  switch (provider(process.env.STORAGE_PROVIDER)) {
+  const name = provider(process.env.STORAGE_PROVIDER, process.env.VERCEL ? "db" : "local");
+  switch (name) {
+    case "db":
+    case "postgres":
+    case "neon":
+      return dbStorageAdapter;
     case "local":
     case "stub":
     default:

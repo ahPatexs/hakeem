@@ -6,6 +6,7 @@ import { withPatient, withPatientMutation } from "@/actions/patient/_helpers";
 import { auditPhiAccess } from "@/lib/patient/phi-audit";
 
 const profileSchema = z.object({
+  name: z.string().trim().min(2).max(120).optional(),
   phone: z.string().max(32).optional().nullable(),
   dateOfBirth: z.string().datetime().optional().nullable(),
   sexAtBirth: z.string().max(32).optional().nullable(),
@@ -20,9 +21,16 @@ const profileSchema = z.object({
 
 export async function getPatientProfile() {
   return withPatient(async (userId) => {
-    const profile = await prisma.patientProfile.findUnique({ where: { userId } });
+    const [profile, user] = await Promise.all([
+      prisma.patientProfile.findUnique({ where: { userId } }),
+      prisma.user.findUnique({ where: { id: userId }, select: { name: true, email: true } }),
+    ]);
     await auditPhiAccess("phi.view.record", userId, { scope: "profile" });
-    return profile;
+    return {
+      profile,
+      name: user?.name ?? "",
+      email: user?.email ?? "",
+    };
   });
 }
 
@@ -31,15 +39,26 @@ export async function updatePatientProfile(input: unknown) {
   if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
 
   return withPatientMutation(async (userId) => {
+    const { name, ...profileFields } = parsed.data;
     const data = {
-      ...parsed.data,
-      dateOfBirth: parsed.data.dateOfBirth ? new Date(parsed.data.dateOfBirth) : null,
+      ...profileFields,
+      dateOfBirth: profileFields.dateOfBirth ? new Date(profileFields.dateOfBirth) : null,
     };
-    await prisma.patientProfile.upsert({
-      where: { userId },
-      create: { userId, ...data },
-      update: data,
-    });
+    await prisma.$transaction([
+      prisma.patientProfile.upsert({
+        where: { userId },
+        create: { userId, ...data },
+        update: data,
+      }),
+      ...(name
+        ? [
+            prisma.user.update({
+              where: { id: userId },
+              data: { name },
+            }),
+          ]
+        : []),
+    ]);
     await auditPhiAccess("phi.view.record", userId, { scope: "profile.update" });
   });
 }

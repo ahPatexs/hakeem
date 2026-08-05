@@ -5,7 +5,7 @@ import { softDeleteWhere } from "@/domain/emr/soft-delete";
 import { platformFail, platformOk, type PlatformResult } from "@/domain/platform/outcomes";
 import { getStorageAdapter } from "@/adapters";
 import { getDownloadUrl } from "@/lib/platform/documents";
-import { validateUploadInput } from "@/lib/platform/storage";
+import { resolveUploadContentType, validateUploadInput } from "@/lib/platform/storage";
 import { prisma } from "@/lib/prisma";
 import { emrAudit } from "./audit";
 import { inChartSearch, textContains, type InChartSearchFilters } from "./search";
@@ -219,6 +219,7 @@ export async function registerDocument(
     title: string;
     body: Buffer;
     contentType: string;
+    fileName?: string;
     classification?: string | null;
   },
 ): Promise<PlatformResult<{ id: string }>> {
@@ -229,20 +230,23 @@ export async function registerDocument(
   const access = await assertEmrAccess(actor, input.patientUserId, writeAction);
   if (!access.ok) return access;
 
+  const fileName = (input.fileName?.trim() || title).slice(0, 200);
+  const contentType = resolveUploadContentType(fileName, input.contentType);
+
   const validation = validateUploadInput({
-    fileName: title,
-    contentType: input.contentType,
+    fileName,
+    contentType,
     sizeBytes: input.body.length,
   });
   if (!validation.ok) return validation;
 
-  const safeTitle = sanitizeDocumentTitle(title);
+  const safeTitle = sanitizeDocumentTitle(fileName.includes(".") ? fileName : `${title}.bin`);
   const storageKey = `emr/${input.patientUserId}/${randomUUID()}/${safeTitle}`;
 
   await getStorageAdapter().upload({
     key: storageKey,
     body: input.body,
-    contentType: input.contentType,
+    contentType,
   });
 
   const doc = await prisma.clinicalDocument.create({
@@ -250,7 +254,7 @@ export async function registerDocument(
       patientUserId: input.patientUserId,
       kind: input.kind,
       title,
-      contentType: input.contentType,
+      contentType,
       storageKey,
       byteSize: input.body.length,
       classification: input.classification?.trim() || null,

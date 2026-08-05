@@ -75,6 +75,7 @@ export async function emrRegisterDocument(raw: unknown) {
     kind: z.enum(CLINICAL_DOCUMENT_KINDS),
     title: z.string().min(1).max(200),
     contentType: z.string().min(1).max(100),
+    fileName: z.string().min(1).max(200).optional(),
     base64: z.string().min(1),
     classification: z.string().max(120).optional(),
   });
