@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { PatientSearch } from "@/components/doctor/patients/patient-search";
 import { logoutAction } from "@/actions/auth/login";
+import { LocaleSwitcher } from "@/components/layout/locale-switcher";
 
 export function DoctorHeaderActions({
   unreadCount,
@@ -21,6 +22,7 @@ export function DoctorHeaderActions({
 
   return (
     <div className="flex items-center gap-2">
+      <LocaleSwitcher />
       <PatientSearch />
       <Button asChild variant="ghost" size="icon" className="relative" aria-label={t("notifications")}>
         <Link href="/doctor/notifications">

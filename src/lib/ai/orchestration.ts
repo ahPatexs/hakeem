@@ -157,7 +157,8 @@ export async function generate(
         fallbackModel: model.data.fallbackModel,
       },
     );
-  } catch {
+  } catch (err) {
+    console.error("[ai.orchestration] provider call failed", err);
     return platformFail("DEPENDENCY_UNAVAILABLE", "AI provider unavailable");
   }
 

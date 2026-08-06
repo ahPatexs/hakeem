@@ -15,6 +15,11 @@ const envSchema = z.object({
   PAYMENT_PROVIDER: z.string().optional(),
   TELEMEDICINE_PROVIDER: z.string().optional(),
   AI_ASSISTANT_PROVIDER: z.string().optional(),
+  AI_EMBEDDINGS_PROVIDER: z.string().optional(),
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_AI_MODEL: z.string().optional(),
+  OPENAI_API_KEY: z.string().optional(),
+  PLATFORM_AI_BAA_SATISFIED: z.string().optional(),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;

@@ -1,5 +1,7 @@
 import { localStorageAdapter } from "@/adapters/local-storage";
 import { dbStorageAdapter } from "@/adapters/db-storage";
+import { geminiAssistantAdapter } from "@/adapters/gemini-ai";
+import { geminiEmbeddingsAdapter } from "@/adapters/gemini-embeddings";
 import { openAiAssistantAdapter } from "@/adapters/openai-ai";
 import { openAiEmbeddingsAdapter } from "@/adapters/openai-embeddings";
 import { stubAiAssistantAdapter, stubEmbeddingsAdapter } from "@/adapters/stub-ai";
@@ -76,6 +78,9 @@ export function getAiAdapter(): AiAssistantPort {
   const name = provider(process.env.AI_ASSISTANT_PROVIDER);
   assertBaaGateForProvider(name);
   switch (name) {
+    case "gemini":
+    case "google":
+      return geminiAssistantAdapter;
     case "openai":
       return openAiAssistantAdapter;
     case "stub":
@@ -88,6 +93,9 @@ export function getEmbeddingsAdapter(): AiEmbeddingsPort {
   const name = provider(process.env.AI_EMBEDDINGS_PROVIDER ?? process.env.AI_ASSISTANT_PROVIDER);
   assertBaaGateForProvider(name);
   switch (name) {
+    case "gemini":
+    case "google":
+      return geminiEmbeddingsAdapter;
     case "openai":
       return openAiEmbeddingsAdapter;
     case "stub":

@@ -5,6 +5,7 @@ import { Link } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/actions/auth/login";
+import { LocaleSwitcher } from "@/components/layout/locale-switcher";
 
 export function PatientHeaderActions({
   unreadCount,
@@ -18,6 +19,7 @@ export function PatientHeaderActions({
 
   return (
     <div className="flex items-center gap-2">
+      <LocaleSwitcher />
       <Button asChild variant="ghost" size="icon" className="relative rounded-full" aria-label={t("notifications")}>
         <Link href="/patient/notifications">
           <Bell className="h-5 w-5 text-on-surface-variant" aria-hidden />
