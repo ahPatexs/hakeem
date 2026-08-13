@@ -14,7 +14,7 @@ export default async function UnauthorizedPage({
 
   return (
     <AuthShell title={t("unauthorizedTitle")} subtitle={t("unauthorizedSubtitle")}>
-      <Button asChild className="w-full">
+      <Button asChild variant="auth" className="w-full">
         <Link href="/login">{t("signIn")}</Link>
       </Button>
     </AuthShell>

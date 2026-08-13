@@ -47,11 +47,11 @@ export function ForgotPasswordForm() {
         autoComplete="email"
         error={fieldErrors.email}
       />
-      <Button type="submit" className="w-full" disabled={pending || Boolean(message)}>
+      <Button type="submit" variant="auth" className="w-full" disabled={pending || Boolean(message)}>
         {pending ? t("loading") : t("sendResetLink")}
       </Button>
       <p className="text-center text-sm">
-        <Link href="/login" className="text-primary hover:underline">
+        <Link href="/login" className="hover:underline">
           {t("backToLogin")}
         </Link>
       </p>
@@ -124,7 +124,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
         error={fieldErrors.confirmPassword}
         disabled={Boolean(message)}
       />
-      <Button type="submit" className="w-full" disabled={pending || Boolean(message)}>
+      <Button type="submit" variant="auth" className="w-full" disabled={pending || Boolean(message)}>
         {pending ? t("loading") : t("updatePassword")}
       </Button>
     </form>

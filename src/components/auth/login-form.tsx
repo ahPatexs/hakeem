@@ -51,6 +51,7 @@ export function LoginForm() {
         type="email"
         required
         autoComplete="email"
+        placeholder={t("emailPlaceholder")}
       />
       <AuthField
         id="password"
@@ -59,21 +60,22 @@ export function LoginForm() {
         type="password"
         required
         autoComplete="current-password"
+        placeholder={t("passwordPlaceholder")}
       />
-      <label className="flex items-center gap-2 text-sm text-on-surface-variant">
-        <input type="checkbox" name="rememberMe" className="rounded border-outline-variant" />
+      <label className="auth-check flex items-center gap-2 text-sm text-on-surface-variant">
+        <input type="checkbox" name="rememberMe" className="rounded border-white/40" />
         {t("rememberMe")}
       </label>
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button type="submit" variant="auth" className="w-full" disabled={pending}>
         {pending ? t("loading") : t("signIn")}
       </Button>
       <div className="flex flex-col gap-2 text-center text-sm">
-        <Link href="/forgot-password" className="text-primary hover:underline">
+        <Link href="/forgot-password" className="hover:underline">
           {t("forgotPassword")}
         </Link>
-        <p className="text-on-surface-variant">
+        <p className="text-white/75">
           {t("noAccount")}{" "}
-          <Link href="/register" className="font-semibold text-med-green hover:underline">
+          <Link href="/register" className="font-semibold hover:underline">
             {t("register")}
           </Link>
         </p>

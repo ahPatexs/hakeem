@@ -63,7 +63,7 @@ export function VerifyEmailPanel({
         <AuthAlert variant="info">{token ? t("verifying") : t("verifyPending")}</AuthAlert>
       )}
       {status === "success" && token ? (
-        <Button asChild className="w-full">
+        <Button asChild variant="auth" className="w-full">
           <Link href="/login">{t("signIn")}</Link>
         </Button>
       ) : null}
@@ -78,7 +78,7 @@ export function VerifyEmailPanel({
           autoComplete="email"
           error={fieldErrors.email}
         />
-        <Button type="submit" variant="outline" className="w-full" disabled={pending}>
+        <Button type="submit" variant="authOutline" className="w-full" disabled={pending}>
           {pending ? t("loading") : t("resendVerification")}
         </Button>
       </form>

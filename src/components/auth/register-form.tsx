@@ -100,7 +100,7 @@ export function RegisterForm() {
         error={fieldErrors.confirmPassword}
       />
       <div className="space-y-2">
-        <label className="flex items-start gap-2 text-sm text-on-surface-variant">
+        <label className="auth-check flex items-start gap-2 text-sm text-on-surface-variant">
           <input
             type="checkbox"
             name="acceptTerms"
@@ -111,12 +111,12 @@ export function RegisterForm() {
           <span>
             {t.rich("acceptTerms", {
               terms: (chunks) => (
-                <Link href="/terms" className="font-medium text-primary hover:underline">
+                <Link href="/terms" className="font-medium underline">
                   {chunks}
                 </Link>
               ),
               privacy: (chunks) => (
-                <Link href="/privacy-policy" className="font-medium text-primary hover:underline">
+                <Link href="/privacy-policy" className="font-medium underline">
                   {chunks}
                 </Link>
               ),
@@ -129,12 +129,12 @@ export function RegisterForm() {
           </p>
         ) : null}
       </div>
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button type="submit" variant="auth" className="w-full" disabled={pending}>
         {pending ? t("loading") : t("createAccount")}
       </Button>
-      <p className="text-center text-sm text-on-surface-variant">
+      <p className="text-center text-sm text-white/75">
         {t("hasAccount")}{" "}
-        <Link href="/login" className="font-semibold text-med-green hover:underline">
+        <Link href="/login" className="font-semibold hover:underline">
           {t("signIn")}
         </Link>
       </p>

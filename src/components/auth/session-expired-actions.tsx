@@ -65,11 +65,11 @@ export function SessionExpiredActions({
   }
 
   if (status === "checking") {
-    return <p className="text-center text-sm text-on-surface-variant">{checkingLabel}</p>;
+    return <p className="text-center text-sm text-white/75">{checkingLabel}</p>;
   }
 
   return (
-    <Button type="button" className="w-full" disabled={pending} onClick={goToLogin}>
+    <Button type="button" variant="auth" className="w-full" disabled={pending} onClick={goToLogin}>
       {signInLabel}
     </Button>
   );

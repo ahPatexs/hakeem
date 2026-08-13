@@ -15,10 +15,10 @@ export default async function AccessDeniedPage({
   return (
     <AuthShell title={t("accessDeniedTitle")} subtitle={t("accessDeniedSubtitle")}>
       <div className="flex flex-col gap-3">
-        <Button asChild className="w-full">
+        <Button asChild variant="auth" className="w-full">
           <Link href="/login">{t("signInAnother")}</Link>
         </Button>
-        <Button asChild className="w-full" variant="outline">
+        <Button asChild variant="authOutline" className="w-full">
           <Link href="/">{t("backHome")}</Link>
         </Button>
       </div>
