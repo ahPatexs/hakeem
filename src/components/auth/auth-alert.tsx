@@ -4,13 +4,16 @@ export function AuthAlert({
   variant = "info",
   children,
   className,
+  id,
 }: {
   variant?: "info" | "success" | "error";
   children: React.ReactNode;
   className?: string;
+  id?: string;
 }) {
   return (
     <div
+      id={id}
       role="alert"
       className={cn(
         "rounded-xl border px-4 py-3 text-sm",

@@ -45,7 +45,14 @@
     "ctaSub": "Join thousands of patients and doctors who are already using Hakeem to make healthcare more accessible and efficient.",
     "ctaFind": "Find a Doctor",
     "ctaStart": "Get Started Now",
-    "heroAlt": "Saudi doctor in telemedicine consultation"
+    "heroAlt": "Saudi doctor in telemedicine consultation",
+    "symptom1": "Lumbar Pain",
+    "symptom2": "Sciatica",
+    "diagnosisLabel": "Disc Herniation",
+    "diagnosisMatch": "82% Match",
+    "medName": "Ibuprofen 400mg",
+    "medDose": "2x Daily",
+    "testimonialsTitle": "Trusted by patients and clinicians"
   },
   "footer": {
     "tagline": "Empowering healthcare through precision AI. Bridging the gap between patient and provider.",
@@ -65,7 +72,13 @@
     "terms": "Terms of Service",
     "compliance": "HIPAA Compliance",
     "regulations": "KSA Regulations",
-    "copyright": "© 2026 Hakeem AI. Empowering healthcare through precision intelligence."
+    "copyright": "© 2026 Hakeem AI. Empowering healthcare through precision intelligence.",
+    "leapBadge": "Live at LEAP 2026",
+    "leapVisit": "Visit us at LEAP",
+    "leapVisitHint": "Try the live demo — log in with booth credentials or create an account.",
+    "leapDemoLogin": "Demo login",
+    "howItWorks": "How It Works",
+    "faq": "FAQ"
   },
   "forms": {
     "name": "Full name",
@@ -127,6 +140,12 @@
     "hasAccount": "Already have an account?",
     "loading": "Please wait…",
     "passwordHint": "At least 12 characters with upper, lower, number, and special character",
+    "confirmPassword": "Confirm password",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "acceptTerms": "I agree to the <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>",
+    "termsRequired": "You must accept the terms and privacy policy",
+    "signInAnother": "Sign in with a different account",
+    "sessionExpiredChecking": "Restoring your session…",
     "sendResetLink": "Send reset link",
     "backToLogin": "Back to sign in",
     "newPassword": "New password",
@@ -182,7 +201,8 @@
       "RATE_LIMITED": "Too many attempts. Please wait and try again",
       "CSRF": "Security check failed. Refresh and try again",
       "LAST_ADMIN": "Cannot remove the last administrator",
-      "DOCTOR_NOT_APPROVED": "Doctor account is not approved yet"
+      "DOCTOR_NOT_APPROVED": "Doctor account is not approved yet",
+      "TERMS_REQUIRED": "You must accept the terms and privacy policy"
     }
   },
   "patient": {

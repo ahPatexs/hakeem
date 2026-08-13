@@ -14,9 +14,14 @@ export default async function AccessDeniedPage({
 
   return (
     <AuthShell title={t("accessDeniedTitle")} subtitle={t("accessDeniedSubtitle")}>
-      <Button asChild className="w-full" variant="outline">
-        <Link href="/">{t("backHome")}</Link>
-      </Button>
+      <div className="flex flex-col gap-3">
+        <Button asChild className="w-full">
+          <Link href="/login">{t("signInAnother")}</Link>
+        </Button>
+        <Button asChild className="w-full" variant="outline">
+          <Link href="/">{t("backHome")}</Link>
+        </Button>
+      </div>
     </AuthShell>
   );
 }

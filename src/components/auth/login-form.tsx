@@ -1,21 +1,21 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/i18n/routing";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AuthAlert } from "@/components/auth/auth-alert";
+import { AuthField } from "@/components/auth/auth-field";
 import { loginAction } from "@/actions/auth/login";
 
 export function LoginForm() {
   const t = useTranslations("auth");
-  const locale = useLocale();
   const router = useRouter();
   const params = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const errorId = "login-form-error";
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -38,26 +38,28 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      {error ? <AuthAlert variant="error">{error}</AuthAlert> : null}
-      <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium text-primary">
-          {t("email")}
-        </label>
-        <Input id="email" name="email" type="email" autoComplete="email" required aria-required />
-      </div>
-      <div className="space-y-2">
-        <label htmlFor="password" className="text-sm font-medium text-primary">
-          {t("password")}
-        </label>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          required
-        />
-      </div>
+    <form onSubmit={onSubmit} className="space-y-4" aria-describedby={error ? errorId : undefined} noValidate>
+      {error ? (
+        <AuthAlert variant="error" id={errorId}>
+          {error}
+        </AuthAlert>
+      ) : null}
+      <AuthField
+        id="email"
+        name="email"
+        label={t("email")}
+        type="email"
+        required
+        autoComplete="email"
+      />
+      <AuthField
+        id="password"
+        name="password"
+        label={t("password")}
+        type="password"
+        required
+        autoComplete="current-password"
+      />
       <label className="flex items-center gap-2 text-sm text-on-surface-variant">
         <input type="checkbox" name="rememberMe" className="rounded border-outline-variant" />
         {t("rememberMe")}
@@ -76,7 +78,6 @@ export function LoginForm() {
           </Link>
         </p>
       </div>
-      <p className="sr-only">{locale}</p>
     </form>
   );
 }

@@ -309,6 +309,184 @@ async function backfillMedicalProfileToTypedEntries(userId: string): Promise<voi
   }
 }
 
+async function seedPublicMarketingContent(): Promise<void> {
+  const services = [
+    {
+      slug: "ai-documentation",
+      nameEn: "AI Documentation",
+      nameAr: "توثيق بالذكاء الاصطناعي",
+      descriptionEn:
+        "Automated SOAP notes and instant summaries generated from live consultations.",
+      descriptionAr: "ملاحظات SOAP وملخصات فورية من الاستشارات المباشرة.",
+      iconKey: "description",
+      sortOrder: 1,
+    },
+    {
+      slug: "secure-video",
+      nameEn: "Secure Video",
+      nameAr: "فيديو آمن",
+      descriptionEn: "HIPAA-aligned HD video conferencing designed for medical use.",
+      descriptionAr: "مؤتمرات فيديو عالية الدقة مصممة للاستخدام الطبي.",
+      iconKey: "videocam",
+      sortOrder: 2,
+    },
+    {
+      slug: "easy-booking",
+      nameEn: "Easy Booking",
+      nameAr: "حجز سهل",
+      descriptionEn: "Smart scheduling and automated reminders to minimize no-shows.",
+      descriptionAr: "جدولة ذكية وتذكيرات آلية لتقليل غياب المرضى.",
+      iconKey: "event_available",
+      sortOrder: 3,
+    },
+    {
+      slug: "saudi-compliance",
+      nameEn: "Saudi Compliance",
+      nameAr: "امتثال سعودي",
+      descriptionEn: "Aligned with KSA healthcare regulations and data privacy standards.",
+      descriptionAr: "متوافق مع لوائح الرعاية الصحية وخصوصية البيانات في المملكة.",
+      iconKey: "verified",
+      sortOrder: 4,
+    },
+  ];
+
+  for (const service of services) {
+    await prisma.service.upsert({
+      where: { slug: service.slug },
+      update: {
+        status: PublishStatus.PUBLISHED,
+        nameEn: service.nameEn,
+        nameAr: service.nameAr,
+        descriptionEn: service.descriptionEn,
+        descriptionAr: service.descriptionAr,
+        iconKey: service.iconKey,
+        sortOrder: service.sortOrder,
+      },
+      create: { ...service, status: PublishStatus.PUBLISHED },
+    });
+  }
+
+  const testimonials = [
+    {
+      authorNameEn: "Noura Al-Otaibi",
+      authorNameAr: "نورة العتيبي",
+      contextEn: "Patient — Riyadh",
+      contextAr: "مريضة — الرياض",
+      quoteEn:
+        "I booked a video consult in minutes. The doctor focused on me because Hakeem documented everything automatically.",
+      quoteAr:
+        "حجزت استشارة فيديو خلال دقائق. الطبيب كان مركزاً عليّ لأن حكيم وثّق كل شيء تلقائياً.",
+      rating: 5,
+      sortOrder: 1,
+    },
+    {
+      authorNameEn: "Dr. Khalid Al-Shammari",
+      authorNameAr: "د. خالد الشمري",
+      contextEn: "General Physician — Jeddah",
+      contextAr: "طبيب عام — جدة",
+      quoteEn:
+        "SOAP notes are ready before the patient ends the call. That saves me over an hour every day.",
+      quoteAr:
+        "ملاحظات SOAP جاهزة قبل أن ينهي المريض المكالمة. هذا يوفر لي أكثر من ساعة يومياً.",
+      rating: 5,
+      sortOrder: 2,
+    },
+    {
+      authorNameEn: "Fatima Al-Harbi",
+      authorNameAr: "فاطمة الحربي",
+      contextEn: "Patient — Dammam",
+      contextAr: "مريضة — الدمام",
+      quoteEn:
+        "I feel safe knowing my medical records are secure and accessible anytime.",
+      quoteAr: "أشعر بالأمان لأن سجلاتي الطبية محفوظة ويمكنني الوصول إليها في أي وقت.",
+      rating: 5,
+      sortOrder: 3,
+    },
+  ];
+
+  const existingTestimonials = await prisma.testimonial.count();
+  if (existingTestimonials === 0) {
+    for (const item of testimonials) {
+      await prisma.testimonial.create({
+        data: { ...item, status: PublishStatus.PUBLISHED },
+      });
+    }
+  }
+
+  const faqs = [
+    {
+      questionEn: "How do I book an appointment?",
+      questionAr: "كيف أحجز موعداً؟",
+      answerEn: "Browse published doctors, open a profile, and tap Book Consultation.",
+      answerAr: "تصفح الأطباء المنشورين، افتح الملف، ثم اضغط احجز استشارة.",
+      categoryEn: "Appointments",
+      categoryAr: "المواعيد",
+      sortOrder: 1,
+    },
+    {
+      questionEn: "Is my medical data secure?",
+      questionAr: "هل بياناتي الطبية آمنة؟",
+      answerEn:
+        "Yes. Hakeem stores records in a secure EMR with role-based access and consent controls.",
+      answerAr:
+        "نعم. يحفظ حكيم السجلات في نظام طبي إلكتروني آمن مع صلاحيات وموافقات واضحة.",
+      categoryEn: "Privacy",
+      categoryAr: "الخصوصية",
+      sortOrder: 2,
+    },
+    {
+      questionEn: "Can I use Hakeem in Arabic?",
+      questionAr: "هل يمكنني استخدام حكيم بالعربية؟",
+      answerEn: "Yes. Switch language from the header — the full public site supports EN and AR.",
+      answerAr: "نعم. بدّل اللغة من الشريط العلوي — الموقع يدعم العربية والإنجليزية بالكامل.",
+      categoryEn: "Platform",
+      categoryAr: "المنصة",
+      sortOrder: 3,
+    },
+  ];
+
+  const existingFaqs = await prisma.faqItem.count();
+  if (existingFaqs === 0) {
+    for (const item of faqs) {
+      await prisma.faqItem.create({
+        data: { ...item, status: PublishStatus.PUBLISHED },
+      });
+    }
+  }
+
+  await prisma.siteSetting.upsert({
+    where: { key: "marketing.workflowSteps" },
+    update: {},
+    create: {
+      key: "marketing.workflowSteps",
+      value: [
+        {
+          step: 1,
+          titleEn: "Live Speech-to-Text",
+          titleAr: "تحويل الكلام إلى نص مباشر",
+          descriptionEn: "Real-time transcription of doctor-patient dialogue during consultations.",
+          descriptionAr: "تفريغ فوري لحوار الطبيب والمريض أثناء الاستشارة.",
+        },
+        {
+          step: 2,
+          titleEn: "AI Contextual Analysis",
+          titleAr: "تحليل سياقي بالذكاء الاصطناعي",
+          descriptionEn:
+            "Clinical entities and symptoms are identified and extracted by medical-grade AI.",
+          descriptionAr: "تحديد واستخراج الكيانات والأعراض السريرية بواسطة ذكاء طبي.",
+        },
+        {
+          step: 3,
+          titleEn: "Auto SOAP Note",
+          titleAr: "ملاحظة SOAP تلقائية",
+          descriptionEn: "A structured SOAP note is generated instantly for the doctor's review.",
+          descriptionAr: "توليد ملاحظة SOAP منظمة فوراً لمراجعة الطبيب.",
+        },
+      ],
+    },
+  });
+}
+
 async function main() {
   const cardiology = await prisma.specialty.upsert({
     where: { slug: "cardiology" },
@@ -316,9 +494,28 @@ async function main() {
     create: { slug: "cardiology", nameEn: "Cardiology", nameAr: "أمراض القلب", sortOrder: 1 },
   });
 
+  const neurology = await prisma.specialty.upsert({
+    where: { slug: "neurology" },
+    update: {},
+    create: { slug: "neurology", nameEn: "Neurology", nameAr: "الأمراض العصبية", sortOrder: 2 },
+  });
+
+  const pediatrics = await prisma.specialty.upsert({
+    where: { slug: "pediatrics" },
+    update: {},
+    create: { slug: "pediatrics", nameEn: "Pediatrics", nameAr: "طب الأطفال", sortOrder: 3 },
+  });
+
   await prisma.doctor.upsert({
     where: { slug: "dr-ahmed-al-faisal" },
-    update: {},
+    update: {
+      status: PublishStatus.PUBLISHED,
+      photoUrl: "/images/doctors/ahmed.jpg",
+      photoAltEn: "Dr. Ahmed Al-Faisal",
+      photoAltAr: "د. أحمد الفيصل",
+      credentialsEn: ["Licensed MD", "Board Certified Cardiologist"],
+      credentialsAr: ["طبيب مرخّص", "استشاري أمراض قلب معتمد"],
+    },
     create: {
       slug: "dr-ahmed-al-faisal",
       status: PublishStatus.PUBLISHED,
@@ -328,13 +525,89 @@ async function main() {
       titleAr: "استشاري قلب أول",
       bioEn: "Specializing in minimally invasive cardiac procedures and preventive heart health.",
       bioAr: "متخصص في إجراءات القلب طفيفة التوغل والوقاية من أمراض القلب.",
+      photoUrl: "/images/doctors/ahmed.jpg",
+      photoAltEn: "Dr. Ahmed Al-Faisal",
+      photoAltAr: "د. أحمد الفيصل",
       languages: ["ar", "en"],
       yearsExperience: 15,
       isAvailable: true,
+      credentialsEn: ["Licensed MD", "Board Certified Cardiologist"],
+      credentialsAr: ["طبيب مرخّص", "استشاري أمراض قلب معتمد"],
       specialtyId: cardiology.id,
       publishedAt: new Date(),
     },
   });
+
+  await prisma.doctor.upsert({
+    where: { slug: "dr-sarah-mansour" },
+    update: {
+      status: PublishStatus.PUBLISHED,
+      photoUrl: "/images/doctors/sarah.jpg",
+      photoAltEn: "Dr. Sarah Mansour",
+      photoAltAr: "د. سارة منصور",
+    },
+    create: {
+      slug: "dr-sarah-mansour",
+      status: PublishStatus.PUBLISHED,
+      nameEn: "Dr. Sarah Mansour",
+      nameAr: "د. سارة منصور",
+      titleEn: "Neurology Specialist",
+      titleAr: "أخصائية أمراض عصبية",
+      bioEn: "Expert in neuro-diagnostics and advanced treatment for cognitive disorders.",
+      bioAr: "خبيرة في التشخيص العصبي وعلاج الاضطرابات المعرفية.",
+      photoUrl: "/images/doctors/sarah.jpg",
+      photoAltEn: "Dr. Sarah Mansour",
+      photoAltAr: "د. سارة منصور",
+      languages: ["ar", "en"],
+      yearsExperience: 12,
+      isAvailable: true,
+      credentialsEn: ["Licensed MD", "Neurology Board Certified"],
+      credentialsAr: ["طبيبة مرخّصة", "معتمدة في الأمراض العصبية"],
+      specialtyId: neurology.id,
+      publishedAt: new Date(),
+    },
+  });
+
+  await prisma.doctor.upsert({
+    where: { slug: "dr-khalid-jameel" },
+    update: {
+      status: PublishStatus.PUBLISHED,
+      photoUrl: "/images/doctors/khalid.jpg",
+      photoAltEn: "Dr. Khalid Jameel",
+      photoAltAr: "د. خالد جميل",
+    },
+    create: {
+      slug: "dr-khalid-jameel",
+      status: PublishStatus.PUBLISHED,
+      nameEn: "Dr. Khalid Jameel",
+      nameAr: "د. خالد جميل",
+      titleEn: "Pediatric Specialist",
+      titleAr: "أخصائي طب أطفال",
+      bioEn: "Dedicated to child wellness and development with over 15 years of experience.",
+      bioAr: "متفانٍ في صحة ونمو الأطفال مع أكثر من 15 عاماً من الخبرة.",
+      photoUrl: "/images/doctors/khalid.jpg",
+      photoAltEn: "Dr. Khalid Jameel",
+      photoAltAr: "د. خالد جميل",
+      languages: ["ar", "en"],
+      yearsExperience: 15,
+      isAvailable: true,
+      credentialsEn: ["Licensed MD", "Pediatrics Board Certified"],
+      credentialsAr: ["طبيب مرخّص", "معتمد في طب الأطفال"],
+      specialtyId: pediatrics.id,
+      publishedAt: new Date(),
+    },
+  });
+
+  await seedPublicMarketingContent();
+
+  const publishedDoctors = await prisma.doctor.findMany({
+    where: { status: PublishStatus.PUBLISHED },
+    select: { id: true },
+  });
+  const { refreshDoctorProjection } = await import("../src/lib/platform/search");
+  for (const doctor of publishedDoctors) {
+    await refreshDoctorProjection(doctor.id);
+  }
 
   await prisma.siteSetting.upsert({
     where: { key: "pricing.enabled" },

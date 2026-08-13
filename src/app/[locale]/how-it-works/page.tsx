@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { HowItWorksPreview } from "@/components/sections/how-it-works-steps";
-import { getContentProvider } from "@/content/static-provider";
+import { getContentProvider } from "@/content/factory";
 import { buildMetadata } from "@/lib/seo";
 import type { Locale } from "@/content/types";
 

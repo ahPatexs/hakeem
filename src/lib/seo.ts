@@ -2,10 +2,24 @@ import type { Metadata } from "next";
 import type { Locale } from "@/content/types";
 
 const SITE_NAME = { en: "Hakeem", ar: "حكيم" } as const;
+const LOCAL_SITE_ORIGIN = "http://localhost:3000";
+
+/** Safe site origin for metadata/CTAs — ignores invalid or placeholder env values. */
+export function resolveSiteOrigin(): string {
+  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (!raw || raw === "[SENSITIVE]") return LOCAL_SITE_ORIGIN;
+
+  const candidate = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    const url = new URL(candidate);
+    return url.origin;
+  } catch {
+    return LOCAL_SITE_ORIGIN;
+  }
+}
 
 export function siteUrl(path = "") {
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  return new URL(path, base).toString();
+  return new URL(path, resolveSiteOrigin()).toString();
 }
 
 export function buildMetadata(input: {

@@ -1,7 +1,5 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
-import { NewsletterForm } from "@/components/forms/newsletter-form";
-import { Share2, Globe } from "lucide-react";
 
 export async function Footer() {
   const t = await getTranslations("footer");
@@ -12,22 +10,7 @@ export async function Footer() {
         <div className="col-span-2 space-y-6 md:col-span-1">
           <div className="font-headline text-2xl font-bold text-primary">Hakeem</div>
           <p className="text-sm leading-relaxed text-on-surface-variant">{t("tagline")}</p>
-          <div className="flex gap-4">
-            <a
-              href="#"
-              aria-label="Share"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-primary shadow-sm transition-all hover:bg-primary hover:text-white"
-            >
-              <Share2 className="h-4 w-4" />
-            </a>
-            <a
-              href="#"
-              aria-label="Website"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-primary shadow-sm transition-all hover:bg-primary hover:text-white"
-            >
-              <Globe className="h-4 w-4" />
-            </a>
-          </div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-med-green">{t("leapBadge")}</p>
         </div>
 
         <div className="space-y-4">
@@ -36,11 +19,14 @@ export async function Footer() {
             <Link href="/about" className="text-sm text-on-surface-variant hover:text-med-green">
               {t("about")}
             </Link>
+            <Link href="/how-it-works" className="text-sm text-on-surface-variant hover:text-med-green">
+              {t("howItWorks")}
+            </Link>
+            <Link href="/faq" className="text-sm text-on-surface-variant hover:text-med-green">
+              {t("faq")}
+            </Link>
             <Link href="/contact" className="text-sm text-on-surface-variant hover:text-med-green">
               {t("contact")}
-            </Link>
-            <Link href="/blog" className="text-sm text-on-surface-variant hover:text-med-green">
-              {t("newsroom")}
             </Link>
             <Link href="/login" className="text-sm text-on-surface-variant hover:text-med-green">
               {t("login")}
@@ -68,10 +54,15 @@ export async function Footer() {
 
         <div className="col-span-2 space-y-4 md:col-span-1">
           <h5 className="text-sm font-bold uppercase tracking-widest text-primary">
-            {t("newsletter")}
+            {t("leapVisit")}
           </h5>
-          <p className="text-sm text-on-surface-variant">{t("newsletterHint")}</p>
-          <NewsletterForm />
+          <p className="text-sm text-on-surface-variant">{t("leapVisitHint")}</p>
+          <Link
+            href="/login"
+            className="inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+          >
+            {t("leapDemoLogin")}
+          </Link>
         </div>
       </div>
 

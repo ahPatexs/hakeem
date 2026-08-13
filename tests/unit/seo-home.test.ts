@@ -1,5 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, resolveSiteOrigin } from "@/lib/seo";
+import { buildAppCtaUrl } from "@/lib/cta";
+
+describe("resolveSiteOrigin", () => {
+  it("falls back when env is a placeholder", () => {
+    const prev = process.env.NEXT_PUBLIC_SITE_URL;
+    process.env.NEXT_PUBLIC_SITE_URL = "[SENSITIVE]";
+    expect(resolveSiteOrigin()).toBe("http://localhost:3000");
+    process.env.NEXT_PUBLIC_SITE_URL = prev;
+  });
+});
+
+describe("buildAppCtaUrl", () => {
+  it("returns relative in-app book path", () => {
+    expect(buildAppCtaUrl("book", { locale: "en", page: "home-hero" })).toBe(
+      "/en/register?utm_source=website&utm_content=home-hero",
+    );
+  });
+});
 
 describe("buildMetadata home", () => {
   it("emits unique title, canonical, hreflang, OG and Twitter for EN home", () => {

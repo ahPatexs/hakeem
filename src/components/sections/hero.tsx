@@ -97,10 +97,10 @@ export async function Hero({ locale }: { locale: Locale }) {
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     <span className="rounded-full bg-med-green/10 px-2 py-0.5 text-[9px] font-bold text-med-green">
-                      Lumbar Pain
+                      {t("symptom1")}
                     </span>
                     <span className="rounded-full bg-med-green/10 px-2 py-0.5 text-[9px] font-bold text-med-green">
-                      Sciatica
+                      {t("symptom2")}
                     </span>
                   </div>
                 </div>
@@ -108,11 +108,11 @@ export async function Hero({ locale }: { locale: Locale }) {
                   <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
                     {t("diagnosis")}
                   </p>
-                  <p className="mb-1 text-[10px] font-bold text-primary">Disc Herniation</p>
+                  <p className="mb-1 text-[10px] font-bold text-primary">{t("diagnosisLabel")}</p>
                   <div className="h-1 w-full overflow-hidden rounded-full bg-surface-container">
                     <div className="h-full w-[82%] bg-primary" />
                   </div>
-                  <p className="mt-1 text-right text-[8px] font-bold text-primary">82% Match</p>
+                  <p className="mt-1 text-right text-[8px] font-bold text-primary">{t("diagnosisMatch")}</p>
                 </div>
               </div>
               <div className="rounded-xl border border-white/50 bg-white/40 p-3">
@@ -120,8 +120,8 @@ export async function Hero({ locale }: { locale: Locale }) {
                   {t("suggestedMeds")}
                 </p>
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="font-medium">Ibuprofen 400mg</span>
-                  <span className="text-on-surface-variant">2x Daily</span>
+                  <span className="font-medium">{t("medName")}</span>
+                  <span className="text-on-surface-variant">{t("medDose")}</span>
                 </div>
               </div>
               <div className="rounded-xl border border-primary/10 bg-primary/5 p-3">

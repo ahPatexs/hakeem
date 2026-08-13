@@ -13,7 +13,7 @@ export default async function SessionExpiredPage({
 
   return (
     <AuthShell title={t("sessionExpiredTitle")} subtitle={t("sessionExpiredSubtitle")}>
-      <SessionExpiredActions signInLabel={t("signIn")} />
+      <SessionExpiredActions signInLabel={t("signIn")} checkingLabel={t("sessionExpiredChecking")} />
     </AuthShell>
   );
 }

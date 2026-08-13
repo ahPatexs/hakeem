@@ -1,7 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { FeaturedDoctors } from "@/components/sections/featured-doctors";
 import { SearchFilters } from "@/components/doctors/search-filters";
-import { getContentProvider } from "@/content/static-provider";
+import { getContentProvider } from "@/content/factory";
 import { buildMetadata } from "@/lib/seo";
 import type { Locale, DoctorSummary } from "@/content/types";
 
@@ -117,14 +117,16 @@ export default async function DoctorsPage({
   }
   // !bookable.ok (including RATE_LIMITED and other failures): keep items empty — no CMS bypass.
 
+  const specialtyRows = await prisma.specialty.findMany({ orderBy: { sortOrder: "asc" } });
+  const specialtyOptions = specialtyRows.map((s) => ({
+    slug: s.slug,
+    name: locale === "ar" ? s.nameAr : s.nameEn,
+  }));
+
   return (
     <div className="mx-auto grid max-w-7xl gap-8 px-margin-mobile pb-20 pt-28 md:grid-cols-[280px_1fr] md:px-margin-desktop">
       <SearchFilters
-        specialties={[
-          { slug: "cardiology", name: locale === "ar" ? "أمراض القلب" : "Cardiology" },
-          { slug: "neurology", name: locale === "ar" ? "الأمراض العصبية" : "Neurology" },
-          { slug: "pediatrics", name: locale === "ar" ? "طب الأطفال" : "Pediatrics" },
-        ]}
+        specialties={specialtyOptions}
         initialQ={q ?? ""}
         initialSpecialties={specialtySlugs}
         labels={{

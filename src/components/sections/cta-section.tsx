@@ -8,12 +8,14 @@ export function CtaSection({
   subtitle,
   findLabel,
   startLabel,
+  bookLabel,
   locale,
 }: {
   title: string;
   subtitle: string;
   findLabel: string;
   startLabel: string;
+  bookLabel: string;
   locale: Locale;
 }) {
   return (
@@ -30,8 +32,13 @@ export function CtaSection({
               {findLabel}
             </Button>
           </Link>
-          <a href={buildAppCtaUrl("register", { locale, page: "home-cta" })}>
+          <a href={buildAppCtaUrl("book", { locale, page: "home-cta" })}>
             <Button size="lg" variant="secondary">
+              {bookLabel}
+            </Button>
+          </a>
+          <a href={buildAppCtaUrl("register", { locale, page: "home-cta" })}>
+            <Button size="lg" variant="outline" className="border-white/40 bg-white/10 text-white hover:bg-white/20">
               {startLabel}
             </Button>
           </a>

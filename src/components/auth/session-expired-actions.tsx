@@ -10,9 +10,11 @@ import { Button } from "@/components/ui/button";
  */
 export function SessionExpiredActions({
   signInLabel,
+  checkingLabel = "…",
   homeHref = "/patient",
 }: {
   signInLabel: string;
+  checkingLabel?: string;
   homeHref?: string;
 }) {
   const router = useRouter();
@@ -63,7 +65,7 @@ export function SessionExpiredActions({
   }
 
   if (status === "checking") {
-    return <p className="text-center text-sm text-muted-foreground">…</p>;
+    return <p className="text-center text-sm text-on-surface-variant">{checkingLabel}</p>;
   }
 
   return (

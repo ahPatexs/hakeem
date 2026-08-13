@@ -14,6 +14,7 @@ const registerSchema = z.object({
   name: z.string().trim().min(2).max(120),
   email: z.string().trim().email().max(255),
   password: z.string().min(12).max(128),
+  acceptTerms: z.literal(true),
   locale: z.enum(["en", "ar"]).optional(),
 });
 
@@ -33,10 +34,12 @@ async function requestMeta() {
 export async function registerPatient(input: unknown): Promise<ActionResult> {
   const parsed = registerSchema.safeParse(input);
   if (!parsed.success) {
+    const fieldErrors = parsed.error.flatten().fieldErrors as Record<string, string[]>;
+    const code = fieldErrors.acceptTerms ? "TERMS_REQUIRED" : "VALIDATION_ERROR";
     return {
       ok: false,
-      code: "VALIDATION_ERROR",
-      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      code,
+      fieldErrors,
     };
   }
 

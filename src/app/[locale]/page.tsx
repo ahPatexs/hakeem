@@ -4,9 +4,10 @@ import { FeatureCards, Statistics } from "@/components/sections/feature-cards";
 import { HowItWorksPreview } from "@/components/sections/how-it-works-steps";
 import { FeaturedDoctors } from "@/components/sections/featured-doctors";
 import { CtaSection } from "@/components/sections/cta-section";
+import { Testimonials } from "@/components/sections/testimonials";
 import { MotionSection } from "@/components/sections/motion-section";
 import { JsonLd, organizationJsonLd, websiteJsonLd } from "@/components/seo/json-ld";
-import { getContentProvider } from "@/content/static-provider";
+import { getContentProvider } from "@/content/factory";
 import { buildMetadata, siteUrl } from "@/lib/seo";
 import type { Locale } from "@/content/types";
 
@@ -38,11 +39,12 @@ export default async function HomePage({
   const tCommon = await getTranslations("common");
   const provider = getContentProvider();
 
-  const [features, stats, steps, doctorsPage] = await Promise.all([
+  const [features, stats, steps, doctorsPage, testimonials] = await Promise.all([
     provider.getFeatureCards(locale),
     provider.getStats(locale),
     provider.getWorkflowSteps(locale),
     provider.listDoctors({ locale, pageSize: 3 }),
+    provider.getTestimonials(locale),
   ]);
 
   const origin = siteUrl();
@@ -69,11 +71,15 @@ export default async function HomePage({
         />
       </MotionSection>
       <MotionSection>
+        <Testimonials items={testimonials} title={t("testimonialsTitle")} />
+      </MotionSection>
+      <MotionSection>
         <CtaSection
           title={t("ctaTitle")}
           subtitle={t("ctaSub")}
           findLabel={t("ctaFind")}
           startLabel={t("ctaStart")}
+          bookLabel={tCommon("bookConsultation")}
           locale={locale}
         />
       </MotionSection>

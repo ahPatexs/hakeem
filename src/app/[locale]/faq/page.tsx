@@ -1,7 +1,7 @@
 import { setRequestLocale } from "next-intl/server";
 import { FaqAccordion } from "@/components/sections/faq-accordion";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getContentProvider } from "@/content/static-provider";
+import { getContentProvider } from "@/content/factory";
 import { buildMetadata } from "@/lib/seo";
 import type { Locale } from "@/content/types";
 

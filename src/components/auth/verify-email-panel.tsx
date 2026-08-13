@@ -3,9 +3,9 @@
 import { useEffect, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AuthAlert } from "@/components/auth/auth-alert";
+import { AuthField } from "@/components/auth/auth-field";
 import { verifyEmail, resendVerificationEmail } from "@/actions/auth/verify-email";
 
 export function VerifyEmailPanel({
@@ -19,6 +19,7 @@ export function VerifyEmailPanel({
   const locale = useLocale() as "en" | "ar";
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -37,11 +38,15 @@ export function VerifyEmailPanel({
 
   function onResend(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setFieldErrors({});
     const value = String(new FormData(e.currentTarget).get("email") ?? email ?? "");
     startTransition(async () => {
       const result = await resendVerificationEmail({ email: value, locale });
       if (!result.ok) {
         setStatus("error");
+        if (result.code === "VALIDATION_ERROR") {
+          setFieldErrors({ email: t("errors.VALIDATION_ERROR") });
+        }
         setMessage(t(`errors.${result.code}` as "errors.RATE_LIMITED"));
         return;
       }
@@ -62,14 +67,16 @@ export function VerifyEmailPanel({
           <Link href="/login">{t("signIn")}</Link>
         </Button>
       ) : null}
-      <form onSubmit={onResend} className="space-y-3">
-        <Input
+      <form onSubmit={onResend} className="space-y-3" noValidate>
+        <AuthField
+          id="verify-email"
           name="email"
+          label={t("email")}
           type="email"
           defaultValue={email}
-          placeholder={t("email")}
           required
-          aria-label={t("email")}
+          autoComplete="email"
+          error={fieldErrors.email}
         />
         <Button type="submit" variant="outline" className="w-full" disabled={pending}>
           {pending ? t("loading") : t("resendVerification")}

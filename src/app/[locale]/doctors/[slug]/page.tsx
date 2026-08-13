@@ -3,7 +3,7 @@ import Image from "next/image";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getContentProvider } from "@/content/static-provider";
+import { getContentProvider } from "@/content/factory";
 import { buildMetadata, siteUrl } from "@/lib/seo";
 import { buildAppCtaUrl } from "@/lib/cta";
 import type { Locale } from "@/content/types";

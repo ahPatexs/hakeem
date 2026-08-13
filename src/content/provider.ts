@@ -25,3 +25,5 @@ export interface ContentProvider {
   getFaqs(locale: Locale): Promise<FaqItem[]>;
   listPosts(locale: Locale, page?: number): Promise<Paged<PostSummary>>;
 }
+
+export { getContentProvider } from "./factory";

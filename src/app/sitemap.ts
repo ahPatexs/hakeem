@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { resolveSiteOrigin } from "@/lib/seo";
 
 const locales = ["en", "ar"] as const;
 const staticPaths = [
@@ -14,7 +15,7 @@ const staticPaths = [
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const base = resolveSiteOrigin();
   const entries: MetadataRoute.Sitemap = [];
 
   for (const locale of locales) {

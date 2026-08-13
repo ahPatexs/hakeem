@@ -226,10 +226,28 @@ export class StaticContentProvider implements ContentProvider {
       {
         id: "1",
         authorName: ar ? "نورة العتيبي" : "Noura Al-Otaibi",
-        context: ar ? "مريضة استشارة فيديو" : "Video consultation patient",
+        context: ar ? "مريضة — الرياض" : "Patient — Riyadh",
         quote: ar
-          ? "الاستشارة كانت مفيدة جداً وشعرت أن الطبيب اهتم بصحتي حقاً."
-          : "The medical consultation was very helpful. I felt like the doctor really cared about my health.",
+          ? "حجزت استشارة فيديو خلال دقائق. الطبيب كان مركزاً عليّ لأن حكيم وثّق كل شيء تلقائياً."
+          : "I booked a video consult in minutes. The doctor focused on me because Hakeem documented everything automatically.",
+        rating: 5,
+      },
+      {
+        id: "2",
+        authorName: ar ? "د. خالد الشمري" : "Dr. Khalid Al-Shammari",
+        context: ar ? "طبيب عام — جدة" : "General Physician — Jeddah",
+        quote: ar
+          ? "ملاحظات SOAP جاهزة قبل أن ينهي المريض المكالمة. هذا يوفر لي أكثر من ساعة يومياً."
+          : "SOAP notes are ready before the patient ends the call. That saves me over an hour every day.",
+        rating: 5,
+      },
+      {
+        id: "3",
+        authorName: ar ? "فاطمة الحربي" : "Fatima Al-Harbi",
+        context: ar ? "مريضة — الدمام" : "Patient — Dammam",
+        quote: ar
+          ? "أشعر بالأمان لأن سجلاتي الطبية محفوظة ويمكنني الوصول إليها في أي وقت."
+          : "I feel safe knowing my medical records are secure and accessible anytime.",
         rating: 5,
       },
     ];
@@ -272,9 +290,4 @@ export class StaticContentProvider implements ContentProvider {
     ];
     return { items, total: items.length, page, pageSize: 12 };
   }
-}
-
-export function getContentProvider(): ContentProvider {
-  // Module 0 ships with static seed content. Swap to DbContentProvider when DATABASE_URL is configured.
-  return new StaticContentProvider();
 }
