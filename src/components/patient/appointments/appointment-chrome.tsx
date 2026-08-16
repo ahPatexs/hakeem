@@ -43,7 +43,12 @@ export function AppointmentPageHeader({
       {showTabs ? (
         <nav className={segmentedTrackClass} aria-label={t("upcomingTitle")}>
           {tabs.map((tab) => {
-            const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+            const active =
+              tab.href === "/patient/appointments/upcoming"
+                ? pathname === "/patient/appointments" ||
+                  pathname === "/patient/appointments/upcoming" ||
+                  pathname.startsWith("/patient/appointments/upcoming/")
+                : pathname === tab.href || pathname.startsWith(`${tab.href}/`);
             return (
               <Link
                 key={tab.href}

@@ -54,10 +54,10 @@ export async function searchDoctors(input: unknown) {
 }
 
 export async function getDoctorBySlug(slug: string) {
-  return withPatient(async () => {
+  return withPatient(async (userId) => {
     const doctor = await prisma.doctor.findFirst({
       where: { slug, status: "PUBLISHED" },
-      include: { specialty: true },
+      include: { specialty: true, weeklyHours: { orderBy: { weekday: "asc" } } },
     });
     if (!doctor) return null;
 
@@ -76,8 +76,64 @@ export async function getDoctorBySlug(slug: string) {
       if (!refreshed?.isBookable) return null;
     }
 
-    const availability = await getDoctorAvailabilityByDoctorId(doctor.id);
-    return { doctor, availability };
+    const [availability, reviewRows, scoreGroups, pendingRate] = await Promise.all([
+      getDoctorAvailabilityByDoctorId(doctor.id),
+      prisma.doctorRating.findMany({
+        where: { doctorId: doctor.id },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+        select: {
+          id: true,
+          score: true,
+          comment: true,
+          createdAt: true,
+          patient: { select: { name: true } },
+        },
+      }),
+      prisma.doctorRating.groupBy({
+        by: ["score"],
+        where: { doctorId: doctor.id },
+        _count: { _all: true },
+      }),
+      prisma.appointment.findFirst({
+        where: {
+          doctorId: doctor.id,
+          patientUserId: userId,
+          status: "COMPLETED",
+          rating: { is: null },
+        },
+        orderBy: { startAt: "desc" },
+        select: { id: true },
+      }),
+    ]);
+
+    const ratingBreakdown = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    for (const row of scoreGroups) {
+      if (row.score >= 1 && row.score <= 5) {
+        ratingBreakdown[row.score as 1 | 2 | 3 | 4 | 5] = row._count._all;
+      }
+    }
+
+    const { weeklyHours, ...doctorFields } = doctor;
+
+    return {
+      doctor: doctorFields,
+      availability,
+      hours: weeklyHours.map((row) => ({
+        weekday: row.weekday,
+        startMinutes: row.startMinutes,
+        endMinutes: row.endMinutes,
+      })),
+      reviews: reviewRows.map((row) => ({
+        id: row.id,
+        score: row.score,
+        comment: row.comment,
+        createdAt: row.createdAt.toISOString(),
+        reviewerName: row.patient.name?.trim().split(/\s+/)[0] ?? "",
+      })),
+      ratingBreakdown,
+      pendingRateAppointmentId: pendingRate?.id ?? null,
+    };
   });
 }
 

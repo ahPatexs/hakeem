@@ -24,7 +24,14 @@ export default async function DoctorDetailPage({
 
   return (
     <Suspense fallback={null}>
-      <DoctorProfileView doctor={result.data.doctor} availability={result.data.availability} />
+      <DoctorProfileView
+        doctor={result.data.doctor}
+        availability={result.data.availability}
+        hours={result.data.hours}
+        reviews={result.data.reviews}
+        ratingBreakdown={result.data.ratingBreakdown}
+        pendingRateAppointmentId={result.data.pendingRateAppointmentId}
+      />
     </Suspense>
   );
 }

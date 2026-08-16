@@ -51,7 +51,7 @@ export async function touchSession(sessionToken: string, role: UserRole) {
   if (!session) return null;
   const now = Date.now();
   if (session.expires.getTime() < now || session.idleExpiresAt.getTime() < now) {
-    await prisma.session.delete({ where: { id: session.id } }).catch(() => undefined);
+    await prisma.session.deleteMany({ where: { id: session.id } });
     return null;
   }
   return prisma.session.update({

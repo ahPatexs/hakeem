@@ -131,3 +131,5 @@ export async function getPatientChart(doctorId: string, patientUserId: string) {
 
   return { user, profile, medicalProfile, records, labs, prescriptions, pastVisits, soapNotes };
 }
+
+export type PatientChart = NonNullable<Awaited<ReturnType<typeof getPatientChart>>>;

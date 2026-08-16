@@ -23,7 +23,14 @@ export function DoctorRatingStars({
   if (!count) {
     if (!emptyLabel) return null;
     return (
-      <p className="text-xs text-on-surface-variant">{emptyLabel}</p>
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="inline-flex items-center gap-0.5" aria-hidden>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <Star key={n} className={starClass(false, size)} />
+          ))}
+        </span>
+        <span className="text-xs text-on-surface-variant">{emptyLabel}</span>
+      </div>
     );
   }
 

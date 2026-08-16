@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { getChart } from "@/actions/doctor/patients";
+import type { PatientChart } from "@/lib/doctor/patients";
 import {
   emrListAllergies,
   emrListConditions,
@@ -211,7 +212,7 @@ async function NotesTab({
 }: {
   patientUserId: string;
   locale: string;
-  soapNotes: Awaited<ReturnType<typeof getChart>> extends { ok: true; data: infer D } ? D["soapNotes"] : never;
+  soapNotes: PatientChart["soapNotes"];
 }) {
   const t = await getTranslations("doctor.chart");
   const ts = await getTranslations("doctor.status");

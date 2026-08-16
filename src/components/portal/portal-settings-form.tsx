@@ -51,19 +51,27 @@ export function PortalSettingsForm({
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const locale = fd.get("locale") === "EN" ? "EN" : "AR";
+    const locale = fd.get("locale") === "EN" ? ("EN" as const) : ("AR" as const);
     const theme = (fd.get("theme") as ThemePreference) || "system";
-    const payload = {
+    const payload: {
+      locale: "EN" | "AR";
+      theme: ThemePreference;
+      notifyAppointmentEmail: boolean;
+      notifyClinicalEmail: boolean;
+      notifyPrescriptionEmail: boolean;
+      notifySystemEmail: boolean;
+      notifyPaymentEmail?: boolean;
+    } = {
       locale,
       theme,
       notifyAppointmentEmail: fd.get("notifyAppointmentEmail") === "on",
       notifyClinicalEmail: fd.get("notifyClinicalEmail") === "on",
       notifyPrescriptionEmail: fd.get("notifyPrescriptionEmail") === "on",
       notifySystemEmail: fd.get("notifySystemEmail") === "on",
-      ...(showPaymentNotify
-        ? { notifyPaymentEmail: fd.get("notifyPaymentEmail") === "on" }
-        : {}),
     };
+    if (showPaymentNotify) {
+      payload.notifyPaymentEmail = fd.get("notifyPaymentEmail") === "on";
+    }
 
     startTransition(async () => {
       const result = await onSave(payload);

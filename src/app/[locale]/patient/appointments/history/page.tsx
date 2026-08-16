@@ -31,6 +31,7 @@ export default async function HistoryAppointmentsPage({
         page={result.data.page}
         pageSize={result.data.pageSize}
         emptyTitle={t("historyEmpty")}
+        emptyDescription={t("historyEmptyHint")}
       />
     </div>
   );

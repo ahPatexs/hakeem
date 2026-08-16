@@ -22,6 +22,7 @@ export function AppointmentList({
   page,
   pageSize,
   emptyTitle,
+  emptyDescription,
   emptyAction,
 }: {
   items: ApptRow[];
@@ -29,6 +30,7 @@ export function AppointmentList({
   page: number;
   pageSize: number;
   emptyTitle: string;
+  emptyDescription?: string;
   emptyAction?: { label: string; href: string };
 }) {
   const t = useTranslations("patient.appointments");
@@ -39,6 +41,7 @@ export function AppointmentList({
     return (
       <EmptyState
         title={emptyTitle}
+        description={emptyDescription}
         actionLabel={emptyAction?.label}
         actionHref={emptyAction?.href}
       />

@@ -8,8 +8,8 @@ const PATIENT_NAME = "Patexs";
 const PATIENT_PASSWORD = "Patexs!Pass1234";
 
 const DOCTOR_EMAIL = "alaa-helal@outlook.com";
-const DOCTOR_NAME_EN = "Alaa Helal";
-const DOCTOR_NAME_AR = "Alaa Helal";
+const DOCTOR_NAME_EN = "Dr. Alaa Helal";
+const DOCTOR_NAME_AR = "Dr. Alaa Helal";
 const DOCTOR_PASSWORD = "AlaaHelal!Pass1234";
 const DOCTOR_SLUG = "alaa-helal";
 
@@ -59,16 +59,16 @@ async function main() {
     .create({ data: { userId: patient.id, passwordHash: patientHash } })
     .catch(() => undefined);
 
-  const specialty =
-    (await prisma.specialty.findFirst({ orderBy: { sortOrder: "asc" } })) ??
-    (await prisma.specialty.create({
-      data: {
-        slug: "general-practice",
-        nameEn: "General Practice",
-        nameAr: "General Practice",
-        sortOrder: 0,
-      },
-    }));
+  const specialty = await prisma.specialty.upsert({
+    where: { slug: "dentist" },
+    update: { nameEn: "Dentist", nameAr: "Dentist" },
+    create: {
+      slug: "dentist",
+      nameEn: "Dentist",
+      nameAr: "Dentist",
+      sortOrder: 10,
+    },
+  });
 
   const cmsDoctor = await prisma.doctor.upsert({
     where: { slug: DOCTOR_SLUG },
@@ -76,8 +76,8 @@ async function main() {
       status: "PUBLISHED",
       nameEn: DOCTOR_NAME_EN,
       nameAr: DOCTOR_NAME_AR,
-      titleEn: "Consultant",
-      titleAr: "Consultant",
+      titleEn: "Dentist",
+      titleAr: "Dentist",
       isAvailable: true,
       publishedAt: new Date(),
       specialtyId: specialty.id,
@@ -88,8 +88,8 @@ async function main() {
       status: "PUBLISHED",
       nameEn: DOCTOR_NAME_EN,
       nameAr: DOCTOR_NAME_AR,
-      titleEn: "Consultant",
-      titleAr: "Consultant",
+      titleEn: "Dentist",
+      titleAr: "Dentist",
       isAvailable: true,
       publishedAt: new Date(),
       specialtyId: specialty.id,
@@ -147,8 +147,39 @@ async function main() {
     });
   }
 
+  const searchText = [
+    DOCTOR_NAME_EN,
+    DOCTOR_NAME_AR,
+    "Dentist",
+    "dentist",
+  ].join(" ");
+
+  await prisma.searchDoctorProjection.upsert({
+    where: { doctorId: cmsDoctor.id },
+    create: {
+      doctorId: cmsDoctor.id,
+      nameEn: DOCTOR_NAME_EN,
+      nameAr: DOCTOR_NAME_AR,
+      specialtyKeys: ["dentist"],
+      city: null,
+      isBookable: true,
+      isPublished: true,
+      searchText,
+      indexedAt: new Date(),
+    },
+    update: {
+      nameEn: DOCTOR_NAME_EN,
+      nameAr: DOCTOR_NAME_AR,
+      specialtyKeys: ["dentist"],
+      isBookable: true,
+      isPublished: true,
+      searchText,
+      indexedAt: new Date(),
+    },
+  });
+
   console.log("OK patient", PATIENT_EMAIL);
-  console.log("OK doctor", DOCTOR_EMAIL);
+  console.log("OK doctor", DOCTOR_EMAIL, DOCTOR_NAME_EN, "Dentist");
 }
 
 main()
