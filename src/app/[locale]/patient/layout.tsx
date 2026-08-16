@@ -12,7 +12,7 @@ async function PatientShellGate({ children }: { children: React.ReactNode }) {
   const [row, unreadCount] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
-      select: { name: true, email: true },
+      select: { name: true, email: true, image: true },
     }),
     prisma.notification.count({
       where: { recipientUserId: userId, readAt: null, dismissedAt: null },
@@ -23,6 +23,7 @@ async function PatientShellGate({ children }: { children: React.ReactNode }) {
     <PortalShell
       unreadCount={unreadCount}
       displayName={row?.name ?? row?.email ?? "Patient"}
+      photoUrl={row?.image}
     >
       <MaintenanceGate>{children}</MaintenanceGate>
     </PortalShell>

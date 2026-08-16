@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyDownloadSignature, streamStoredFile } from "@/lib/platform/documents";
+import { servePublicDoctorPhoto, servePublicPatientPhoto } from "@/lib/platform/image";
 
 export async function GET(
   request: Request,
@@ -7,6 +8,12 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params;
+    if (id.startsWith("dphoto-")) {
+      return servePublicDoctorPhoto(id.slice("dphoto-".length), request);
+    }
+    if (id.startsWith("pphoto-")) {
+      return servePublicPatientPhoto(id.slice("pphoto-".length), request);
+    }
     const url = new URL(request.url);
     const exp = Number(url.searchParams.get("exp"));
     const sig = url.searchParams.get("sig") ?? "";

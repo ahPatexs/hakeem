@@ -2,8 +2,7 @@
 
 import { CalendarPlus, Bot, FileText, Pill, Stethoscope, User } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/routing";
-import { Button } from "@/components/ui/button";
+import { ActionTiles } from "@/components/portal/action-tiles";
 
 const ACTIONS = [
   { href: "/patient/appointments/book", icon: CalendarPlus, key: "book" as const },
@@ -18,18 +17,15 @@ export function QuickActions() {
   const t = useTranslations("patient.dashboard.quickActions");
 
   return (
-    <section className="glass-card rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-5 md:p-6 shadow-sm">
+    <section className="space-y-4">
       <h2 className="font-headline text-lg text-primary">{t("title")}</h2>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {ACTIONS.map(({ href, icon: Icon, key }) => (
-          <Button key={key} asChild variant="outline" className="h-auto flex-col gap-2 py-4">
-            <Link href={href}>
-              <Icon className="h-5 w-5" aria-hidden />
-              <span className="text-xs">{t(key)}</span>
-            </Link>
-          </Button>
-        ))}
-      </div>
+      <ActionTiles
+        actions={ACTIONS.map(({ href, icon, key }) => ({
+          href,
+          icon,
+          label: t(key),
+        }))}
+      />
     </section>
   );
 }

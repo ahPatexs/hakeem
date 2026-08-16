@@ -1,7 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { getDoctorProfile } from "@/actions/doctor/profile";
-import { DoctorProfileForm } from "@/components/doctor/profile/profile-form";
+import { DoctorProfileForm, DoctorPhotoUpload } from "@/components/doctor/profile/profile-form";
 import { ErrorState } from "@/components/doctor/shared";
 
 export default async function DoctorProfilePage({
@@ -41,6 +41,10 @@ export default async function DoctorProfilePage({
 
       <section className="glass-card space-y-4 rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5">
         <h2 className="font-headline text-lg text-primary">{t("publicCard")}</h2>
+        <DoctorPhotoUpload
+          name={isAr ? cmsDoctor?.nameAr ?? user?.name ?? "" : cmsDoctor?.nameEn ?? user?.name ?? user?.email ?? ""}
+          photoUrl={cmsDoctor?.photoUrl}
+        />
         <dl className="grid gap-4 sm:grid-cols-2">
           <div>
             <dt className="text-xs font-medium uppercase text-on-surface-variant">Name</dt>
@@ -55,6 +59,14 @@ export default async function DoctorProfilePage({
           <div>
             <dt className="text-xs font-medium uppercase text-on-surface-variant">{t("experience")}</dt>
             <dd className="mt-0.5 text-primary">{cmsDoctor?.yearsExperience ?? "—"}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-medium uppercase text-on-surface-variant">{t("rating")}</dt>
+            <dd className="mt-0.5 text-primary">
+              {cmsDoctor && cmsDoctor.ratingCount > 0
+                ? `${cmsDoctor.ratingAvg.toFixed(1)} (${cmsDoctor.ratingCount})`
+                : t("noRatings")}
+            </dd>
           </div>
         </dl>
       </section>

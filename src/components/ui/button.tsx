@@ -13,9 +13,9 @@ const buttonVariants = cva(
         outline: "border-2 border-primary/20 text-primary hover:bg-primary/5",
         ghost: "text-primary hover:bg-primary-fixed/30",
         soft: "bg-primary-fixed text-primary hover:bg-primary hover:text-white",
-        auth: "h-12 !rounded-full bg-[#071525] text-sm font-bold uppercase tracking-[0.22em] text-white shadow-[0_10px_24px_rgba(3,12,28,0.35)] hover:bg-[#0a1f38]",
+        auth: "!h-auto min-h-12 !rounded-full !whitespace-normal bg-[#071525] px-5 py-3.5 text-center text-sm font-bold uppercase leading-snug tracking-[0.08em] text-white shadow-[0_10px_24px_rgba(3,12,28,0.35)] hover:bg-[#0a1f38]",
         authOutline:
-          "h-12 !rounded-full border border-white/40 bg-transparent text-sm font-semibold text-white hover:bg-white/10",
+          "!h-auto min-h-12 !rounded-full !whitespace-normal border border-white/40 bg-transparent px-5 py-3.5 text-center text-sm font-semibold leading-snug text-white hover:bg-white/10",
       },
       size: {
         default: "h-11 px-6 py-2.5",

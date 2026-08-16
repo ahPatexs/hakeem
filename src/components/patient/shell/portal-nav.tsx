@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentType } from "react";
 import {
   Bot,
   CalendarDays,
@@ -16,13 +17,13 @@ import {
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-import { portalNavClass } from "@/components/portal/chrome";
+import { portalNavClass, portalNavGroupClass } from "@/components/portal/chrome";
 import { cn } from "@/lib/utils";
 
 export interface PortalNavItem {
   href: string;
   labelKey: keyof typeof NAV_KEYS;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   exact?: boolean;
 }
 
@@ -56,6 +57,15 @@ export const PORTAL_NAV_ITEMS: PortalNavItem[] = [
   { href: "/patient/settings", labelKey: "settings", icon: Settings },
 ];
 
+const CARE_HREFS = new Set([
+  "/patient",
+  "/patient/appointments",
+  "/patient/doctors",
+  "/patient/records",
+  "/patient/labs",
+  "/patient/prescriptions",
+]);
+
 function isActive(
   pathname: string,
   href: string,
@@ -65,7 +75,6 @@ function isActive(
   if (exact) return pathname === href;
   if (pathname === href) return true;
   if (!pathname.startsWith(`${href}/`)) return false;
-  // Prefer a more specific sibling nav item when one matches this path
   const hasMoreSpecific = allHrefs.some(
     (other) =>
       other !== href &&
@@ -75,21 +84,21 @@ function isActive(
   return !hasMoreSpecific;
 }
 
-export function PortalNav({
-  items = PORTAL_NAV_ITEMS,
+function NavLinks({
+  items,
+  pathname,
+  allHrefs,
   onNavigate,
-  className,
+  t,
 }: {
-  items?: PortalNavItem[];
+  items: PortalNavItem[];
+  pathname: string;
+  allHrefs: string[];
   onNavigate?: () => void;
-  className?: string;
+  t: (key: PortalNavItem["labelKey"]) => string;
 }) {
-  const pathname = usePathname();
-  const t = useTranslations("patient.nav");
-  const allHrefs = items.map((i) => i.href);
-
   return (
-    <nav className={cn("flex flex-col gap-1", className)} aria-label="Patient portal">
+    <>
       {items.map((item) => {
         const active = isActive(pathname, item.href, item.exact, allHrefs);
         const Icon = item.icon;
@@ -106,6 +115,38 @@ export function PortalNav({
           </Link>
         );
       })}
+    </>
+  );
+}
+
+export function PortalNav({
+  items = PORTAL_NAV_ITEMS,
+  onNavigate,
+  className,
+}: {
+  items?: PortalNavItem[];
+  onNavigate?: () => void;
+  className?: string;
+}) {
+  const pathname = usePathname();
+  const t = useTranslations("patient.nav");
+  const allHrefs = items.map((i) => i.href);
+  const care = items.filter((item) => CARE_HREFS.has(item.href));
+  const more = items.filter((item) => !CARE_HREFS.has(item.href));
+  const grouped = care.length > 0 && more.length > 0;
+
+  return (
+    <nav className={cn("flex flex-col gap-1", className)} aria-label={t("menuLabel")}>
+      {grouped ? (
+        <>
+          <p className={portalNavGroupClass}>{t("groupCare")}</p>
+          <NavLinks items={care} pathname={pathname} allHrefs={allHrefs} onNavigate={onNavigate} t={t} />
+          <p className={portalNavGroupClass}>{t("groupMore")}</p>
+          <NavLinks items={more} pathname={pathname} allHrefs={allHrefs} onNavigate={onNavigate} t={t} />
+        </>
+      ) : (
+        <NavLinks items={items} pathname={pathname} allHrefs={allHrefs} onNavigate={onNavigate} t={t} />
+      )}
     </nav>
   );
 }

@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { listUpcoming } from "@/actions/patient/appointments";
 import { AppointmentList } from "@/components/patient/appointments/appointment-list";
+import { AppointmentPageHeader } from "@/components/patient/appointments/appointment-chrome";
 import { ErrorState } from "@/components/patient/shared/error-state";
 
 export default async function UpcomingAppointmentsPage({
@@ -23,7 +24,7 @@ export default async function UpcomingAppointmentsPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="font-headline text-2xl text-primary">{t("upcomingTitle")}</h1>
+      <AppointmentPageHeader title={t("upcomingTitle")} subtitle={t("upcomingSubtitle")} />
       <AppointmentList
         items={result.data.items}
         total={result.data.total}

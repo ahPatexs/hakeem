@@ -5,14 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "dev:turbo": "next dev --turbopack",
-    "build": "prisma generate && next build",
-    "postinstall": "prisma generate",
-    "start": "next start",
-    "lint": "next lint",
-    "test": "vitest run",
-    "test:unit": "vitest run",
-    "test:e2e": "playwright test",
-    "prisma:generate": "prisma generate",
+    "build": "node scripts/safe-prisma-generate.cjs && next build",
+    "postinstall": "node scripts/safe-prisma-generate.cjs",
+    "prisma:generate": "node scripts/safe-prisma-generate.cjs",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "tsx --env-file=.env.local prisma/seed.ts",
     "leap:demo": "tsx --env-file=.env.local scripts/seed-leap-demo.ts"

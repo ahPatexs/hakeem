@@ -1,23 +1,23 @@
 "use server";
 
 import { z } from "zod";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { withPatient, withPatientMutation } from "@/actions/patient/_helpers";
+import { upsertPortalSettings } from "@/lib/platform/portal-settings";
 
 const settingsSchema = z.object({
-  locale: z.enum(["EN", "AR"]).optional(),
-  theme: z.enum(["system", "light", "dark"]).optional(),
-  notifyAppointmentEmail: z.boolean().optional(),
-  notifyClinicalEmail: z.boolean().optional(),
-  notifyPrescriptionEmail: z.boolean().optional(),
-  notifyPaymentEmail: z.boolean().optional(),
-  notifySystemEmail: z.boolean().optional(),
+  locale: z.enum(["EN", "AR"]),
+  theme: z.enum(["system", "light", "dark"]),
+  notifyAppointmentEmail: z.boolean(),
+  notifyClinicalEmail: z.boolean(),
+  notifyPrescriptionEmail: z.boolean(),
+  notifyPaymentEmail: z.boolean(),
+  notifySystemEmail: z.boolean(),
 });
 
 export async function getPortalSettings() {
-  return withPatient((userId) =>
-    prisma.portalSettings.findUnique({ where: { userId } }),
-  );
+  return withPatient((userId) => prisma.portalSettings.findUnique({ where: { userId } }));
 }
 
 export async function updatePortalSettings(input: unknown) {
@@ -25,10 +25,7 @@ export async function updatePortalSettings(input: unknown) {
   if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
 
   return withPatientMutation(async (userId) => {
-    await prisma.portalSettings.upsert({
-      where: { userId },
-      create: { userId, ...parsed.data },
-      update: parsed.data,
-    });
+    await upsertPortalSettings(userId, parsed.data);
+    revalidatePath("/[locale]/patient", "layout");
   });
 }

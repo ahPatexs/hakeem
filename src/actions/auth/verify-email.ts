@@ -19,6 +19,22 @@ export type ActionResult =
   | { ok: true; message?: string }
   | { ok: false; code: string };
 
+export async function peekLocalVerification(input: unknown): Promise<
+  | { ok: true; data: { subject: string; text: string; link: string | null } | null }
+  | { ok: false; code: string }
+> {
+  const parsed = z.object({ email: z.string().email() }).safeParse(input);
+  if (!parsed.success) return { ok: false, code: "VALIDATION_ERROR" };
+  const { isLocalEmailInbox, readDevInbox, extractLink } = await import("@/lib/platform/dev-inbox");
+  if (!isLocalEmailInbox()) return { ok: true, data: null };
+  const item = readDevInbox(parsed.data.email);
+  if (!item) return { ok: true, data: null };
+  return {
+    ok: true,
+    data: { subject: item.subject, text: item.text, link: extractLink(item.text) },
+  };
+}
+
 async function meta() {
   const h = await headers();
   return {

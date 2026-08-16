@@ -8,20 +8,26 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BrandMark } from "@/components/portal/brand-mark";
 
 function BrandBlock({ onNavigate }: { onNavigate?: () => void }) {
   const t = useTranslations("admin.shell");
   return (
-    <div className="border-b border-outline-variant/20 px-5 py-6">
-      <Link href="/admin" className="flex items-center gap-2" onClick={onNavigate}>
-        <span className="font-headline text-xl font-bold leading-none text-primary">Hakeem</span>
-        <span className="rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-on-primary">
-          {t("badge")}
+    <div className="px-4 pb-4 pt-6">
+      <Link href="/admin" className="flex items-center gap-3" onClick={onNavigate}>
+        <BrandMark />
+        <span className="min-w-0">
+          <span className="flex items-center gap-2">
+            <span className="font-headline text-lg font-bold leading-none text-primary">Hakeem</span>
+            <span className="rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-on-primary">
+              {t("badge")}
+            </span>
+          </span>
+          <span className="mt-1 block text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">
+            {t("portalLabel")}
+          </span>
         </span>
       </Link>
-      <span className="mt-1.5 block text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">
-        {t("portalLabel")}
-      </span>
     </div>
   );
 }

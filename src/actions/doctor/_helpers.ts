@@ -3,6 +3,7 @@
 import { isAuthDomainError } from "@/auth/errors";
 import { requireDoctorContext, isDoctorContextError, type DoctorContext } from "@/lib/doctor/context";
 import { DomainRuleError } from "@/domain/doctor/errors";
+import { isCareLoopError } from "@/domain/care-loop/errors";
 
 export type DoctorActionResult<T> =
   | { ok: true; data: T }
@@ -21,6 +22,7 @@ export async function withDoctor<T>(
     if (isAuthDomainError(error)) return { ok: false, code: error.code };
     if (isDoctorContextError(error)) return { ok: false, code: error.code };
     if (error instanceof DomainRuleError) return { ok: false, code: error.code };
+    if (isCareLoopError(error)) return { ok: false, code: error.code };
     console.error("[doctor action]", error);
     return { ok: false, code: "UNKNOWN" };
   }
@@ -37,6 +39,7 @@ export async function withDoctorMutation(
     if (isAuthDomainError(error)) return { ok: false, code: error.code };
     if (isDoctorContextError(error)) return { ok: false, code: error.code };
     if (error instanceof DomainRuleError) return { ok: false, code: error.code };
+    if (isCareLoopError(error)) return { ok: false, code: error.code };
     console.error("[doctor mutation]", error);
     return { ok: false, code: "UNKNOWN" };
   }

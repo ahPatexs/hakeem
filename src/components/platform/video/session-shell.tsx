@@ -45,8 +45,6 @@ export function VideoSessionShell({ appointmentId, role, className }: Props) {
   const [videoEnabled, setVideoEnabled] = useState(true);
   const [screenSharing, setScreenSharing] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  const [chatDraft, setChatDraft] = useState("");
-  const [chatLines, setChatLines] = useState<string[]>([]);
 
   const stubMode = useMemo(
     () => (creds ? isStubTelemedicineUrl(creds.url) : false),
@@ -129,6 +127,7 @@ export function VideoSessionShell({ appointmentId, role, className }: Props) {
           needsConsent={needsConsent}
           pending={pending || phase === "connecting"}
           error={error}
+          demoHint
         />
       </div>
     );
@@ -145,49 +144,27 @@ export function VideoSessionShell({ appointmentId, role, className }: Props) {
   if (stubMode && creds) {
     return (
       <div className={className + " space-y-4"}>
+        <p
+          className="rounded-xl border border-outline-variant/30 bg-surface-container-high px-4 py-2 text-center text-sm font-medium text-primary"
+          role="status"
+        >
+          {t("demoBanner")}
+        </p>
         <ParticipantGrid
           participants={[
             { id: "local", name: role === "doctor" ? "Doctor" : "Patient", isLocal: true, muted: !audioEnabled },
             { id: "remote", name: role === "doctor" ? "Patient" : "Doctor", muted: false },
           ]}
         />
-        {chatOpen ? (
-          <div className="rounded-2xl border border-outline-variant/20 p-3">
-            <ul className="mb-2 max-h-32 space-y-1 overflow-y-auto text-sm">
-              {chatLines.map((line, i) => (
-                <li key={`${i}-${line}`}>{line}</li>
-              ))}
-            </ul>
-            <form
-              className="flex gap-2"
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (!chatDraft.trim()) return;
-                setChatLines((prev) => [...prev, chatDraft.trim()]);
-                setChatDraft("");
-              }}
-            >
-              <input
-                className="flex-1 rounded-lg border border-outline-variant/30 bg-transparent px-3 py-2 text-sm"
-                value={chatDraft}
-                onChange={(e) => setChatDraft(e.target.value)}
-                aria-label={t("chat")}
-              />
-              <button type="submit" className="text-sm text-primary">
-                {t("send")}
-              </button>
-            </form>
-          </div>
-        ) : null}
         <CallControls
           audioEnabled={audioEnabled}
           videoEnabled={videoEnabled}
           screenSharing={screenSharing}
-          chatOpen={chatOpen}
+          chatOpen={false}
+          enableScreenShare={false}
+          enableInCallChat={false}
           onToggleAudio={() => setAudioEnabled((v) => !v)}
           onToggleVideo={() => setVideoEnabled((v) => !v)}
-          onToggleScreenShare={() => setScreenSharing((v) => !v)}
-          onToggleChat={() => setChatOpen((v) => !v)}
           onLeave={() => void leave()}
         />
       </div>

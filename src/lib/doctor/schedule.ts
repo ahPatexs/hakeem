@@ -2,10 +2,10 @@ import type { Appointment, User } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export type ScheduleAppointment = Appointment & {
-  patient: Pick<User, "id" | "name" | "email">;
+  patient: Pick<User, "id" | "name" | "email" | "image">;
 };
 
-const PATIENT_SELECT = { select: { id: true, name: true, email: true } } as const;
+const PATIENT_SELECT = { select: { id: true, name: true, email: true, image: true } } as const;
 
 /** Parse YYYY-MM-DD into a local day range. */
 export function parseDayRange(dateKey?: string): { start: Date; end: Date; key: string } {

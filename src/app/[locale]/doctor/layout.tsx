@@ -45,6 +45,7 @@ async function DoctorShellGate({
       select: {
         nameEn: true,
         nameAr: true,
+        photoUrl: true,
         specialty: { select: { nameEn: true, nameAr: true } },
       },
     }),
@@ -55,7 +56,7 @@ async function DoctorShellGate({
   const specialty = cmsDoctor ? (isAr ? cmsDoctor.specialty.nameAr : cmsDoctor.specialty.nameEn) : null;
 
   return (
-    <DoctorShell unreadCount={unreadCount} displayName={displayName} specialty={specialty}>
+    <DoctorShell unreadCount={unreadCount} displayName={displayName} specialty={specialty} photoUrl={cmsDoctor?.photoUrl}>
       <MaintenanceGate>{children}</MaintenanceGate>
     </DoctorShell>
   );

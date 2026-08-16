@@ -18,18 +18,30 @@ export function DoctorCard({
     <article className="group overflow-hidden rounded-2xl border border-outline-variant/30 bg-white shadow-sm transition-all hover:shadow-lg">
       <div className="relative h-64 overflow-hidden bg-surface-dim">
         {doctor.photo ? (
-          <Image
-            src={doctor.photo.url}
-            alt={doctor.photo.alt}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, 33vw"
-          />
+          doctor.photo.url.startsWith("/api/") ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={doctor.photo.url}
+              alt={doctor.photo.alt}
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <Image
+              src={doctor.photo.url}
+              alt={doctor.photo.alt}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, 33vw"
+            />
+          )
         ) : null}
         {doctor.rating ? (
           <div className="absolute end-4 top-4 flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 shadow-sm backdrop-blur">
             <Star className="h-[18px] w-[18px] fill-amber-400 text-amber-400" aria-hidden />
             <span className="text-sm font-bold text-on-surface">{doctor.rating.toFixed(1)}</span>
+            {doctor.ratingCount ? (
+              <span className="text-xs text-on-surface-variant">({doctor.ratingCount})</span>
+            ) : null}
           </div>
         ) : null}
       </div>

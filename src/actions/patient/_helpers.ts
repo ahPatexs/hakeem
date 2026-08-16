@@ -2,6 +2,7 @@
 
 import { requireRole } from "@/auth/guards";
 import { isAuthDomainError } from "@/auth/errors";
+import { isCareLoopError } from "@/domain/care-loop/errors";
 import type { PatientActionResult, PatientMutationResult } from "@/actions/patient/types";
 
 export async function withPatient<T>(
@@ -13,6 +14,7 @@ export async function withPatient<T>(
     return { ok: true, data };
   } catch (error) {
     if (isAuthDomainError(error)) return { ok: false, code: error.code };
+    if (isCareLoopError(error)) return { ok: false, code: error.code };
     console.error("[patient action]", error);
     return { ok: false, code: "UNKNOWN" };
   }
@@ -27,6 +29,7 @@ export async function withPatientMutation(
     return { ok: true };
   } catch (error) {
     if (isAuthDomainError(error)) return { ok: false, code: error.code };
+    if (isCareLoopError(error)) return { ok: false, code: error.code };
     console.error("[patient mutation]", error);
     return { ok: false, code: "UNKNOWN" };
   }

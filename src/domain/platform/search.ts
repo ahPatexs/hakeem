@@ -7,6 +7,8 @@ export type DoctorSearchProjection = {
   isBookable: boolean;
   isPublished: boolean;
   searchText: string;
+  ratingAvg: number;
+  ratingCount: number;
 };
 
 export type DoctorSearchHit = {
@@ -15,6 +17,8 @@ export type DoctorSearchHit = {
   specialtyKeys: string[];
   city: string | null;
   isBookable: boolean;
+  ratingAvg: number;
+  ratingCount: number;
 };
 
 /** Max doctors returned per discovery query (perf cap). */
@@ -42,6 +46,11 @@ export function filterDiscoveryDoctors(
   if (q) {
     rows = rows.filter((d) => d.searchText.includes(q));
   }
+  rows.sort((a, b) => {
+    if (b.ratingAvg !== a.ratingAvg) return b.ratingAvg - a.ratingAvg;
+    if (b.ratingCount !== a.ratingCount) return b.ratingCount - a.ratingCount;
+    return a.nameEn.localeCompare(b.nameEn);
+  });
   return rows.slice(0, take);
 }
 

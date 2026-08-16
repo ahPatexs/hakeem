@@ -31,9 +31,13 @@ export class LocalStorageAdapter implements StoragePort {
         ? "application/pdf"
         : ext === ".png"
           ? "image/png"
-          : ext === ".jpg" || ext === ".jpeg"
-            ? "image/jpeg"
-            : "application/octet-stream";
+          : ext === ".webp"
+            ? "image/webp"
+            : ext === ".gif"
+              ? "image/gif"
+              : ext === ".jpg" || ext === ".jpeg"
+                ? "image/jpeg"
+                : "application/octet-stream";
     return { body, contentType, byteSize: body.byteLength };
   }
 

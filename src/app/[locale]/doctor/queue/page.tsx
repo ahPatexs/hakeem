@@ -1,61 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/routing";
+import { QueueBoard, QueueScheduleLink } from "@/components/doctor/schedule/queue-board";
 import { getPatientQueue } from "@/actions/doctor/schedule";
-import { AppointmentActions } from "@/components/doctor/schedule/appointment-actions";
-import { EmptyState, ErrorState, StatusBadge } from "@/components/doctor/shared";
-import type { ScheduleAppointment } from "@/lib/doctor/schedule";
-
-function QueueSection({
-  title,
-  items,
-  locale,
-  arrivedLabel,
-  statusLabel,
-}: {
-  title: string;
-  items: ScheduleAppointment[];
-  locale: string;
-  arrivedLabel: (time: string) => string;
-  statusLabel: (status: string) => string;
-}) {
-  if (items.length === 0) return null;
-  return (
-    <section className="space-y-3">
-      <h2 className="font-headline text-lg text-primary">{title}</h2>
-      <ul className="space-y-3">
-        {items.map((appt) => (
-          <li
-            key={appt.id}
-            className="glass-card flex flex-col gap-3 rounded-2xl border border-outline-variant/20 bg-surface-container-low p-4 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <Link
-                  href={`/doctor/appointments/${appt.id}`}
-                  className="font-medium text-primary hover:underline"
-                >
-                  {appt.patient.name ?? appt.patient.email}
-                </Link>
-                <StatusBadge status={appt.status} label={statusLabel(appt.status)} variant="appointment" />
-              </div>
-              <p className="mt-1 text-sm text-on-surface-variant">
-                {appt.checkedInAt
-                  ? arrivedLabel(
-                      new Date(appt.checkedInAt).toLocaleTimeString(locale === "ar" ? "ar-SA" : "en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      }),
-                    )
-                  : null}
-              </p>
-            </div>
-            <AppointmentActions appointmentId={appt.id} status={appt.status} />
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
+import { ErrorState } from "@/components/doctor/shared";
 
 export default async function DoctorQueuePage({
   params,
@@ -66,6 +12,7 @@ export default async function DoctorQueuePage({
   setRequestLocale(locale);
   const t = await getTranslations("doctor.queue");
   const ts = await getTranslations("doctor.status");
+  const tSchedule = await getTranslations("doctor.schedule");
 
   const result = await getPatientQueue();
   if (!result.ok) {
@@ -73,35 +20,58 @@ export default async function DoctorQueuePage({
   }
 
   const { checkedIn, inProgress } = result.data;
-  const empty = checkedIn.length === 0 && inProgress.length === 0;
+  const nextName = checkedIn[0]?.patient.name ?? checkedIn[0]?.patient.email ?? t("noneWaiting");
+  const dateLabel = new Date().toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-headline text-2xl text-primary md:text-3xl">{t("title")}</h1>
-        <p className="mt-1 text-on-surface-variant">{t("subtitle")}</p>
-      </div>
+      <section className="welcome-banner space-y-5 p-5 sm:p-7">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-white/80">{t("subtitle")}</p>
+            <h1 className="font-headline mt-1 text-2xl text-white md:text-3xl">{t("title")}</h1>
+            <p className="mt-1 text-sm text-white/85">{dateLabel}</p>
+          </div>
+          <QueueScheduleLink href="/doctor/schedule" label={t("openSchedule")} />
+        </div>
+        <div className="grid gap-2 sm:grid-cols-3">
+          <div className="rounded-2xl bg-white/12 px-4 py-3">
+            <p className="text-2xl font-bold tabular-nums text-white">{inProgress.length}</p>
+            <p className="text-xs font-medium text-white/80">{t("inProgress")}</p>
+          </div>
+          <div className="rounded-2xl bg-white/12 px-4 py-3">
+            <p className="text-2xl font-bold tabular-nums text-white">{checkedIn.length}</p>
+            <p className="text-xs font-medium text-white/80">{t("waiting")}</p>
+          </div>
+          <div className="rounded-2xl bg-white/12 px-4 py-3">
+            <p className="truncate text-sm font-semibold text-white">{nextName}</p>
+            <p className="text-xs font-medium text-white/80">{t("nextUp")}</p>
+          </div>
+        </div>
+      </section>
 
-      {empty ? (
-        <EmptyState title={t("emptyTitle")} description={t("emptyDescription")} />
-      ) : (
-        <>
-          <QueueSection
-            title={t("inProgress")}
-            items={inProgress}
-            locale={locale}
-            arrivedLabel={(time) => t("arrivedAt", { time })}
-            statusLabel={(s) => ts(s)}
-          />
-          <QueueSection
-            title={t("waiting")}
-            items={checkedIn}
-            locale={locale}
-            arrivedLabel={(time) => t("arrivedAt", { time })}
-            statusLabel={(s) => ts(s)}
-          />
-        </>
-      )}
+      <QueueBoard
+        checkedIn={checkedIn}
+        inProgress={inProgress}
+        locale={locale}
+        emptyTitle={t("emptyTitle")}
+        emptyDescription={t("emptyDescription")}
+        waitingTitle={t("waiting")}
+        inProgressTitle={t("inProgress")}
+        nowEmpty={t("nowEmpty")}
+        videoLabel={tSchedule("video")}
+        inPersonLabel={tSchedule("inPerson")}
+        liveLabel={t("live")}
+        arrivedLabel={(time) => t("arrivedAt", { time })}
+        waitLabel={(minutes) => t("waitTime", { minutes })}
+        scheduledLabel={(time) => t("scheduledAt", { time })}
+        statusLabel={(status) => ts(status)}
+      />
     </div>
   );
 }

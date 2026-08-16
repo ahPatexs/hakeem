@@ -14,7 +14,7 @@ export default async function SessionsPage({
   if (!session?.user?.id) redirect({ href: "/unauthorized", locale });
   const t = await getTranslations("auth");
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-margin-mobile py-28 md:px-margin-desktop">
+    <div className="mx-auto max-w-2xl space-y-6">
       <h1 className="font-headline text-2xl text-primary">{t("manageSessions")}</h1>
       <SessionsPanel />
     </div>

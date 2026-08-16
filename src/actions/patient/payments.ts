@@ -89,7 +89,7 @@ const markPaidSchema = z.object({
   providerIntentId: z.string().min(1),
 });
 
-/** Stub: mark obligation paid after client-side stub checkout. */
+/** Stub checkout is not a live charge and is not required to confirm a booking. */
 export async function markPaymentPaid(input: unknown) {
   const parsed = markPaidSchema.safeParse(input);
   if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };

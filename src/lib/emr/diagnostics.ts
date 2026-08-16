@@ -129,7 +129,7 @@ export async function listLabInboxForDoctor(
     orderBy: [{ criticalFlag: "desc" }, { resultedAt: "desc" }],
     take: 100,
     include: {
-      patient: { select: { id: true, name: true } },
+      patient: { select: { id: true, name: true, email: true, image: true } },
       reviewAcks: { where: { doctorUserId: actor.userId }, select: { reviewedAt: true } },
     },
   });

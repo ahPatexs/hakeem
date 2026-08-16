@@ -3,20 +3,18 @@
 import { useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
-import { Button } from "@/components/ui/button";
 import { markLabReviewed } from "@/actions/doctor/records";
 
 export function LabReviewButton({ labResultId }: { labResultId: string }) {
   const t = useTranslations("doctor.labs");
-  const tc = useTranslations("doctor.common");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   return (
-    <Button
-      size="sm"
-      variant="outline"
+    <button
+      type="button"
       disabled={pending}
+      className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-on-primary hover:opacity-90 disabled:opacity-60"
       onClick={() => {
         startTransition(async () => {
           const res = await markLabReviewed({ labResultId });
@@ -24,7 +22,7 @@ export function LabReviewButton({ labResultId }: { labResultId: string }) {
         });
       }}
     >
-      {pending ? tc("saving") : t("markReviewed")}
-    </Button>
+      {pending ? t("sharing") : t("markReviewed")}
+    </button>
   );
 }

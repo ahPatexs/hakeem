@@ -10,6 +10,7 @@ export function DoctorShell({
   unreadCount,
   displayName,
   specialty,
+  photoUrl,
   className,
 }: {
   children: React.ReactNode;
@@ -17,6 +18,7 @@ export function DoctorShell({
   unreadCount: number;
   displayName: string;
   specialty?: string | null;
+  photoUrl?: string | null;
   className?: string;
 }) {
   return (
@@ -31,6 +33,7 @@ export function DoctorShell({
               unreadCount={unreadCount}
               displayName={displayName}
               specialty={specialty}
+              photoUrl={photoUrl}
             />
           </header>
           <div className="flex-1 px-4 py-6 lg:px-8 lg:py-8">{children}</div>

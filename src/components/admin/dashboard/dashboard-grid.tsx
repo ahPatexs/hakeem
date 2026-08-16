@@ -6,6 +6,7 @@ import { Link } from "@/i18n/routing";
 import { formatSar } from "@/lib/platform/localization";
 import type { DashboardSnapshot } from "@/domain/admin/dashboard";
 import { getLocale, getTranslations } from "next-intl/server";
+import { WelcomeBanner } from "@/components/portal/welcome-banner";
 
 export async function DashboardGrid({ snapshot }: { snapshot: DashboardSnapshot }) {
   const t = await getTranslations("admin.dashboard");
@@ -13,10 +14,7 @@ export async function DashboardGrid({ snapshot }: { snapshot: DashboardSnapshot 
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="font-headline text-3xl text-on-surface">{t("title")}</h1>
-        <p className="mt-1 text-on-surface-variant">{t("subtitle")}</p>
-      </div>
+      <WelcomeBanner title={t("title")} subtitle={t("subtitle")} />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {snapshot.totalPatients.status === "ok" ? (

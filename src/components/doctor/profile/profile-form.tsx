@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
-import { updateDoctorProfile } from "@/actions/doctor/profile";
+import { PersonAvatar } from "@/components/portal/person-avatar";
+import { updateDoctorProfile, uploadDoctorPhoto } from "@/actions/doctor/profile";
 
 export function DoctorProfileForm({
   bio,
@@ -73,5 +74,72 @@ export function DoctorProfileForm({
         {pending ? t("save") + "…" : t("save")}
       </Button>
     </form>
+  );
+}
+
+export function DoctorPhotoUpload({
+  name,
+  photoUrl,
+}: {
+  name: string;
+  photoUrl?: string | null;
+}) {
+  const t = useTranslations("doctor.profile");
+  const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [pending, startTransition] = useTransition();
+  const [preview, setPreview] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  function handleFile(file: File | undefined) {
+    if (!file) return;
+    setError(null);
+    setMessage(null);
+    setPreview(URL.createObjectURL(file));
+    const fd = new FormData();
+    fd.set("photo", file);
+    startTransition(async () => {
+      const result = await uploadDoctorPhoto(fd);
+      if (!result.ok) {
+        setError(t("photoError"));
+        setPreview(null);
+        return;
+      }
+      setMessage(t("photoSaved"));
+      router.refresh();
+    });
+  }
+
+  return (
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+      <PersonAvatar name={name} photoUrl={preview ?? photoUrl} size="lg" className="h-20 w-20 text-2xl" />
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-primary">{t("photo")}</p>
+        <p className="text-xs text-on-surface-variant">{t("photoHint")}</p>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          className="sr-only"
+          onChange={(e) => handleFile(e.target.files?.[0])}
+        />
+        <Button
+          type="button"
+          variant="soft"
+          className="rounded-full"
+          disabled={pending}
+          onClick={() => inputRef.current?.click()}
+        >
+          {pending ? t("photoUploading") : t("photoUpload")}
+        </Button>
+        {error ? (
+          <p className="text-sm text-red-600" role="alert">
+            {error}
+          </p>
+        ) : null}
+        {message ? <p className="text-sm text-med-green">{message}</p> : null}
+      </div>
+    </div>
   );
 }

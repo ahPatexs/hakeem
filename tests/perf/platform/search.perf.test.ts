@@ -16,6 +16,8 @@ describe("doctor search query cap", () => {
       isBookable: true,
       isPublished: true,
       searchText: "doc طبيب general",
+      ratingAvg: 0,
+      ratingCount: 0,
     }));
     expect(filterDiscoveryDoctors(rows, { take: 999 }).length).toBeLessThanOrEqual(50);
   });

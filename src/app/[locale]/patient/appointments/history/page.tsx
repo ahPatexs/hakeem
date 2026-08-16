@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { listHistory } from "@/actions/patient/appointments";
 import { AppointmentList } from "@/components/patient/appointments/appointment-list";
+import { AppointmentPageHeader } from "@/components/patient/appointments/appointment-chrome";
 import { ErrorState } from "@/components/patient/shared/error-state";
 
 export default async function HistoryAppointmentsPage({
@@ -23,7 +24,7 @@ export default async function HistoryAppointmentsPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="font-headline text-2xl text-primary">{t("historyTitle")}</h1>
+      <AppointmentPageHeader title={t("historyTitle")} subtitle={t("historySubtitle")} />
       <AppointmentList
         items={result.data.items}
         total={result.data.total}

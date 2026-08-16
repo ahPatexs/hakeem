@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
@@ -13,16 +14,19 @@ type AiMode = "MEDICAL" | "DOCUMENTATION" | "PRESCRIPTION";
 
 function PatientContextNeeded({
   needAppointment = false,
+  fallback,
 }: {
   needAppointment?: boolean;
+  fallback?: React.ReactNode;
 }) {
   const t = useTranslations("doctor.ai");
+  if (fallback) return <>{fallback}</>;
   return (
-    <div className="rounded-xl border border-outline-variant/20 bg-surface-container-low p-4 text-sm text-on-surface-variant">
+    <div className="rounded-2xl border border-outline-variant/20 bg-surface-container-low p-4 text-sm text-on-surface-variant">
       <p>{needAppointment ? t("needPatientAndAppointment") : t("needPatientContext")}</p>
       <Link
         href="/doctor/patients"
-        className="mt-3 inline-block font-medium text-primary underline-offset-2 hover:underline"
+        className="mt-3 inline-block font-semibold text-med-green hover:underline"
       >
         {t("openPatients")}
       </Link>
@@ -39,6 +43,9 @@ export function AiPanel({
   onInsert,
   defaultMode = "MEDICAL",
   compact = false,
+  missingPatientSlot,
+  missingVisitSlot,
+  hideTitle = false,
 }: {
   patientUserId?: string;
   appointmentId?: string;
@@ -46,6 +53,9 @@ export function AiPanel({
   onInsert?: (text: string) => void;
   defaultMode?: AiMode;
   compact?: boolean;
+  missingPatientSlot?: ReactNode;
+  missingVisitSlot?: ReactNode;
+  hideTitle?: boolean;
 }) {
   const t = useTranslations("doctor.ai");
   const [mode, setMode] = useState<AiMode>(defaultMode);
@@ -65,10 +75,12 @@ export function AiPanel({
 
   return (
     <AiAssistantShell feature={feature} className="flex h-full flex-col gap-3">
-      <div className="flex items-center gap-2">
-        <Bot className="h-5 w-5 text-med-green" aria-hidden />
-        <h3 className="font-headline text-lg text-primary">{t("title")}</h3>
-      </div>
+      {!hideTitle ? (
+        <div className="flex items-center gap-2">
+          <Bot className="h-5 w-5 text-med-green" aria-hidden />
+          <h3 className="font-headline text-lg text-primary">{t("title")}</h3>
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap gap-1" role="tablist" aria-label={t("title")}>
         {modes.map((m) => (
@@ -92,8 +104,10 @@ export function AiPanel({
       {mode === "DOCUMENTATION" ? (
         patientUserId && appointmentId ? (
           <DraftPanel patientUserId={patientUserId} appointmentId={appointmentId} />
+        ) : patientUserId ? (
+          <PatientContextNeeded needAppointment fallback={missingVisitSlot} />
         ) : (
-          <PatientContextNeeded needAppointment />
+          <PatientContextNeeded fallback={missingPatientSlot} />
         )
       ) : null}
 
@@ -101,7 +115,7 @@ export function AiPanel({
         patientUserId ? (
           <RxSuggestPanel patientUserId={patientUserId} />
         ) : (
-          <PatientContextNeeded />
+          <PatientContextNeeded fallback={missingPatientSlot} />
         )
       ) : null}
 
@@ -114,7 +128,7 @@ export function AiPanel({
             compact={compact}
           />
         ) : (
-          <PatientContextNeeded />
+          <PatientContextNeeded fallback={missingPatientSlot} />
         )
       ) : null}
     </AiAssistantShell>

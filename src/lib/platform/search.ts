@@ -71,6 +71,8 @@ export async function refreshDoctorProjection(doctorId: string): Promise<void> {
       isBookable,
       isPublished,
       searchText,
+      ratingAvg: doctor.ratingAvg,
+      ratingCount: doctor.ratingCount,
       indexedAt: new Date(),
     },
     update: {
@@ -80,6 +82,8 @@ export async function refreshDoctorProjection(doctorId: string): Promise<void> {
       isBookable,
       isPublished,
       searchText,
+      ratingAvg: doctor.ratingAvg,
+      ratingCount: doctor.ratingCount,
       indexedAt: new Date(),
     },
   });
@@ -121,6 +125,8 @@ export async function searchDoctors(input: {
     isBookable: r.isBookable,
     isPublished: r.isPublished,
     searchText: r.searchText,
+    ratingAvg: r.ratingAvg,
+    ratingCount: r.ratingCount,
   }));
 
   const filtered = filterDiscoveryDoctors(projections, {
@@ -135,6 +141,8 @@ export async function searchDoctors(input: {
     specialtyKeys: d.specialtyKeys,
     city: d.city,
     isBookable: d.isBookable,
+    ratingAvg: d.ratingAvg,
+    ratingCount: d.ratingCount,
   }));
 
   return platformOk({ items });

@@ -20,14 +20,14 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "glass-card flex flex-col items-center justify-center rounded-2xl border border-outline-variant/20 bg-surface-container-low px-6 py-12 text-center",
+        "glass-card flex flex-col items-center justify-center rounded-3xl border border-outline-variant/20 bg-surface-container-low px-6 py-12 text-center",
         className,
       )}
     >
       <h3 className="font-headline text-lg text-primary">{title}</h3>
       {description ? <p className="mt-2 max-w-sm text-sm text-on-surface-variant">{description}</p> : null}
       {actionLabel && actionHref ? (
-        <Button asChild className="mt-6" variant="soft">
+        <Button asChild className="mt-6 rounded-full" variant="soft">
           <Link href={actionHref}>{actionLabel}</Link>
         </Button>
       ) : null}

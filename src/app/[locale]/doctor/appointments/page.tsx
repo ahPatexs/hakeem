@@ -3,6 +3,7 @@ import { Link } from "@/i18n/routing";
 import { getUpcoming } from "@/actions/doctor/schedule";
 import { AppointmentActions } from "@/components/doctor/schedule/appointment-actions";
 import { EmptyState, ErrorState, StatusBadge } from "@/components/doctor/shared";
+import { PersonAvatar } from "@/components/portal/person-avatar";
 
 export default async function DoctorAppointmentsPage({
   params,
@@ -49,24 +50,27 @@ export default async function DoctorAppointmentsPage({
           {items.map((appt) => (
             <li
               key={appt.id}
-              className="glass-card flex flex-col gap-3 rounded-2xl border border-outline-variant/20 bg-surface-container-low p-4 sm:flex-row sm:items-center sm:justify-between"
+              className="glass-card flex flex-col gap-3 rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
             >
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <Link
-                    href={`/doctor/appointments/${appt.id}`}
-                    className="font-medium text-primary hover:underline"
-                  >
-                    {appt.patient.name ?? appt.patient.email}
-                  </Link>
-                  <StatusBadge status={appt.status} label={tStatus(appt.status)} variant="appointment" />
+              <div className="flex min-w-0 items-start gap-3">
+                <PersonAvatar name={appt.patient.name ?? appt.patient.email} photoUrl={appt.patient.image} />
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link
+                      href={`/doctor/appointments/${appt.id}`}
+                      className="font-semibold text-primary hover:underline"
+                    >
+                      {appt.patient.name ?? appt.patient.email}
+                    </Link>
+                    <StatusBadge status={appt.status} label={tStatus(appt.status)} variant="appointment" />
+                  </div>
+                  <p className="mt-1 text-sm text-on-surface-variant">
+                    {fmtDate(appt.startAt)}
+                    {" · "}
+                    {appt.mode === "VIDEO" ? ts("video") : ts("inPerson")}
+                    {appt.reason ? ` · ${appt.reason}` : ""}
+                  </p>
                 </div>
-                <p className="mt-1 text-sm text-on-surface-variant">
-                  {fmtDate(appt.startAt)}
-                  {" · "}
-                  {appt.mode === "VIDEO" ? ts("video") : ts("inPerson")}
-                  {appt.reason ? ` · ${appt.reason}` : ""}
-                </p>
               </div>
               <AppointmentActions appointmentId={appt.id} status={appt.status} />
             </li>

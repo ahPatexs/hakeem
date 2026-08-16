@@ -25,7 +25,7 @@ export function AiShortcut({ className }: { className?: string }) {
           <p className="mt-1 text-sm text-on-surface-variant">{t("description")}</p>
         </div>
       </div>
-      <Button asChild variant="soft">
+      <Button asChild variant="soft" className="rounded-full">
         <Link href="/patient/ai">{t("cta")}</Link>
       </Button>
     </section>

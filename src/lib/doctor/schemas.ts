@@ -131,11 +131,10 @@ export const updateDoctorProfileSchema = z.object({
 });
 
 export const updateDoctorSettingsSchema = z.object({
-  locale: z.enum(["EN", "AR"]).optional(),
-  theme: z.enum(["system", "light", "dark"]).optional(),
-  notifyAppointmentEmail: z.boolean().optional(),
-  notifyClinicalEmail: z.boolean().optional(),
-  notifyPrescriptionEmail: z.boolean().optional(),
-  notifyPaymentEmail: z.boolean().optional(),
-  notifySystemEmail: z.boolean().optional(),
+  locale: z.enum(["EN", "AR"]),
+  theme: z.enum(["system", "light", "dark"]),
+  notifyAppointmentEmail: z.boolean(),
+  notifyClinicalEmail: z.boolean(),
+  notifyPrescriptionEmail: z.boolean(),
+  notifySystemEmail: z.boolean(),
 });

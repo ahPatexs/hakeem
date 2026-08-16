@@ -6,13 +6,16 @@ import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/actions/auth/login";
 import { LocaleSwitcher } from "@/components/layout/locale-switcher";
+import { PersonAvatar } from "@/components/portal/person-avatar";
 
 export function PatientHeaderActions({
   unreadCount,
   displayName,
+  photoUrl,
 }: {
   unreadCount: number;
   displayName: string;
+  photoUrl?: string | null;
 }) {
   const t = useTranslations("patient.shell");
   const locale = useLocale();
@@ -32,12 +35,15 @@ export function PatientHeaderActions({
       </Button>
       <Link
         href="/patient/profile"
-        className="hidden items-center gap-2 rounded-full border border-outline-variant/30 bg-surface-container-low py-1 pe-3 ps-1 sm:flex"
+        className="flex items-center gap-2 rounded-full border border-outline-variant/30 bg-surface-container-low py-1 pe-3 ps-1"
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-on-primary ring-2 ring-primary/10">
-          {displayName.slice(0, 1).toUpperCase()}
-        </span>
-        <span className="max-w-36 truncate text-xs font-semibold text-primary">{displayName}</span>
+        <PersonAvatar
+          name={displayName}
+          photoUrl={photoUrl}
+          size="sm"
+          className="h-8 w-8 text-xs font-bold ring-2 ring-primary/10"
+        />
+        <span className="hidden max-w-36 truncate text-xs font-semibold text-primary sm:inline">{displayName}</span>
       </Link>
       <form action={logoutAction.bind(null, locale)}>
         <Button type="submit" variant="ghost" size="icon" className="rounded-full" aria-label={t("signOut")}>

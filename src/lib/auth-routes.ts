@@ -11,7 +11,7 @@ export const AUTH_SHELL_SEGMENTS = new Set([
 ]);
 
 /** Role portal segments that use dedicated portal shell (no marketing nav/footer). */
-export const PORTAL_SHELL_SEGMENTS = new Set(["patient", "doctor", "admin"]);
+export const PORTAL_SHELL_SEGMENTS = new Set(["patient", "doctor", "admin", "account"]);
 
 const LOCALES = new Set(["en", "ar"]);
 

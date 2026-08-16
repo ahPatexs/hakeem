@@ -4,12 +4,16 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/routing";
 import {
   Bot,
+  CalendarCheck,
   CalendarDays,
+  ClipboardList,
   FlaskConical,
   ListChecks,
   Pill,
+  Star,
   Users,
 } from "lucide-react";
+import { ActionTiles } from "@/components/portal/action-tiles";
 import { EmptyState, ErrorState, StatusBadge } from "@/components/doctor/shared";
 import { WidgetShell } from "@/components/doctor/shared/widget-shell";
 import type {
@@ -42,23 +46,34 @@ export function StatsRow({ result }: { result: WidgetResult<DoctorDashboardStats
   if (!result.ok) return null;
   const s = result.data;
   const cells = [
-    { label: t("today"), value: s.todayTotal },
-    { label: t("completed"), value: s.todayCompleted },
-    { label: t("inQueue"), value: s.inQueue },
-    { label: t("pendingNotes"), value: s.pendingNotes },
-    { label: t("weekUpcoming"), value: s.weekUpcoming },
+    { label: t("completed"), value: s.todayCompleted, icon: CalendarCheck },
+    { label: t("pendingNotes"), value: s.pendingNotes, icon: ClipboardList },
+    { label: t("weekUpcoming"), value: s.weekUpcoming, icon: CalendarDays },
+    {
+      label: t("rating"),
+      value: s.ratingCount > 0 ? s.ratingAvg.toFixed(1) : "—",
+      icon: Star,
+    },
   ];
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-      {cells.map((c) => (
-        <div
-          key={c.label}
-          className="glass-card rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-4 shadow-sm"
-        >
-          <p className="text-2xl font-bold text-primary">{c.value}</p>
-          <p className="mt-1 text-xs font-medium text-on-surface-variant">{c.label}</p>
-        </div>
-      ))}
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {cells.map((c) => {
+        const Icon = c.icon;
+        return (
+          <div
+            key={c.label}
+            className="flex items-center gap-3 rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-4 shadow-sm"
+          >
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Icon className="h-5 w-5" aria-hidden />
+            </span>
+            <div>
+              <p className="text-2xl font-bold tabular-nums text-primary">{c.value}</p>
+              <p className="text-xs font-medium text-on-surface-variant">{c.label}</p>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -132,7 +147,7 @@ export function UpcomingWidget({ result }: { result: WidgetResult<ScheduleItem[]
     );
   }
   return (
-    <WidgetShell title={t("title")} href="/doctor/schedule">
+    <WidgetShell title={t("title")} href="/doctor/schedule" hrefLabel={t("viewAll")}>
       <ul className="divide-y divide-outline-variant/15">
         {result.data.map((appt) => (
           <li key={appt.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
@@ -212,13 +227,13 @@ export function NotificationsWidget({
   }
   if (result.data.items.length === 0) {
     return (
-      <WidgetShell title={t("title")} href="/doctor/notifications">
+      <WidgetShell title={t("title")} href="/doctor/notifications" hrefLabel={t("viewAll")}>
         <EmptyState title={t("emptyTitle")} />
       </WidgetShell>
     );
   }
   return (
-    <WidgetShell title={t("title")} href="/doctor/notifications">
+    <WidgetShell title={t("title")} href="/doctor/notifications" hrefLabel={t("viewAll")}>
       <ul className="divide-y divide-outline-variant/15">
         {result.data.items.map((n) => (
           <li key={n.id} className="py-3 first:pt-0 last:pb-0">
@@ -235,29 +250,19 @@ export function NotificationsWidget({
 
 export function QuickActions() {
   const t = useTranslations("doctor.dashboard.quickActions");
-  const actions = [
-    { href: "/doctor/queue", label: t("queue"), icon: ListChecks },
-    { href: "/doctor/prescriptions/new", label: t("newRx"), icon: Pill },
-    { href: "/doctor/labs", label: t("labs"), icon: FlaskConical },
-    { href: "/doctor/ai", label: t("ai"), icon: Bot },
-    { href: "/doctor/patients", label: t("patients"), icon: Users },
-    { href: "/doctor/schedule", label: t("schedule"), icon: CalendarDays },
-  ];
   return (
-    <section aria-label={t("title")} className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-      {actions.map((a) => {
-        const Icon = a.icon;
-        return (
-          <Link
-            key={a.href}
-            href={a.href}
-            className="glass-card flex flex-col items-center gap-2 rounded-2xl border border-outline-variant/20 bg-surface-container-low p-4 text-center transition-colors hover:bg-surface-container-high"
-          >
-            <Icon className="h-6 w-6 text-med-green" aria-hidden />
-            <span className="text-xs font-medium text-primary">{a.label}</span>
-          </Link>
-        );
-      })}
+    <section aria-label={t("title")} className="space-y-4">
+      <h2 className="font-headline text-lg text-primary">{t("title")}</h2>
+      <ActionTiles
+        actions={[
+          { href: "/doctor/queue", label: t("queue"), icon: ListChecks },
+          { href: "/doctor/prescriptions", label: t("newRx"), icon: Pill },
+          { href: "/doctor/labs", label: t("labs"), icon: FlaskConical },
+          { href: "/doctor/ai", label: t("ai"), icon: Bot },
+          { href: "/doctor/patients", label: t("patients"), icon: Users },
+          { href: "/doctor/schedule", label: t("schedule"), icon: CalendarDays },
+        ]}
+      />
     </section>
   );
 }

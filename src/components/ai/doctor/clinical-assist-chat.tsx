@@ -113,7 +113,22 @@ export function ClinicalAssistChat({
         aria-live="polite"
       >
         {localMessages.length === 0 && !chat.streamingText ? (
-          <p className="text-sm text-on-surface-variant">{t("emptyChat")}</p>
+          <div className="space-y-3">
+            <p className="text-sm text-on-surface-variant">{t("emptyChat")}</p>
+            <div className="flex flex-wrap gap-2">
+              {[t("suggestSymptoms"), t("suggestMeds"), t("suggestFollowup")].map((prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  disabled={chat.pending}
+                  onClick={() => void send(prompt)}
+                  className="rounded-full border border-outline-variant/30 px-3 py-1.5 text-start text-xs font-semibold text-primary hover:bg-surface-container-high"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </div>
         ) : (
           localMessages.map((m) => (
             <div key={m.id} className="space-y-1">

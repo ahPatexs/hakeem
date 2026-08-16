@@ -46,6 +46,7 @@ export interface DoctorSummary {
   yearsExperience: number | null;
   isAvailable: boolean;
   rating?: number;
+  ratingCount?: number;
   bioSnippet?: string;
 }
 

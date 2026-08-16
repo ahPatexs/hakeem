@@ -51,3 +51,26 @@ export function canReschedule(
   if (appointment.status !== "CONFIRMED") return false;
   return appointment.startAt.getTime() - now.getTime() > CANCEL_WINDOW_MS;
 }
+
+export function isValidRatingScore(score: number): boolean {
+  return Number.isInteger(score) && score >= 1 && score <= 5;
+}
+
+export function canRateAppointmentStatus(status: string): boolean {
+  return status === "COMPLETED";
+}
+
+export function aggregateRatingScores(scores: number[]): { avg: number; count: number } {
+  if (scores.length === 0) return { avg: 0, count: 0 };
+  const sum = scores.reduce((acc, n) => acc + n, 0);
+  return { avg: Math.round((sum / scores.length) * 10) / 10, count: scores.length };
+}
+
+export function compareByRatingThenName<T extends { ratingAvg: number; ratingCount: number; nameEn: string }>(
+  a: T,
+  b: T,
+): number {
+  if (b.ratingAvg !== a.ratingAvg) return b.ratingAvg - a.ratingAvg;
+  if (b.ratingCount !== a.ratingCount) return b.ratingCount - a.ratingCount;
+  return a.nameEn.localeCompare(b.nameEn);
+}

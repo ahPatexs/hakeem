@@ -1,9 +1,9 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { FeaturedDoctors } from "@/components/sections/featured-doctors";
 import { SearchFilters } from "@/components/doctors/search-filters";
-import { getContentProvider } from "@/content/factory";
 import { buildMetadata } from "@/lib/seo";
 import type { Locale, DoctorSummary } from "@/content/types";
+import { mapDoctorSummary } from "@/content/mappers";
 
 export async function generateMetadata({
   params,
@@ -100,19 +100,16 @@ export default async function DoctorsPage({
   let items: DoctorSummary[] = [];
   if (bookable.ok) {
     if (bookable.data.items.length > 0) {
-      const result = await getContentProvider().listDoctors({
-        locale,
-        pageSize: 12,
-        q: q || undefined,
-        specialty: specialtySlugs.length ? specialtySlugs.join(",") : undefined,
-      });
-      const bookableIds = new Set(bookable.data.items.map((hit) => hit.doctorId));
+      const hitIds = bookable.data.items.map((hit) => hit.doctorId);
       const doctors = await prisma.doctor.findMany({
-        where: { id: { in: [...bookableIds] } },
-        select: { slug: true },
+        where: { id: { in: hitIds } },
+        include: { specialty: true },
       });
-      const bookableSlugs = new Set(doctors.map((d) => d.slug));
-      items = result.items.filter((d) => bookableSlugs.has(d.slug));
+      const byId = new Map(doctors.map((d) => [d.id, d]));
+      items = hitIds
+        .map((id) => byId.get(id))
+        .filter((row): row is NonNullable<typeof row> => Boolean(row))
+        .map((row) => mapDoctorSummary(row, locale));
     }
   }
   // !bookable.ok (including RATE_LIMITED and other failures): keep items empty — no CMS bypass.

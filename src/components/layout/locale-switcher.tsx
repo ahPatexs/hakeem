@@ -3,6 +3,7 @@
 import { useLocale } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
+import { segmentedOptionClass, segmentedTrackClass } from "@/components/portal/chrome";
 
 export function LocaleSwitcher({ className }: { className?: string }) {
   const locale = useLocale();
@@ -15,23 +16,11 @@ export function LocaleSwitcher({ className }: { className?: string }) {
   }
 
   return (
-    <div
-      className={cn(
-        "inline-flex items-center rounded-full border border-outline-variant/40 bg-surface-container-low p-0.5 text-xs font-semibold",
-        className,
-      )}
-      role="group"
-      aria-label="Language"
-    >
+    <div className={cn(segmentedTrackClass, className)} role="group" aria-label="Language">
       <button
         type="button"
         onClick={() => switchTo("en")}
-        className={cn(
-          "rounded-full px-2.5 py-1 transition-colors",
-          locale === "en"
-            ? "bg-primary text-on-primary shadow-sm"
-            : "text-on-surface-variant hover:text-primary",
-        )}
+        className={segmentedOptionClass(locale === "en")}
         aria-pressed={locale === "en"}
         aria-label="English"
       >
@@ -40,12 +29,7 @@ export function LocaleSwitcher({ className }: { className?: string }) {
       <button
         type="button"
         onClick={() => switchTo("ar")}
-        className={cn(
-          "rounded-full px-2.5 py-1 transition-colors",
-          locale === "ar"
-            ? "bg-primary text-on-primary shadow-sm"
-            : "text-on-surface-variant hover:text-primary",
-        )}
+        className={segmentedOptionClass(locale === "ar")}
         aria-pressed={locale === "ar"}
         aria-label="العربية"
       >

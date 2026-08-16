@@ -6,7 +6,7 @@ import { auditDoctorEvent } from "@/lib/doctor/phi-audit";
 export type WidgetResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
 export type ScheduleItem = Appointment & {
-  patient: Pick<User, "id" | "name" | "email">;
+  patient: Pick<User, "id" | "name" | "email" | "image">;
 };
 
 export type PendingNote = SoapNote & {
@@ -19,6 +19,8 @@ export interface DoctorDashboardStats {
   inQueue: number;
   pendingNotes: number;
   weekUpcoming: number;
+  ratingAvg: number;
+  ratingCount: number;
 }
 
 export interface DoctorDashboardBundle {
@@ -37,7 +39,7 @@ function dayRange(now = new Date()): { start: Date; end: Date } {
   return { start, end };
 }
 
-const PATIENT_SELECT = { select: { id: true, name: true, email: true } } as const;
+const PATIENT_SELECT = { select: { id: true, name: true, email: true, image: true } } as const;
 
 async function loadToday(doctorId: string): Promise<{ items: ScheduleItem[]; total: number }> {
   const { start, end } = dayRange();
@@ -77,7 +79,7 @@ async function loadStats(doctorId: string): Promise<DoctorDashboardStats> {
   const weekEnd = new Date(end);
   weekEnd.setDate(weekEnd.getDate() + 7);
 
-  const [todayTotal, todayCompleted, inQueue, pendingNotes, weekUpcoming] = await Promise.all([
+  const [todayTotal, todayCompleted, inQueue, pendingNotes, weekUpcoming, doctor] = await Promise.all([
     prisma.appointment.count({
       where: { doctorId, startAt: { gte: start, lt: end }, status: { notIn: ["HELD", "RESCHEDULED"] } },
     }),
@@ -91,9 +93,21 @@ async function loadStats(doctorId: string): Promise<DoctorDashboardStats> {
     prisma.appointment.count({
       where: { doctorId, startAt: { gte: end, lt: weekEnd }, status: { in: ["CONFIRMED", "CHECKED_IN"] } },
     }),
+    prisma.doctor.findUnique({
+      where: { id: doctorId },
+      select: { ratingAvg: true, ratingCount: true },
+    }),
   ]);
 
-  return { todayTotal, todayCompleted, inQueue, pendingNotes, weekUpcoming };
+  return {
+    todayTotal,
+    todayCompleted,
+    inQueue,
+    pendingNotes,
+    weekUpcoming,
+    ratingAvg: doctor?.ratingAvg ?? 0,
+    ratingCount: doctor?.ratingCount ?? 0,
+  };
 }
 
 async function loadPendingNotes(doctorId: string): Promise<PendingNote[]> {

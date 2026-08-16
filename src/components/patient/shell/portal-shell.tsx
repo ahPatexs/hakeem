@@ -8,12 +8,14 @@ export function PortalShell({
   header,
   unreadCount = 0,
   displayName,
+  photoUrl,
   className,
 }: {
   children: React.ReactNode;
   header?: React.ReactNode;
   unreadCount?: number;
   displayName?: string;
+  photoUrl?: string | null;
   className?: string;
 }) {
   return (
@@ -24,7 +26,7 @@ export function PortalShell({
           <PortalMobileNav />
           <div className="min-w-0 flex-1">{header}</div>
           {displayName ? (
-            <PatientHeaderActions unreadCount={unreadCount} displayName={displayName} />
+            <PatientHeaderActions unreadCount={unreadCount} displayName={displayName} photoUrl={photoUrl} />
           ) : null}
         </header>
         <div className="flex-1 px-4 py-6 lg:px-8 lg:py-8">{children}</div>

@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { withDoctor } from "./_helpers";
 import { updateDoctorProfileSchema, updateDoctorSettingsSchema } from "@/lib/doctor/schemas";
+import { AuthDomainError } from "@/auth/errors";
+import { storeDoctorPhoto } from "@/lib/platform/image";
 import type { z } from "zod";
 
 export async function getDoctorProfile() {
@@ -22,6 +24,8 @@ export async function getDoctorProfile() {
           titleAr: true,
           photoUrl: true,
           yearsExperience: true,
+          ratingAvg: true,
+          ratingCount: true,
           specialty: { select: { nameEn: true, nameAr: true } },
         },
       }),
@@ -50,22 +54,65 @@ export async function updateDoctorProfile(raw: z.input<typeof updateDoctorProfil
   });
 }
 
-export async function updateDoctorSettings(raw: z.input<typeof updateDoctorSettingsSchema>) {
-  const input = updateDoctorSettingsSchema.parse(raw);
+function isPhotoFile(value: FormDataEntryValue | null): value is File {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      "arrayBuffer" in value &&
+      "size" in value &&
+      typeof (value as File).size === "number" &&
+      (value as File).size > 0,
+  );
+}
+
+export async function uploadDoctorPhoto(formData: FormData) {
   return withDoctor(async (ctx) => {
-    const data = {
-      ...(input.locale ? { locale: input.locale } : {}),
-      ...(input.theme ? { theme: input.theme } : {}),
-      ...(input.notifyAppointmentEmail !== undefined ? { notifyAppointmentEmail: input.notifyAppointmentEmail } : {}),
-      ...(input.notifyClinicalEmail !== undefined ? { notifyClinicalEmail: input.notifyClinicalEmail } : {}),
-      ...(input.notifyPrescriptionEmail !== undefined ? { notifyPrescriptionEmail: input.notifyPrescriptionEmail } : {}),
-      ...(input.notifyPaymentEmail !== undefined ? { notifyPaymentEmail: input.notifyPaymentEmail } : {}),
-      ...(input.notifySystemEmail !== undefined ? { notifySystemEmail: input.notifySystemEmail } : {}),
-    };
+    const file = formData.get("photo");
+    if (!isPhotoFile(file)) {
+      throw new AuthDomainError("VALIDATION_ERROR", "Photo file is required");
+    }
+    const body = Buffer.from(await file.arrayBuffer());
+    const stored = await storeDoctorPhoto({
+      doctorId: ctx.doctorId,
+      fileName: file.name || "photo.jpg",
+      contentType: file.type,
+      body,
+    });
+    await prisma.doctor.update({
+      where: { id: ctx.doctorId },
+      data: { photoUrl: stored.photoUrl },
+    });
+    revalidatePath("/[locale]/doctor", "layout");
+    revalidatePath("/[locale]/doctors", "page");
+    revalidatePath("/[locale]/patient", "layout");
+    return { photoUrl: stored.photoUrl };
+  });
+}
+
+export async function updateDoctorSettings(raw: z.input<typeof updateDoctorSettingsSchema>) {
+  const parsed = updateDoctorSettingsSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
+  const input = parsed.data;
+  return withDoctor(async (ctx) => {
     await prisma.portalSettings.upsert({
       where: { userId: ctx.userId },
-      update: data,
-      create: { userId: ctx.userId, ...data },
+      update: {
+        locale: input.locale,
+        theme: input.theme,
+        notifyAppointmentEmail: input.notifyAppointmentEmail,
+        notifyClinicalEmail: input.notifyClinicalEmail,
+        notifyPrescriptionEmail: input.notifyPrescriptionEmail,
+        notifySystemEmail: input.notifySystemEmail,
+      },
+      create: {
+        userId: ctx.userId,
+        locale: input.locale,
+        theme: input.theme,
+        notifyAppointmentEmail: input.notifyAppointmentEmail,
+        notifyClinicalEmail: input.notifyClinicalEmail,
+        notifyPrescriptionEmail: input.notifyPrescriptionEmail,
+        notifySystemEmail: input.notifySystemEmail,
+      },
     });
     revalidatePath("/[locale]/doctor", "layout");
     return { saved: true };

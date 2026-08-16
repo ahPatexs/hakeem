@@ -33,6 +33,7 @@ function doctors(locale: Locale): DoctorSummary[] {
       yearsExperience: 15,
       isAvailable: true,
       rating: 4.9,
+      ratingCount: 24,
       bioSnippet: ar
         ? "متخصص في إجراءات القلب طفيفة التوغل والوقاية من أمراض القلب."
         : "Specializing in minimally invasive cardiac procedures and preventive heart health.",
@@ -47,6 +48,7 @@ function doctors(locale: Locale): DoctorSummary[] {
       yearsExperience: 12,
       isAvailable: true,
       rating: 5.0,
+      ratingCount: 18,
       bioSnippet: ar
         ? "خبيرة في التشخيص العصبي وعلاج الاضطرابات المعرفية."
         : "Expert in neuro-diagnostics and advanced treatment for cognitive disorders.",
@@ -61,6 +63,7 @@ function doctors(locale: Locale): DoctorSummary[] {
       yearsExperience: 15,
       isAvailable: true,
       rating: 4.8,
+      ratingCount: 11,
       bioSnippet: ar
         ? "متفانٍ في صحة ونمو الأطفال مع أكثر من 15 عاماً من الخبرة."
         : "Dedicated to child wellness and development with over 15 years of experience.",
@@ -98,6 +101,7 @@ export class StaticContentProvider implements ContentProvider {
     if (params.availableOnly) {
       items = items.filter((d) => d.isAvailable);
     }
+    items = [...items].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     const start = (page - 1) * pageSize;
     return {
       items: items.slice(start, start + pageSize),

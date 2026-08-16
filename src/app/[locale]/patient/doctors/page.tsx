@@ -33,6 +33,7 @@ export default async function DoctorsPage({
   return (
     <div className="space-y-6">
       <h1 className="font-headline text-2xl text-primary">{t("title")}</h1>
+      <p className="text-sm text-on-surface-variant">{t("sortHint")}</p>
       <DoctorSearch
         doctors={doctorsResult.data.items}
         total={doctorsResult.data.total}

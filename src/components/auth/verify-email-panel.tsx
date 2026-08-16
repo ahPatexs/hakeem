@@ -6,7 +6,7 @@ import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { AuthAlert } from "@/components/auth/auth-alert";
 import { AuthField } from "@/components/auth/auth-field";
-import { verifyEmail, resendVerificationEmail } from "@/actions/auth/verify-email";
+import { peekLocalVerification, verifyEmail, resendVerificationEmail } from "@/actions/auth/verify-email";
 
 export function VerifyEmailPanel({
   token,
@@ -21,6 +21,19 @@ export function VerifyEmailPanel({
   const [message, setMessage] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [pending, startTransition] = useTransition();
+  const [localLink, setLocalLink] = useState<string | null>(null);
+
+  function loadLocalInbox(address: string) {
+    startTransition(async () => {
+      const peek = await peekLocalVerification({ email: address });
+      if (peek.ok) setLocalLink(peek.data?.link ?? null);
+    });
+  }
+
+  useEffect(() => {
+    if (email && !token) loadLocalInbox(email);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- load once when landing from register
+  }, [email, token]);
 
   useEffect(() => {
     if (!token) return;
@@ -52,6 +65,8 @@ export function VerifyEmailPanel({
       }
       setStatus("success");
       setMessage(result.message ?? t("verifyResent"));
+      const peek = await peekLocalVerification({ email: value });
+      if (peek.ok) setLocalLink(peek.data?.link ?? null);
     });
   }
 
@@ -62,6 +77,17 @@ export function VerifyEmailPanel({
       ) : (
         <AuthAlert variant="info">{token ? t("verifying") : t("verifyPending")}</AuthAlert>
       )}
+
+      {localLink && status !== "success" ? (
+        <div className="rounded-2xl border border-white/20 bg-white/10 p-4 text-sm text-white">
+          <p className="font-semibold">{t("localInboxTitle")}</p>
+          <p className="mt-1 text-white/80">{t("localInboxHint")}</p>
+          <Button asChild variant="auth" className="mt-3 w-full">
+            <a href={localLink}>{t("localInboxOpen")}</a>
+          </Button>
+        </div>
+      ) : null}
+
       {status === "success" && token ? (
         <Button asChild variant="auth" className="w-full">
           <Link href="/login">{t("signIn")}</Link>

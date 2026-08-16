@@ -19,9 +19,9 @@ export function WidgetShell({
     <section className={cn(portalCardClass, "glass-card p-5 md:p-6", className)}>
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="font-headline text-lg text-on-surface md:text-xl">{title}</h2>
-        {href ? (
+        {href && hrefLabel ? (
           <Link href={href} className="shrink-0 text-sm font-semibold text-primary hover:underline">
-            {hrefLabel ?? "View all"}
+            {hrefLabel}
           </Link>
         ) : null}
       </div>

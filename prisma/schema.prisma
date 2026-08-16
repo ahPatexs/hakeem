@@ -65,6 +65,8 @@ model Doctor {
   credentialsEn    String[]
   credentialsAr    String[]
   isAvailable      Boolean       @default(true)
+  ratingAvg        Float         @default(0)
+  ratingCount      Int           @default(0)
   metaDescEn       String?
   metaDescAr       String?
   specialtyId      String
@@ -75,9 +77,36 @@ model Doctor {
   appointments     Appointment[]
   medicalRecords   MedicalRecord[]
   prescriptions    Prescription[]
+  weeklyHours      DoctorWeeklyHours[]
+  unavailableDays  DoctorUnavailableDay[]
+  ratings          DoctorRating[]
 
   @@index([status, specialtyId])
   @@index([status, isAvailable])
+}
+
+model DoctorWeeklyHours {
+  id           String @id @default(cuid())
+  doctorId     String
+  weekday      Int
+  startMinutes Int
+  endMinutes   Int
+  timezone     String @default("Asia/Riyadh")
+  doctor       Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@unique([doctorId, weekday])
+  @@index([doctorId])
+}
+
+model DoctorUnavailableDay {
+  id       String   @id @default(cuid())
+  doctorId String
+  date     DateTime @db.Date
+  reason   String?
+  doctor   Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@unique([doctorId, date])
+  @@index([doctorId])
 }
 
 model Author {
@@ -326,6 +355,7 @@ model User {
   aiDraftsAsDoctor   AiDraftArtifact[] @relation("AiDraftDoctor")
   aiDraftsAsPatient  AiDraftArtifact[] @relation("AiDraftPatient")
   aiFeedback         AiFeedback[]
+  doctorRatings      DoctorRating[] @relation("PatientDoctorRatings")
 
   @@index([role, status])
   @@index([doctorApproval])
@@ -699,6 +729,7 @@ model Appointment {
   videoSession      VideoSession?
   aiSymptomSessions AiSymptomSession[]
   aiDrafts          AiDraftArtifact[]
+  rating            DoctorRating?
 
   @@index([patientUserId, startAt])
   @@index([doctorId, startAt])
@@ -1175,9 +1206,30 @@ model SearchDoctorProjection {
   isBookable   Boolean  @default(false)
   isPublished  Boolean  @default(false)
   searchText   String
+  ratingAvg    Float    @default(0)
+  ratingCount  Int      @default(0)
   indexedAt    DateTime @default(now())
 
   @@index([isBookable, isPublished])
+  @@index([ratingAvg, ratingCount])
+}
+
+/** One patient rating per completed visit; doctor.ratingAvg is recomputed from these rows. */
+model DoctorRating {
+  id              String   @id @default(cuid())
+  doctorId        String
+  patientUserId   String
+  appointmentId   String   @unique
+  score           Int
+  comment         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  doctor          Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patient         User     @relation("PatientDoctorRatings", fields: [patientUserId], references: [id], onDelete: Cascade)
+  appointment     Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId, createdAt])
+  @@index([patientUserId])
 }
 
 model PushDeviceRegistration {

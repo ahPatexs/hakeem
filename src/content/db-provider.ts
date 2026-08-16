@@ -77,12 +77,20 @@ export class DbContentProvider implements ContentProvider {
       prisma.doctor.findMany({
         where,
         include: { specialty: true },
-        orderBy: [{ publishedAt: "desc" }, { nameEn: "asc" }],
-        skip: (page - 1) * pageSize,
-        take: pageSize,
+        orderBy: [{ nameEn: "asc" }],
       }),
     ]);
-    return { items: rows.map((row) => mapDoctorSummary(row, params.locale)), total, page, pageSize };
+    const ranked = [...rows].sort((a, b) => {
+      const avgA = a.ratingAvg ?? 0;
+      const avgB = b.ratingAvg ?? 0;
+      if (avgB !== avgA) return avgB - avgA;
+      const countA = a.ratingCount ?? 0;
+      const countB = b.ratingCount ?? 0;
+      if (countB !== countA) return countB - countA;
+      return a.nameEn.localeCompare(b.nameEn);
+    });
+    const pageRows = ranked.slice((page - 1) * pageSize, page * pageSize);
+    return { items: pageRows.map((row) => mapDoctorSummary(row, params.locale)), total, page, pageSize };
   }
 
   async getDoctor(slug: string, locale: Locale): Promise<DoctorDetail | null> {

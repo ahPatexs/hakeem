@@ -14,6 +14,7 @@ type Props = {
   needsConsent?: boolean;
   pending?: boolean;
   error?: string | null;
+  demoHint?: boolean;
 };
 
 export function VideoWaitingRoom({
@@ -25,6 +26,7 @@ export function VideoWaitingRoom({
   needsConsent,
   pending,
   error,
+  demoHint,
 }: Props) {
   const t = useTranslations("platform.video");
 
@@ -35,6 +37,11 @@ export function VideoWaitingRoom({
         <p className="mt-2 text-sm text-on-surface-variant">
           {role === "doctor" ? t("waitingDoctorHint") : t("waitingPatientHint")}
         </p>
+        {demoHint ? (
+          <p className="mt-2 text-sm font-medium text-primary" role="status">
+            {t("demoWaitingHint")}
+          </p>
+        ) : null}
       </header>
 
       <CameraPreview deviceId={devices.videoInputId} />

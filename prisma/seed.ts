@@ -487,6 +487,73 @@ async function seedPublicMarketingContent(): Promise<void> {
   });
 }
 
+async function recomputeSeedDoctorRating(doctorId: string) {
+  const agg = await prisma.doctorRating.aggregate({
+    where: { doctorId },
+    _avg: { score: true },
+    _count: { _all: true },
+  });
+  const count = agg._count._all;
+  const avg = count === 0 ? 0 : Math.round((agg._avg.score ?? 0) * 10) / 10;
+  await prisma.doctor.update({
+    where: { id: doctorId },
+    data: { ratingAvg: avg, ratingCount: count },
+  });
+  await prisma.searchDoctorProjection.updateMany({
+    where: { doctorId },
+    data: { ratingAvg: avg, ratingCount: count },
+  });
+}
+
+/** Completed-visit ratings so search sort and public cards use real averages. */
+async function seedDoctorRatings(patientUserId: string) {
+  const doctors = await prisma.doctor.findMany({
+    where: { status: "PUBLISHED", NOT: { slug: { startsWith: "dr-qa-" } } },
+    select: { id: true },
+    take: 8,
+  });
+  const scores = [5, 4, 5, 3, 4, 5, 2, 4];
+  const past = new Date();
+  past.setDate(past.getDate() - 21);
+
+  for (let i = 0; i < doctors.length; i++) {
+    const doctorId = doctors[i]!.id;
+    const score = scores[i % scores.length]!;
+    let appt = await prisma.appointment.findFirst({
+      where: { patientUserId, doctorId, status: "COMPLETED" },
+    });
+    if (!appt) {
+      const startAt = new Date(past.getTime() - i * 86_400_000);
+      appt = await prisma.appointment.create({
+        data: {
+          patientUserId,
+          doctorId,
+          mode: "IN_PERSON",
+          status: "COMPLETED",
+          startAt,
+          endAt: new Date(startAt.getTime() + 30 * 60 * 1000),
+          completedAt: startAt,
+          reason: "Completed visit (rating seed)",
+        },
+      });
+    }
+    await prisma.doctorRating.upsert({
+      where: { appointmentId: appt.id },
+      create: {
+        doctorId,
+        patientUserId,
+        appointmentId: appt.id,
+        score,
+      },
+      update: { score },
+    });
+  }
+
+  for (const doctor of doctors) {
+    await recomputeSeedDoctorRating(doctor.id);
+  }
+}
+
 async function main() {
   const cardiology = await prisma.specialty.upsert({
     where: { slug: "cardiology" },
@@ -868,13 +935,13 @@ async function main() {
         role: "DOCTOR",
         status: "ACTIVE",
         emailVerified: new Date(),
-        name: "Demo Doctor",
+        name: publishedDoctor.nameEn,
         doctorProfileId: publishedDoctor.id,
         doctorApproval: "APPROVED",
       },
       create: {
         email: doctorEmail,
-        name: "Demo Doctor",
+        name: publishedDoctor.nameEn,
         passwordHash: doctorHash,
         role: "DOCTOR",
         status: "ACTIVE",
@@ -892,18 +959,31 @@ async function main() {
         create: { userId: doctorUser.id, locale: "EN" },
       });
 
-      const todayStart = new Date();
-      todayStart.setHours(9, 0, 0, 0);
-      const todayEnd = new Date(todayStart.getTime() + 30 * 60 * 1000);
+      const dayStart = new Date();
+      dayStart.setHours(0, 0, 0, 0);
+
+      await prisma.appointment.updateMany({
+        where: {
+          patientUserId: patient.id,
+          doctorId: publishedDoctor.id,
+          status: { in: ["HELD", "CONFIRMED", "CHECKED_IN", "IN_PROGRESS"] },
+          startAt: { lt: dayStart },
+        },
+        data: { status: "COMPLETED", completedAt: new Date() },
+      });
+
       const existingToday = await prisma.appointment.findFirst({
         where: {
           patientUserId: patient.id,
           doctorId: publishedDoctor.id,
           status: { in: ["CHECKED_IN", "CONFIRMED", "IN_PROGRESS"] },
-          startAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
+          startAt: { gte: dayStart },
         },
       });
       if (!existingToday) {
+        const todayStart = new Date();
+        todayStart.setHours(9, 0, 0, 0);
+        const todayEnd = new Date(todayStart.getTime() + 30 * 60 * 1000);
         await prisma.appointment.create({
           data: {
             patientUserId: patient.id,
@@ -916,6 +996,38 @@ async function main() {
             reason: "Follow-up consultation (demo)",
           },
         });
+      }
+
+      const futureSlots = [
+        { days: 1, hour: 10, minute: 0, reason: "General consultation" },
+        { days: 3, hour: 9, minute: 0, reason: "Follow-up consultation" },
+      ];
+      for (const slot of futureSlots) {
+        const startAt = new Date();
+        startAt.setDate(startAt.getDate() + slot.days);
+        startAt.setHours(slot.hour, slot.minute, 0, 0);
+        const endAt = new Date(startAt.getTime() + 30 * 60 * 1000);
+        const existingFuture = await prisma.appointment.findFirst({
+          where: {
+            patientUserId: patient.id,
+            doctorId: publishedDoctor.id,
+            status: "CONFIRMED",
+            startAt: { gte: startAt, lt: new Date(startAt.getTime() + 60 * 60 * 1000) },
+          },
+        });
+        if (!existingFuture) {
+          await prisma.appointment.create({
+            data: {
+              patientUserId: patient.id,
+              doctorId: publishedDoctor.id,
+              mode: "VIDEO",
+              status: "CONFIRMED",
+              startAt,
+              endAt,
+              reason: slot.reason,
+            },
+          });
+        }
       }
 
       await prisma.notification.create({
@@ -939,30 +1051,36 @@ async function main() {
           summary: "Awaiting physician review (demo)",
         },
       }).catch(() => undefined);
+
+      const clinicHours = [0, 1, 2, 3, 4].map((weekday) => ({
+        weekday,
+        startMinutes: 9 * 60,
+        endMinutes: 17 * 60,
+        timezone: "Asia/Riyadh",
+      }));
+      for (const window of clinicHours) {
+        await prisma.doctorWeeklyHours.upsert({
+          where: {
+            doctorId_weekday: { doctorId: publishedDoctor.id, weekday: window.weekday },
+          },
+          update: {
+            startMinutes: window.startMinutes,
+            endMinutes: window.endMinutes,
+            timezone: window.timezone,
+          },
+          create: {
+            doctorId: publishedDoctor.id,
+            weekday: window.weekday,
+            startMinutes: window.startMinutes,
+            endMinutes: window.endMinutes,
+            timezone: window.timezone,
+          },
+        });
+      }
     }
   }
 
   if (publishedDoctor) {
-    const startAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
-    startAt.setHours(10, 0, 0, 0);
-    const endAt = new Date(startAt.getTime() + 30 * 60 * 1000);
-    const existing = await prisma.appointment.findFirst({
-      where: { patientUserId: patient.id, status: "CONFIRMED" },
-    });
-    if (!existing) {
-      await prisma.appointment.create({
-        data: {
-          patientUserId: patient.id,
-          doctorId: publishedDoctor.id,
-          mode: "VIDEO",
-          status: "CONFIRMED",
-          startAt,
-          endAt,
-          reason: "General consultation",
-        },
-      });
-    }
-
     timelinePrescriptionSeed = await prisma.prescription.create({
       data: {
         patientUserId: patient.id,
@@ -1184,6 +1302,8 @@ async function main() {
       },
     });
   }
+
+  await seedDoctorRatings(patient.id);
 
   // ── AI Healthcare Platform Module 7 (T004) ───────────────────────────────
   await seedAiModuleDefaults();

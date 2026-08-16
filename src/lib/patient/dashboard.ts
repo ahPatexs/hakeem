@@ -9,6 +9,7 @@ import type {
 import { prisma } from "@/lib/prisma";
 import { isActivePrescription } from "@/domain/patient/prescriptions";
 import { auditPhiAccess } from "@/lib/patient/phi-audit";
+import { patientUpcomingWhere } from "@/lib/patient/appointment-queries";
 
 export const DASHBOARD_CAPS = {
   upcomingAppointments: 3,
@@ -26,7 +27,10 @@ export type UpcomingAppointment = Appointment & {
   doctor: Pick<Doctor, "id" | "slug" | "nameEn" | "nameAr" | "photoUrl">;
 };
 
-export type RecentDoctor = Pick<Doctor, "id" | "slug" | "nameEn" | "nameAr" | "photoUrl" | "titleEn" | "titleAr">;
+export type RecentDoctor = Pick<
+  Doctor,
+  "id" | "slug" | "nameEn" | "nameAr" | "photoUrl" | "titleEn" | "titleAr" | "ratingAvg" | "ratingCount"
+>;
 
 export interface DashboardBundle {
   upcoming: WidgetResult<UpcomingAppointment[]>;
@@ -38,13 +42,8 @@ export interface DashboardBundle {
 }
 
 async function loadUpcoming(userId: string): Promise<UpcomingAppointment[]> {
-  const now = new Date();
   return prisma.appointment.findMany({
-    where: {
-      patientUserId: userId,
-      status: { in: ["HELD", "CONFIRMED", "IN_PROGRESS"] },
-      OR: [{ status: "HELD" }, { startAt: { gte: now } }],
-    },
+    where: patientUpcomingWhere(userId),
     orderBy: { startAt: "asc" },
     take: DASHBOARD_CAPS.upcomingAppointments,
     include: {
@@ -87,6 +86,8 @@ async function loadRecentDoctors(userId: string): Promise<RecentDoctor[]> {
       photoUrl: true,
       titleEn: true,
       titleAr: true,
+      ratingAvg: true,
+      ratingCount: true,
     },
   });
 

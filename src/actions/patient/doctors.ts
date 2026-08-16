@@ -3,8 +3,8 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { withPatient } from "@/actions/patient/_helpers";
-import { generateStubAvailability } from "@/lib/patient/availability-stub";
 import { searchDoctors as platformSearchDoctors } from "@/lib/platform/search";
+import { getDoctorAvailabilityByDoctorId } from "@/lib/patient/availability";
 
 const PAGE_SIZE = 20;
 
@@ -22,6 +22,7 @@ export async function searchDoctors(input: unknown) {
   return withPatient(async () => {
     const { q, specialty, page, locale = "ar" } = parsed.data;
 
+    // bookableOnly: unpublished / unapproved doctors are never offered.
     const result = await platformSearchDoctors({
       q,
       specialty,
@@ -75,8 +76,24 @@ export async function getDoctorBySlug(slug: string) {
       if (!refreshed?.isBookable) return null;
     }
 
-    const availability = generateStubAvailability();
+    const availability = await getDoctorAvailabilityByDoctorId(doctor.id);
     return { doctor, availability };
+  });
+}
+
+export async function getDoctorAvailability(input: unknown) {
+  const parsed = z.object({ slug: z.string().min(1) }).safeParse(input);
+  if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
+
+  return withPatient(async () => {
+    const doctor = await prisma.doctor.findFirst({
+      where: { slug: parsed.data.slug, status: "PUBLISHED" },
+      select: { id: true },
+    });
+    if (!doctor) {
+      return { slots: [], timezone: "Asia/Riyadh", unavailableReason: "NOT_BOOKABLE" as const };
+    }
+    return getDoctorAvailabilityByDoctorId(doctor.id);
   });
 }
 

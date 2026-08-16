@@ -1,11 +1,14 @@
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
+import { cookies } from "next/headers";
 import { Montserrat, Noto_Sans_Arabic } from "next/font/google";
 import { routing } from "@/i18n/routing";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { ChromeGate } from "@/components/layout/chrome-gate";
+import { ThemeScript } from "@/components/portal/theme-script";
+import { THEME_COOKIE } from "@/lib/platform/theme";
 import type { Locale } from "@/content/types";
 
 const montserrat = Montserrat({
@@ -36,14 +39,18 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
   const messages = await getMessages();
   const dir = locale === "ar" ? "rtl" : "ltr";
+  const themePref = (await cookies()).get(THEME_COOKIE)?.value;
+  const darkClass = themePref === "dark" ? "dark" : "";
 
   return (
     <html
       lang={locale}
       dir={dir}
-      className={`${montserrat.variable} ${notoArabic.variable}`}
+      suppressHydrationWarning
+      className={`${montserrat.variable} ${notoArabic.variable} ${darkClass}`.trim()}
     >
       <body className={locale === "ar" ? "font-arabic" : "font-sans"}>
+        <ThemeScript />
         <NextIntlClientProvider messages={messages}>
           <a
             href="#main-content"

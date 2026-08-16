@@ -1,13 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter, Link } from "@/i18n/routing";
-import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/routing";
 import { Pagination } from "@/components/patient/shared/pagination";
 import { EmptyState } from "@/components/patient/shared/empty-state";
 import { StatusBadge } from "@/components/patient/shared/status-badge";
-import { createPaymentIntent, markPaymentPaid } from "@/actions/patient/payments";
 import type { PaymentObligation, PaymentAttempt } from "@prisma/client";
 
 export function PaymentsList({
@@ -55,29 +52,6 @@ export function PaymentDetail({
   obligation: PaymentObligation & { attempts: PaymentAttempt[] };
 }) {
   const t = useTranslations("patient.payments");
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-
-  function handlePay() {
-    setError(null);
-    startTransition(async () => {
-      const intent = await createPaymentIntent({ obligationId: obligation.id });
-      if (!intent.ok) {
-        setError(t("payError"));
-        return;
-      }
-      const paid = await markPaymentPaid({
-        obligationId: obligation.id,
-        providerIntentId: intent.data.intent.providerIntentId,
-      });
-      if (!paid.ok) {
-        setError(t("payError"));
-        return;
-      }
-      router.refresh();
-    });
-  }
 
   return (
     <article className="glass-card space-y-4 rounded-2xl border border-outline-variant/20 p-6">
@@ -89,13 +63,7 @@ export function PaymentDetail({
         {(obligation.amountCents / 100).toFixed(2)} {obligation.currency}
       </p>
       {obligation.status === "PENDING" || obligation.status === "FAILED" ? (
-        <>
-          <p className="text-xs text-on-surface-variant">{t("stubPayNote")}</p>
-          {error ? <p className="text-sm text-red-600">{error}</p> : null}
-          <Button variant="soft" disabled={pending} onClick={handlePay}>
-            {pending ? t("paying") : t("payNow")}
-          </Button>
-        </>
+        <p className="text-sm text-on-surface-variant">{t("stubPayNote")}</p>
       ) : null}
     </article>
   );

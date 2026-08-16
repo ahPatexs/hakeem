@@ -11,11 +11,13 @@ export interface EmailSender {
 
 class ConsoleEmailSender implements EmailSender {
   async send(input: SendEmailInput): Promise<void> {
-    console.info("[email:dev]", {
+    console.info("\n[email:dev] No real inbox in local mode.\n", {
       to: input.to,
       subject: input.subject,
       text: input.text,
     });
+    const { writeDevInbox } = await import("@/lib/platform/dev-inbox");
+    writeDevInbox({ to: input.to, subject: input.subject, text: input.text });
   }
 }
 
@@ -53,11 +55,14 @@ class ResendEmailSender implements EmailSender {
  */
 class SmtpPlaceholderSender implements EmailSender {
   async send(input: SendEmailInput): Promise<void> {
-    console.info("[email:smtp]", {
+    console.info("[email:smtp] SMTP is not wired locally — using the on-screen inbox.", {
       host: process.env.SMTP_HOST,
       to: input.to,
       subject: input.subject,
+      text: input.text,
     });
+    const { writeDevInbox } = await import("@/lib/platform/dev-inbox");
+    writeDevInbox({ to: input.to, subject: input.subject, text: input.text });
   }
 }
 

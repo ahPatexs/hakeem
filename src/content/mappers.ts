@@ -25,6 +25,8 @@ export function mapDoctorSummary(row: DoctorWithSpecialty, locale: Locale): Doct
     languages: row.languages,
     yearsExperience: row.yearsExperience,
     isAvailable: row.isAvailable,
+    rating: (row.ratingCount ?? 0) > 0 ? Math.round((row.ratingAvg ?? 0) * 10) / 10 : undefined,
+    ratingCount: row.ratingCount ?? 0,
     bioSnippet: bio ? bio.slice(0, 160) : undefined,
   };
 }

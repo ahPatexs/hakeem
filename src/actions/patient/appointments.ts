@@ -2,18 +2,22 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import type { AppointmentStatus } from "@prisma/client";
 import { withPatient, withPatientMutation } from "@/actions/patient/_helpers";
 import {
   canCancel,
   canConfirmHold,
   canReschedule,
   computeHoldExpiresAt,
-  isHoldExpired,
+  canRateAppointmentStatus,
+  isValidRatingScore,
 } from "@/domain/patient/appointments";
 import { createNotification } from "@/lib/patient/notifications";
 import { auditPhiAccess } from "@/lib/patient/phi-audit";
 import { AuthDomainError } from "@/auth/errors";
+import { CareLoopError } from "@/domain/care-loop/errors";
+import { assertSlotIsOfferable } from "@/lib/patient/availability";
+import { notifyDoctorAppointmentConfirmed } from "@/lib/doctor/notification-triggers";
+import { patientHistoryWhere, patientUpcomingWhere } from "@/lib/patient/appointment-queries";
 
 const PAGE_SIZE = 20;
 
@@ -49,6 +53,7 @@ async function assertOwnAppointment(userId: string, id: string) {
       doctor: {
         select: { id: true, slug: true, nameEn: true, nameAr: true, photoUrl: true },
       },
+      rating: { select: { id: true, score: true, comment: true } },
     },
   });
   if (!appt) throw new AuthDomainError("FORBIDDEN", "Appointment not found");
@@ -72,33 +77,37 @@ export async function holdAppointmentSlot(input: unknown) {
     });
     if (!doctor) throw new AuthDomainError("FORBIDDEN", "Doctor not available");
 
-    const conflict = await prisma.appointment.findFirst({
-      where: {
-        doctorId,
-        status: { in: ["HELD", "CONFIRMED", "IN_PROGRESS"] },
-        startAt: { lt: end },
-        endAt: { gt: start },
-        OR: [{ status: "HELD", holdExpiresAt: { gt: new Date() } }, { status: { not: "HELD" } }],
-      },
-    });
-    if (conflict) throw new AuthDomainError("VALIDATION_ERROR", "Slot unavailable");
+    await assertSlotIsOfferable({ doctorId, startAt: start, endAt: end });
 
-    const appointment = await prisma.appointment.create({
-      data: {
-        patientUserId: userId,
-        doctorId,
-        mode,
-        status: "HELD",
-        startAt: start,
-        endAt: end,
-        holdExpiresAt: computeHoldExpiresAt(),
-        reason: reason ?? null,
-      },
-      include: {
-        doctor: {
-          select: { id: true, slug: true, nameEn: true, nameAr: true, photoUrl: true },
+    const appointment = await prisma.$transaction(async (tx) => {
+      const conflict = await tx.appointment.findFirst({
+        where: {
+          doctorId,
+          status: { in: ["HELD", "CONFIRMED", "CHECKED_IN", "IN_PROGRESS"] },
+          startAt: { lt: end },
+          endAt: { gt: start },
+          OR: [{ status: "HELD", holdExpiresAt: { gt: new Date() } }, { status: { not: "HELD" } }],
         },
-      },
+      });
+      if (conflict) throw new CareLoopError("SLOT_UNAVAILABLE");
+
+      return tx.appointment.create({
+        data: {
+          patientUserId: userId,
+          doctorId,
+          mode,
+          status: "HELD",
+          startAt: start,
+          endAt: end,
+          holdExpiresAt: computeHoldExpiresAt(),
+          reason: reason ?? null,
+        },
+        include: {
+          doctor: {
+            select: { id: true, slug: true, nameEn: true, nameAr: true, photoUrl: true },
+          },
+        },
+      });
     });
 
     return appointment;
@@ -132,6 +141,22 @@ export async function confirmAppointment(input: unknown) {
       body: `Your appointment on ${updated.startAt.toLocaleString()} is confirmed.`,
       href: `/patient/appointments/${updated.id}`,
     });
+
+    const doctorUser = await prisma.user.findFirst({
+      where: { doctorProfileId: updated.doctorId },
+      select: { id: true },
+    });
+    if (doctorUser) {
+      const patient = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { name: true, email: true },
+      });
+      await notifyDoctorAppointmentConfirmed(
+        doctorUser.id,
+        updated.id,
+        patient?.name ?? patient?.email ?? "Patient",
+      );
+    }
 
     return updated;
   });
@@ -180,6 +205,12 @@ export async function rescheduleAppointment(input: unknown) {
 
     const start = new Date(parsed.data.startAt);
     const end = new Date(parsed.data.endAt);
+    await assertSlotIsOfferable({
+      doctorId: appt.doctorId,
+      startAt: start,
+      endAt: end,
+      ignoreAppointmentIds: [appt.id],
+    });
 
     const [updated, created] = await prisma.$transaction([
       prisma.appointment.update({
@@ -222,12 +253,7 @@ export async function listUpcoming(input?: unknown) {
   if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
 
   return withPatient(async (userId) => {
-    const now = new Date();
-    const where = {
-      patientUserId: userId,
-      status: { in: ["HELD", "CONFIRMED", "IN_PROGRESS"] as AppointmentStatus[] },
-      OR: [{ status: "HELD" as const }, { startAt: { gte: now } }],
-    };
+    const where = patientUpcomingWhere(userId);
 
     const [items, total] = await Promise.all([
       prisma.appointment.findMany({
@@ -245,9 +271,7 @@ export async function listUpcoming(input?: unknown) {
     ]);
 
     return {
-      items: items.filter(
-        (a) => a.status !== "HELD" || !isHoldExpired(a.holdExpiresAt),
-      ),
+      items,
       total,
       page: parsed.data.page,
       pageSize: PAGE_SIZE,
@@ -260,10 +284,7 @@ export async function listHistory(input?: unknown) {
   if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
 
   return withPatient(async (userId) => {
-    const where = {
-      patientUserId: userId,
-      status: { in: ["CANCELLED", "COMPLETED", "NO_SHOW"] as AppointmentStatus[] },
-    };
+    const where = patientHistoryWhere(userId);
 
     const [items, total] = await Promise.all([
       prisma.appointment.findMany({
@@ -272,6 +293,7 @@ export async function listHistory(input?: unknown) {
           doctor: {
             select: { id: true, slug: true, nameEn: true, nameAr: true, photoUrl: true },
           },
+          rating: { select: { id: true, score: true } },
         },
         orderBy: { startAt: "desc" },
         skip: (parsed.data.page - 1) * PAGE_SIZE,
@@ -289,5 +311,68 @@ export async function getAppointment(id: string) {
     const appt = await assertOwnAppointment(userId, id);
     await auditPhiAccess("phi.view.record", userId, { appointmentId: id });
     return appt;
+  });
+}
+
+const rateSchema = z.object({
+  appointmentId: z.string().min(1),
+  score: z.coerce.number().int().min(1).max(5),
+  comment: z.string().max(500).optional(),
+});
+
+export async function rateDoctorVisit(input: unknown) {
+  const parsed = rateSchema.safeParse(input);
+  if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
+
+  return withPatient(async (userId) => {
+    const { revalidatePath } = await import("next/cache");
+    if (!isValidRatingScore(parsed.data.score)) {
+      throw new AuthDomainError("VALIDATION_ERROR", "Rating must be 1 to 5 stars");
+    }
+
+    const appt = await prisma.appointment.findFirst({
+      where: { id: parsed.data.appointmentId, patientUserId: userId },
+      select: { id: true, doctorId: true, status: true },
+    });
+    if (!appt) throw new AuthDomainError("FORBIDDEN", "Appointment not found");
+    if (!canRateAppointmentStatus(appt.status)) {
+      throw new AuthDomainError("VALIDATION_ERROR", "Rate only after a completed visit");
+    }
+
+    const comment = parsed.data.comment?.trim() ? parsed.data.comment.trim().slice(0, 500) : null;
+
+    const result = await prisma.$transaction(async (tx) => {
+      await tx.doctorRating.upsert({
+        where: { appointmentId: appt.id },
+        create: {
+          doctorId: appt.doctorId,
+          patientUserId: userId,
+          appointmentId: appt.id,
+          score: parsed.data.score,
+          comment,
+        },
+        update: { score: parsed.data.score, comment },
+      });
+      const agg = await tx.doctorRating.aggregate({
+        where: { doctorId: appt.doctorId },
+        _avg: { score: true },
+        _count: { _all: true },
+      });
+      const count = agg._count._all;
+      const avg = count === 0 ? 0 : Math.round((agg._avg.score ?? 0) * 10) / 10;
+      await tx.doctor.update({
+        where: { id: appt.doctorId },
+        data: { ratingAvg: avg, ratingCount: count },
+      });
+      await tx.searchDoctorProjection.updateMany({
+        where: { doctorId: appt.doctorId },
+        data: { ratingAvg: avg, ratingCount: count },
+      });
+      return { score: parsed.data.score, ratingAvg: avg, ratingCount: count };
+    });
+
+    revalidatePath("/[locale]/patient", "layout");
+    revalidatePath("/[locale]/doctors", "page");
+    return result;
   });
 }

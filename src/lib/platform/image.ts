@@ -107,3 +107,201 @@ export function optimizeImageBuffer(input: {
 
 /** @deprecated Use MAX_IMAGE_DIMENSION */
 export const MAX_IMAGE_DIMENSION_HINT = MAX_IMAGE_DIMENSION;
+
+const DOCTOR_PHOTO_PREFIX = "doctor-photos/";
+
+export function doctorPhotoPublicUrl(doctorId: string, version = Date.now()): string {
+  return `/api/platform/files/dphoto-${doctorId}?v=${version}`;
+}
+
+export function doctorPhotoCandidateKeys(doctorId: string): string[] {
+  return ["jpg", "jpeg", "png", "webp", "gif"].map((ext) => `${DOCTOR_PHOTO_PREFIX}${doctorId}.${ext}`);
+}
+
+function doctorPhotoStorageKey(doctorId: string, contentType: string): string {
+  const ext =
+    contentType === "image/png"
+      ? "png"
+      : contentType === "image/webp"
+        ? "webp"
+        : contentType === "image/gif"
+          ? "gif"
+          : "jpg";
+  return `${DOCTOR_PHOTO_PREFIX}${doctorId}.${ext}`;
+}
+
+export async function storeDoctorPhoto(input: {
+  doctorId: string;
+  fileName: string;
+  contentType: string;
+  body: Buffer;
+}): Promise<{ photoUrl: string; key: string }> {
+  const { AuthDomainError } = await import("@/auth/errors");
+  let contentType = input.contentType.toLowerCase();
+  if (!contentType || contentType === "application/octet-stream") {
+    const name = input.fileName.toLowerCase();
+    if (name.endsWith(".png")) contentType = "image/png";
+    else if (name.endsWith(".webp")) contentType = "image/webp";
+    else if (name.endsWith(".gif")) contentType = "image/gif";
+    else contentType = "image/jpeg";
+  }
+  const optimized = optimizeImageBuffer({ body: input.body, contentType });
+  if (!optimized.ok) {
+    throw new AuthDomainError("VALIDATION_ERROR", optimized.message ?? "Invalid image");
+  }
+
+  const { getStorageAdapter } = await import("@/adapters");
+  const storage = getStorageAdapter();
+  const nextKey = doctorPhotoStorageKey(input.doctorId, optimized.data.contentType);
+  for (const key of doctorPhotoCandidateKeys(input.doctorId)) {
+    if (key !== nextKey) await storage.delete(key);
+  }
+  await storage.upload({
+    key: nextKey,
+    body: optimized.data.body,
+    contentType: optimized.data.contentType,
+  });
+  return { photoUrl: doctorPhotoPublicUrl(input.doctorId), key: nextKey };
+}
+
+export async function servePublicDoctorPhoto(doctorId: string, request: Request) {
+  const { NextResponse } = await import("next/server");
+  const { prisma } = await import("@/lib/prisma");
+  const { getStorageAdapter } = await import("@/adapters");
+
+  const doctor = await prisma.doctor.findUnique({
+    where: { id: doctorId },
+    select: { photoUrl: true },
+  });
+  if (!doctor) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
+
+  const storage = getStorageAdapter();
+  for (const key of doctorPhotoCandidateKeys(doctorId)) {
+    if (!(await storage.exists(key))) continue;
+    const file = await storage.download(key);
+    const ext = key.split(".").pop()?.toLowerCase();
+    const contentType =
+      file.contentType && file.contentType !== "application/octet-stream"
+        ? file.contentType
+        : ext === "png"
+          ? "image/png"
+          : ext === "webp"
+            ? "image/webp"
+            : ext === "gif"
+              ? "image/gif"
+              : "image/jpeg";
+    return new NextResponse(new Uint8Array(file.body), {
+      status: 200,
+      headers: {
+        "Content-Type": contentType,
+        "Content-Length": String(file.byteSize),
+        "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+      },
+    });
+  }
+
+  const fallback = doctor.photoUrl;
+  if (fallback && (fallback.startsWith("/images/") || fallback.startsWith("http"))) {
+    return NextResponse.redirect(new URL(fallback, request.url));
+  }
+  return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
+}
+
+const PATIENT_PHOTO_PREFIX = "patient-photos/";
+
+export function patientPhotoPublicUrl(userId: string, version = Date.now()): string {
+  return `/api/platform/files/pphoto-${userId}?v=${version}`;
+}
+
+export function patientPhotoCandidateKeys(userId: string): string[] {
+  return ["jpg", "jpeg", "png", "webp", "gif"].map((ext) => `${PATIENT_PHOTO_PREFIX}${userId}.${ext}`);
+}
+
+function patientPhotoStorageKey(userId: string, contentType: string): string {
+  const ext =
+    contentType === "image/png"
+      ? "png"
+      : contentType === "image/webp"
+        ? "webp"
+        : contentType === "image/gif"
+          ? "gif"
+          : "jpg";
+  return `${PATIENT_PHOTO_PREFIX}${userId}.${ext}`;
+}
+
+export async function storePatientPhoto(input: {
+  userId: string;
+  fileName: string;
+  contentType: string;
+  body: Buffer;
+}): Promise<{ photoUrl: string; key: string }> {
+  const { AuthDomainError } = await import("@/auth/errors");
+  let contentType = input.contentType.toLowerCase();
+  if (!contentType || contentType === "application/octet-stream") {
+    const name = input.fileName.toLowerCase();
+    if (name.endsWith(".png")) contentType = "image/png";
+    else if (name.endsWith(".webp")) contentType = "image/webp";
+    else if (name.endsWith(".gif")) contentType = "image/gif";
+    else contentType = "image/jpeg";
+  }
+  const optimized = optimizeImageBuffer({ body: input.body, contentType });
+  if (!optimized.ok) {
+    throw new AuthDomainError("VALIDATION_ERROR", optimized.message ?? "Invalid image");
+  }
+
+  const { getStorageAdapter } = await import("@/adapters");
+  const storage = getStorageAdapter();
+  const nextKey = patientPhotoStorageKey(input.userId, optimized.data.contentType);
+  for (const key of patientPhotoCandidateKeys(input.userId)) {
+    if (key !== nextKey) await storage.delete(key);
+  }
+  await storage.upload({
+    key: nextKey,
+    body: optimized.data.body,
+    contentType: optimized.data.contentType,
+  });
+  return { photoUrl: patientPhotoPublicUrl(input.userId), key: nextKey };
+}
+
+export async function servePublicPatientPhoto(userId: string, request: Request) {
+  const { NextResponse } = await import("next/server");
+  const { prisma } = await import("@/lib/prisma");
+  const { getStorageAdapter } = await import("@/adapters");
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { image: true },
+  });
+  if (!user) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
+
+  const storage = getStorageAdapter();
+  for (const key of patientPhotoCandidateKeys(userId)) {
+    if (!(await storage.exists(key))) continue;
+    const file = await storage.download(key);
+    const ext = key.split(".").pop()?.toLowerCase();
+    const contentType =
+      file.contentType && file.contentType !== "application/octet-stream"
+        ? file.contentType
+        : ext === "png"
+          ? "image/png"
+          : ext === "webp"
+            ? "image/webp"
+            : ext === "gif"
+              ? "image/gif"
+              : "image/jpeg";
+    return new NextResponse(new Uint8Array(file.body), {
+      status: 200,
+      headers: {
+        "Content-Type": contentType,
+        "Content-Length": String(file.byteSize),
+        "Cache-Control": "private, max-age=3600, stale-while-revalidate=86400",
+      },
+    });
+  }
+
+  const fallback = user.image;
+  if (fallback && (fallback.startsWith("/images/") || fallback.startsWith("http"))) {
+    return NextResponse.redirect(new URL(fallback, request.url));
+  }
+  return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
+}

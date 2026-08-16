@@ -20,6 +20,16 @@ export type LoginResult =
   | { ok: true; redirectTo: string }
   | { ok: false; code: string };
 
+function safeInternalNext(next: string | undefined): string | undefined {
+  if (!next) return undefined;
+  if (!next.startsWith("/") || next.startsWith("//") || next.includes("\\") || next.includes("://")) {
+    return undefined;
+  }
+  const withoutLocale = next.replace(/^\/(en|ar)(?=\/|$)/i, "") || "/";
+  if (!withoutLocale.startsWith("/") || withoutLocale.startsWith("//")) return undefined;
+  return withoutLocale;
+}
+
 export async function loginAction(input: unknown): Promise<LoginResult> {
   const parsed = z
     .object({
@@ -76,11 +86,8 @@ export async function loginAction(input: unknown): Promise<LoginResult> {
       userAgent,
     });
 
-    const next = parsed.data.next;
-    const redirectTo =
-      next && next.startsWith("/") && !next.startsWith("//")
-        ? next
-        : homePathForRole(user.role);
+    const next = safeInternalNext(parsed.data.next);
+    const redirectTo = next ?? homePathForRole(user.role);
 
     return { ok: true, redirectTo };
   } catch (error) {

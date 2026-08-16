@@ -7,6 +7,7 @@ export interface PanelPatient {
   id: string;
   name: string | null;
   email: string;
+  image: string | null;
   lastVisitAt: Date | null;
   nextVisitAt: Date | null;
 }
@@ -59,7 +60,7 @@ export async function searchPanelPatients(
       orderBy: { name: "asc" },
       skip: (page - 1) * PATIENT_PAGE_SIZE,
       take: PATIENT_PAGE_SIZE,
-      select: { id: true, name: true, email: true },
+      select: { id: true, name: true, email: true, image: true },
     }),
   ]);
 
@@ -93,7 +94,7 @@ export async function getPatientChart(doctorId: string, patientUserId: string) {
     await Promise.all([
       prisma.user.findUnique({
         where: { id: patientUserId },
-        select: { id: true, name: true, email: true },
+        select: { id: true, name: true, email: true, image: true },
       }),
       prisma.patientProfile.findUnique({ where: { userId: patientUserId } }),
       prisma.medicalProfile.findUnique({ where: { userId: patientUserId } }),

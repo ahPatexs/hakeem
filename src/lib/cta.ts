@@ -20,14 +20,18 @@ export function buildAppCtaUrl(
     return withQuery(`/${locale}/${path}`, { utm_content: options?.page });
   }
 
-  // Book: public doctor profile when known; otherwise register to start the patient journey.
-  const pathname = options?.doctorSlug
-    ? `/${locale}/doctors/${options.doctorSlug}`
-    : `/${locale}/register`;
+  // Book: unauthenticated visitors sign in, then land on the patient doctor page.
+  if (options?.doctorSlug) {
+    const next = `/${locale}/patient/doctors/${options.doctorSlug}`;
+    return withQuery(`/${locale}/login`, {
+      next,
+      utm_source: "website",
+      utm_content: options?.page,
+    });
+  }
 
-  return withQuery(pathname, {
+  return withQuery(`/${locale}/register`, {
     utm_source: "website",
     utm_content: options?.page,
-    doctor: options?.doctorSlug,
   });
 }

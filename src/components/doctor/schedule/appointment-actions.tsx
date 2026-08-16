@@ -43,6 +43,7 @@ export function AppointmentActions({
         <Button
           size={size}
           variant="outline"
+          className="rounded-full"
           disabled={pending}
           onClick={() => run(() => checkInPatient({ appointmentId }))}
         >
@@ -54,25 +55,26 @@ export function AppointmentActions({
         <>
           <Button
             size={size}
+            className="rounded-full"
             disabled={pending}
             onClick={() => run(() => startConsultation({ appointmentId }))}
           >
             {t("start")}
           </Button>
-          <Button size={size} variant="ghost" disabled={pending} onClick={() => setNoShowOpen(true)}>
+          <Button size={size} variant="ghost" className="rounded-full" disabled={pending} onClick={() => setNoShowOpen(true)}>
             {t("noShow")}
           </Button>
         </>
       ) : null}
 
       {status === "IN_PROGRESS" ? (
-        <Button asChild size={size}>
+        <Button asChild size={size} className="rounded-full">
           <Link href={`/doctor/consultations/${appointmentId}`}>{t("openWorkspace")}</Link>
         </Button>
       ) : null}
 
       {status === "COMPLETED" ? (
-        <Button asChild size={size} variant="outline">
+        <Button asChild size={size} variant="outline" className="rounded-full">
           <Link href={`/doctor/consultations/${appointmentId}`}>{t("openWorkspace")}</Link>
         </Button>
       ) : null}

@@ -139,8 +139,14 @@ export async function listPrescriptionsForDoctor(
     ...(status === "ALL" ? {} : { status }),
   };
 
-  const [total, items] = await Promise.all([
+  const [total, draftCount, activeCount, items] = await Promise.all([
     prisma.prescription.count({ where }),
+    prisma.prescription.count({
+      where: { doctorId: actor.doctorId, ...softDeleteWhere(), status: "DRAFT" },
+    }),
+    prisma.prescription.count({
+      where: { doctorId: actor.doctorId, ...softDeleteWhere(), status: "ACTIVE" },
+    }),
     prisma.prescription.findMany({
       where,
       orderBy: { prescribedAt: "desc" },
@@ -148,7 +154,7 @@ export async function listPrescriptionsForDoctor(
       take: DOCTOR_INBOX_PAGE_SIZE,
       include: {
         lines: { orderBy: { sortOrder: "asc" } },
-        patient: { select: { id: true, name: true, email: true } },
+        patient: { select: { id: true, name: true, email: true, image: true } },
       },
     }),
   ]);
@@ -163,6 +169,8 @@ export async function listPrescriptionsForDoctor(
   return platformOk({
     items,
     total,
+    draftCount,
+    activeCount,
     pageCount: Math.max(1, Math.ceil(total / DOCTOR_INBOX_PAGE_SIZE)),
   });
 }

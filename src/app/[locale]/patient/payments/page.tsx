@@ -24,6 +24,7 @@ export default async function PaymentsPage({
   return (
     <div className="space-y-6">
       <h1 className="font-headline text-2xl text-primary">{t("title")}</h1>
+      <p className="text-sm text-on-surface-variant">{t("stubPayNote")}</p>
       <PaymentsList
         items={result.data.items}
         total={result.data.total}

@@ -1,5 +1,20 @@
 import { notify } from "@/lib/platform/notifications";
 
+export async function notifyDoctorAppointmentConfirmed(
+  doctorUserId: string,
+  appointmentId: string,
+  patientName: string,
+): Promise<void> {
+  await notify({
+    recipientUserId: doctorUserId,
+    eventType: "doctor.appointment.confirmed",
+    category: "APPOINTMENT",
+    title: "New booking",
+    body: `${patientName} confirmed an appointment.`,
+    href: `/doctor/appointments/${appointmentId}`,
+  });
+}
+
 export async function notifyDoctorPatientCheckedIn(
   doctorUserId: string,
   appointmentId: string,
