@@ -20,6 +20,7 @@ export default async function AccountLayout({
   const session = await auth();
   if (!session?.user?.id) {
     redirect({ href: "/unauthorized", locale });
+    return null;
   }
 
   const userId = session.user.id;
