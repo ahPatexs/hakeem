@@ -16,6 +16,7 @@ import { VideoWaitingRoom } from "./waiting-room";
 import { ParticipantGrid } from "./participant-grid";
 import { CallControls } from "./call-controls";
 import { VisitChat } from "./visit-chat";
+import { LiveKitVisitChat } from "./livekit-visit-chat";
 import { LiveKitConferenceStage, LiveKitMediaSync, LiveKitScreenShareSync } from "./livekit-stage";
 import type { MediaDeviceSelection } from "./device-selector";
 import { cn } from "@/lib/utils";
@@ -146,6 +147,13 @@ export function VideoSessionShell({
   );
 
   const chat = chatOpen ? <VisitChat appointmentId={appointmentId} /> : null;
+  const liveChat = chatOpen ? (
+    <LiveKitVisitChat
+      appointmentId={appointmentId}
+      role={role}
+      className="h-full min-h-0 rounded-none border-0 border-t lg:w-80 lg:border-s lg:border-t-0"
+    />
+  ) : null;
 
   if (phase === "waiting" || phase === "connecting") {
     return (
@@ -212,30 +220,32 @@ export function VideoSessionShell({
 
   return (
     <div className={className}>
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-stretch">
-        <div className="min-w-0 flex-1 space-y-3">
-          <LiveKitRoom
-            token={creds.token}
-            serverUrl={creds.url}
-            connect
-            audio={audioEnabled}
-            video={videoEnabled}
-            data-lk-theme="default"
-            onDisconnected={() => {
-              void platformRecordVideoReconnect({ appointmentId });
-            }}
-            className="lk-video-conference h-[min(68vh,560px)] min-h-[320px] overflow-hidden rounded-2xl bg-[#071525]"
-          >
-            <LiveKitConferenceStage />
-            <LiveKitMediaSync audioEnabled={audioEnabled} videoEnabled={videoEnabled} />
-            <LiveKitScreenShareSync
-              toggleRef={screenShareToggleRef}
-              onScreenSharingChange={setScreenSharing}
-            />
-          </LiveKitRoom>
-          {controls}
-        </div>
-        {chat}
+      <div className="space-y-3">
+        <LiveKitRoom
+          token={creds.token}
+          serverUrl={creds.url}
+          connect
+          audio={audioEnabled}
+          video={videoEnabled}
+          data-lk-theme="default"
+          onDisconnected={() => {
+            void platformRecordVideoReconnect({ appointmentId });
+          }}
+          className="overflow-hidden rounded-2xl border border-outline-variant/20 bg-[#071525]"
+        >
+          <div className="flex h-[min(68vh,560px)] min-h-[320px] flex-col lg:flex-row">
+            <div className="relative min-h-[240px] min-w-0 flex-1">
+              <LiveKitConferenceStage />
+              <LiveKitMediaSync audioEnabled={audioEnabled} videoEnabled={videoEnabled} />
+              <LiveKitScreenShareSync
+                toggleRef={screenShareToggleRef}
+                onScreenSharingChange={setScreenSharing}
+              />
+            </div>
+            {liveChat}
+          </div>
+        </LiveKitRoom>
+        {controls}
       </div>
     </div>
   );

@@ -21,7 +21,7 @@ export function LiveKitConferenceStage() {
 
   return (
     <>
-      <GridLayout tracks={tracks} className="h-full min-h-[280px]">
+      <GridLayout tracks={tracks} className="h-full min-h-[240px]">
         <ParticipantTile />
       </GridLayout>
       <RoomAudioRenderer />

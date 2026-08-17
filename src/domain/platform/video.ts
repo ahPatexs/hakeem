@@ -101,3 +101,37 @@ export function parseVisitChatMetadata(metadata: unknown): VisitChatMetadata | n
         : "Patient";
   return { type: "message", body, senderName, role: value.role };
 }
+
+export type VisitChatWireMessage = {
+  id: string;
+  body: string;
+  senderName: string;
+  role: VisitChatRole;
+};
+
+export function encodeVisitChatPayload(message: VisitChatWireMessage): string {
+  return JSON.stringify({ v: 1, ...message });
+}
+
+export function decodeVisitChatPayload(raw: string): VisitChatWireMessage | null {
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith("{")) return null;
+  try {
+    const parsed = JSON.parse(trimmed) as Record<string, unknown>;
+    if (parsed.v !== 1 || typeof parsed.id !== "string" || typeof parsed.body !== "string") {
+      return null;
+    }
+    if (parsed.role !== "patient" && parsed.role !== "doctor") return null;
+    const body = normalizeVisitChatBody(parsed.body);
+    if (!body) return null;
+    const senderName =
+      typeof parsed.senderName === "string" && parsed.senderName.trim()
+        ? parsed.senderName.trim().slice(0, 120)
+        : parsed.role === "doctor"
+          ? "Doctor"
+          : "Patient";
+    return { id: parsed.id.slice(0, 80), body, senderName, role: parsed.role };
+  } catch {
+    return null;
+  }
+}

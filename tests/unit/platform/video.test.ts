@@ -3,6 +3,8 @@ import {
   canJoinVideo,
   canTransitionVideoSession,
   computeJoinTokenTtlSeconds,
+  decodeVisitChatPayload,
+  encodeVisitChatPayload,
   isAuthorizedVideoParticipant,
   isStubTelemedicineUrl,
   normalizeVisitChatBody,
@@ -123,5 +125,21 @@ describe("visit chat", () => {
     });
     expect(parseVisitChatMetadata({ providerEventType: "room_finished" })).toBeNull();
     expect(parseVisitChatMetadata({ type: "message", body: " ", role: "patient" })).toBeNull();
+  });
+
+  it("round-trips livekit chat payloads and ignores plain text", () => {
+    const payload = encodeVisitChatPayload({
+      id: "msg-1",
+      body: "hi",
+      senderName: "Demo Doctor",
+      role: "doctor",
+    });
+    expect(decodeVisitChatPayload(payload)).toEqual({
+      id: "msg-1",
+      body: "hi",
+      senderName: "Demo Doctor",
+      role: "doctor",
+    });
+    expect(decodeVisitChatPayload("hi")).toBeNull();
   });
 });

@@ -103,6 +103,12 @@
     font-family: var(--font-app), system-ui, sans-serif;
   }
 
+  /* Hakeem owns in-call chat; hide LiveKit prefab chrome so both parties use the same panel. */
+  .lk-control-bar,
+  .lk-chat {
+    display: none !important;
+  }
+
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-primary;
   }
