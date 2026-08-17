@@ -1,4 +1,5 @@
 import { notify } from "@/lib/platform/notifications";
+import { formatApptTime } from "@/lib/datetime";
 
 export async function notifyDoctorAppointmentConfirmed(
   doctorUserId: string,
@@ -36,7 +37,7 @@ export async function notifyDoctorVisitSoon(
   patientName: string,
   startsAt: Date,
 ): Promise<void> {
-  const time = startsAt.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+  const time = formatApptTime(startsAt, "en");
   await notify({
     recipientUserId: doctorUserId,
     eventType: "doctor.appointment.upcoming",

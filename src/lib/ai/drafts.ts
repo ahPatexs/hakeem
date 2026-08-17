@@ -502,8 +502,15 @@ export async function acceptDraft(
     const base = asSoapFields(draft.content);
     if (!base) return platformFail("INTERNAL_FAILURE", "Invalid SOAP draft content");
     const content = mergeSoapEdits(base, input.edits);
+    const existing = await prisma.soapNote.findFirst({
+      where: { appointmentId: draft.appointmentId, doctorId: doctor.data.doctorId, status: "DRAFT" },
+      orderBy: { updatedAt: "desc" },
+      select: { id: true, version: true },
+    });
     const saved = await saveSoapDraft(actor, {
       appointmentId: draft.appointmentId,
+      noteId: existing?.id,
+      expectedVersion: existing?.version,
       subjective: content.subjective,
       objective: content.objective,
       assessment: content.assessment,
@@ -516,8 +523,15 @@ export async function acceptDraft(
     const base = asSummaryContent(draft.content);
     if (!base) return platformFail("INTERNAL_FAILURE", "Invalid summary draft content");
     const body = input.edits?.body ?? base.body;
+    const existing = await prisma.clinicalSummary.findFirst({
+      where: { appointmentId: draft.appointmentId, doctorId: doctor.data.doctorId, status: "DRAFT" },
+      orderBy: { updatedAt: "desc" },
+      select: { id: true, version: true },
+    });
     const saved = await saveSummaryDraft(actor, {
       appointmentId: draft.appointmentId,
+      summaryId: existing?.id,
+      expectedVersion: existing?.version,
       body,
       aiAssisted: true,
     });

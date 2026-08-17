@@ -57,25 +57,52 @@ export async function listPrescriptions(
 
   const search = inChartSearch(opts);
   const bucket = opts.bucket ?? "active";
+  const contains = opts.q?.trim()
+    ? { contains: opts.q.trim(), mode: "insensitive" as const }
+    : null;
+
+  const patientHideDrafts = actor.role === "PATIENT";
+  const statusFilter =
+    bucket === "active"
+      ? { status: "ACTIVE" as const }
+      : bucket === "history"
+        ? { status: { in: ["COMPLETED" as const, "CANCELLED" as const, "EXPIRED" as const] } }
+        : patientHideDrafts
+          ? { status: { not: "DRAFT" as const } }
+          : {};
 
   const where = {
     patientUserId,
     ...softDeleteWhere(),
-    ...(bucket === "active"
-      ? { status: "ACTIVE" as const }
-      : bucket === "history"
-        ? { status: { in: ["COMPLETED" as const, "CANCELLED" as const, "EXPIRED" as const] } }
-        : {}),
+    ...statusFilter,
+    ...(contains
+      ? {
+          OR: [{ medicationName: contains }, { instructions: contains }],
+        }
+      : {}),
   };
 
-  const [total, items] = await Promise.all([
+  const [total, activeCount, historyCount, items] = await Promise.all([
     prisma.prescription.count({ where }),
+    prisma.prescription.count({
+      where: { patientUserId, ...softDeleteWhere(), status: "ACTIVE" },
+    }),
+    prisma.prescription.count({
+      where: {
+        patientUserId,
+        ...softDeleteWhere(),
+        status: { in: ["COMPLETED", "CANCELLED", "EXPIRED"] },
+      },
+    }),
     prisma.prescription.findMany({
       where,
       orderBy: { prescribedAt: "desc" },
       skip: search.skip,
       take: search.take,
-      include: { lines: { orderBy: { sortOrder: "asc" } } },
+      include: {
+        lines: { orderBy: { sortOrder: "asc" } },
+        doctor: { select: { nameEn: true, nameAr: true, slug: true, photoUrl: true } },
+      },
     }),
   ]);
 
@@ -84,6 +111,8 @@ export async function listPrescriptions(
     total,
     page: search.page,
     pageCount: Math.max(1, Math.ceil(total / search.take)),
+    activeCount,
+    historyCount,
   });
 }
 
@@ -96,6 +125,7 @@ export async function getPrescription(
     include: {
       lines: { orderBy: { sortOrder: "asc" } },
       document: true,
+      doctor: { select: { nameEn: true, nameAr: true, slug: true, photoUrl: true } },
     },
   });
   if (!rx) return platformFail("NOT_FOUND", "Prescription not found");
@@ -594,7 +624,7 @@ export async function signPrescription(
         category: "PRESCRIPTION",
         title: "New prescription issued",
         body: "Your doctor has issued a new prescription.",
-        href: "/patient/prescriptions",
+        href: `/patient/prescriptions/${rx.id}`,
       },
     });
     return true;

@@ -78,10 +78,29 @@
 
   html {
     scroll-behavior: smooth;
+    --font-app: var(--font-montserrat), var(--font-alexandria);
+  }
+
+  html[lang="ar"] {
+    --font-app: var(--font-alexandria), var(--font-montserrat);
   }
 
   body {
-    @apply bg-background text-on-background antialiased;
+    @apply bg-background font-sans text-on-background antialiased;
+  }
+
+  button,
+  input,
+  textarea,
+  select,
+  optgroup {
+    font-family: inherit;
+  }
+
+  .lk-video-conference,
+  .lk-room-container,
+  .lk-chat {
+    font-family: var(--font-app), system-ui, sans-serif;
   }
 
   :focus-visible {

@@ -14,6 +14,7 @@ export async function emrListLabResults(raw: unknown) {
   const schema = z.object({
     patientUserId: z.string().cuid(),
     q: z.string().max(200).optional(),
+    type: z.string().max(64).optional(),
     page: z.number().int().min(1).optional(),
   });
   const parsed = schema.safeParse(raw);

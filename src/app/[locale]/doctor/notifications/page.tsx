@@ -3,6 +3,7 @@ import { Link } from "@/i18n/routing";
 import { listDoctorNotifications } from "@/actions/doctor/notifications";
 import { MarkAllReadButton, MarkReadButton } from "@/components/doctor/notifications/notification-actions";
 import { EmptyState, ErrorState, Pagination } from "@/components/doctor/shared";
+import { formatPortalDateTime } from "@/lib/datetime";
 
 export default async function DoctorNotificationsPage({
   params,
@@ -23,11 +24,6 @@ export default async function DoctorNotificationsPage({
   }
 
   const { items, total, unreadCount } = result.data;
-  const fmtDate = (d: Date | string) =>
-    new Date(d).toLocaleString(locale === "ar" ? "ar-SA" : "en-US", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
 
   return (
     <div className="space-y-6">
@@ -55,7 +51,7 @@ export default async function DoctorNotificationsPage({
                   <div className="min-w-0">
                     <p className="font-medium text-primary">{n.title}</p>
                     {n.body ? <p className="mt-1 text-sm text-on-surface-variant">{n.body}</p> : null}
-                    <p className="mt-1 text-xs text-on-surface-variant">{fmtDate(n.createdAt)}</p>
+                    <p className="mt-1 text-xs text-on-surface-variant">{formatPortalDateTime(n.createdAt, locale)}</p>
                     {n.href ? (
                       <Link href={n.href} className="mt-2 inline-block text-sm font-medium text-med-green hover:underline">
                         →

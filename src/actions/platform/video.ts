@@ -11,12 +11,19 @@ import {
   getSessionAnalytics,
   leaveConsultationSession,
   listVideoCallEvents,
+  listVisitChatMessages,
   recordVideoReconnect,
+  sendVisitChatMessage,
   startVideoRecording,
 } from "@/lib/platform/video";
 
 const appointmentSchema = z.object({
   appointmentId: z.string().min(1),
+});
+
+const visitChatSendSchema = z.object({
+  appointmentId: z.string().min(1),
+  body: z.string().min(1).max(2000),
 });
 
 const analyticsSchema = z.object({
@@ -164,6 +171,37 @@ export async function platformListVideoCallEvents(input: unknown) {
       appointmentId: parsed.data.appointmentId,
       actorUserId: session.user.id,
       isAdmin,
+    });
+  } catch {
+    return { ok: false as const, code: "INTERNAL_FAILURE" };
+  }
+}
+
+export async function platformListVisitChat(input: unknown) {
+  try {
+    const parsed = appointmentSchema.safeParse(input);
+    if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
+    const session = await auth();
+    if (!session?.user?.id) return { ok: false as const, code: "UNAUTHORIZED" };
+    return listVisitChatMessages({
+      appointmentId: parsed.data.appointmentId,
+      actorUserId: session.user.id,
+    });
+  } catch {
+    return { ok: false as const, code: "INTERNAL_FAILURE" };
+  }
+}
+
+export async function platformSendVisitChat(input: unknown) {
+  try {
+    const parsed = visitChatSendSchema.safeParse(input);
+    if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
+    const session = await auth();
+    if (!session?.user?.id) return { ok: false as const, code: "UNAUTHORIZED" };
+    return sendVisitChatMessage({
+      appointmentId: parsed.data.appointmentId,
+      actorUserId: session.user.id,
+      body: parsed.data.body,
     });
   } catch {
     return { ok: false as const, code: "INTERNAL_FAILURE" };

@@ -2,6 +2,7 @@ import { createHash } from "crypto";
 import {
   assertSoapFinalizable,
   assertSummaryFinalizable,
+  formatPatientFacingVisitNotes,
   hashSoapContent,
   hashSummaryContent,
   isLateAmendment,
@@ -13,9 +14,107 @@ import { platformFail, platformOk, type PlatformResult } from "@/domain/platform
 import { prisma } from "@/lib/prisma";
 import { emrAudit } from "./audit";
 import { upsertTimelineEvent } from "./timeline";
+import { notify } from "@/lib/platform/notifications";
+import { resolveLocaleForUser } from "@/lib/platform/localization";
+
+const VISIT_SUMMARY_TYPE = "VISIT_SUMMARY";
 
 function hashNoteBody(body: string): string {
   return createHash("sha256").update(body).digest("hex");
+}
+
+function visitShareCopy(locale: "en" | "ar") {
+  if (locale === "ar") {
+    return {
+      title: "ملخص الزيارة",
+      notificationTitle: "ملخص الزيارة جاهز",
+      notificationBody: "نشر طبيبك ملخصاً لزيارتك. يمكنك قراءته في سجلاتك الصحية.",
+      timelineTitle: "ملخص الزيارة",
+    };
+  }
+  return {
+    title: "Visit summary",
+    notificationTitle: "Visit summary available",
+    notificationBody: "Your doctor published a summary of your recent visit. You can read it in your health records.",
+    timelineTitle: "Visit summary published",
+  };
+}
+
+/** Release a patient-facing visit note (one MedicalRecord per appointment). */
+async function publishVisitSummaryToPatient(input: {
+  appointmentId: string;
+  patientUserId: string;
+  doctorId: string;
+  actorUserId: string;
+  body: string;
+}): Promise<{ recordId: string; created: boolean }> {
+  const locale = await resolveLocaleForUser(input.patientUserId);
+  const copy = visitShareCopy(locale);
+  const body = input.body.trim().slice(0, 8_000);
+  const recordedAt = new Date();
+
+  const existing = await prisma.medicalRecord.findFirst({
+    where: { appointmentId: input.appointmentId, recordType: VISIT_SUMMARY_TYPE },
+    select: { id: true },
+  });
+
+  const record = existing
+    ? await prisma.medicalRecord.update({
+        where: { id: existing.id },
+        data: {
+          title: copy.title,
+          summary: body,
+          recordedAt,
+          doctorId: input.doctorId,
+        },
+      })
+    : await prisma.medicalRecord.create({
+        data: {
+          patientUserId: input.patientUserId,
+          appointmentId: input.appointmentId,
+          title: copy.title,
+          recordType: VISIT_SUMMARY_TYPE,
+          summary: body,
+          recordedAt,
+          doctorId: input.doctorId,
+        },
+      });
+
+  await upsertTimelineEvent({
+    patientUserId: input.patientUserId,
+    type: "NOTE",
+    effectiveAt: recordedAt,
+    refType: "VisitSummary",
+    refId: input.appointmentId,
+    title: copy.timelineTitle,
+    summary: body.slice(0, 200) || null,
+    actorUserId: input.actorUserId,
+    visibility: "ALL_AUTHORIZED",
+  });
+
+  if (!existing) {
+    await notify({
+      recipientUserId: input.patientUserId,
+      eventType: "clinical.visit_summary",
+      category: "CLINICAL",
+      title: copy.notificationTitle,
+      body: copy.notificationBody,
+      href: `/patient/records/${record.id}`,
+      locale,
+    });
+  }
+
+  return { recordId: record.id, created: !existing };
+}
+
+async function releasedVisitBodyForAppointment(appointmentId: string, fallback: string): Promise<string> {
+  const finalSummary = await prisma.clinicalSummary.findFirst({
+    where: { appointmentId, status: "FINAL" },
+    orderBy: [{ version: "desc" }, { createdAt: "desc" }],
+    select: { body: true },
+  });
+  const fromSummary = finalSummary?.body.trim();
+  return fromSummary || fallback;
 }
 
 export async function getSoapNote(actor: EmrActor, noteId: string) {
@@ -158,6 +257,19 @@ export async function signSoapNote(
     visibility: "CLINICIAN",
   });
 
+  const locale = await resolveLocaleForUser(note.patientUserId);
+  const patientBody = await releasedVisitBodyForAppointment(
+    note.appointmentId,
+    formatPatientFacingVisitNotes(locale, note),
+  );
+  await publishVisitSummaryToPatient({
+    appointmentId: note.appointmentId,
+    patientUserId: note.patientUserId,
+    doctorId: note.doctorId,
+    actorUserId: actor.userId,
+    body: patientBody,
+  });
+
   await emrAudit({
     type: "notes.soap.sign",
     outcome: "SUCCESS",
@@ -240,6 +352,19 @@ export async function amendSoapNote(
     summary: reasonResult.data.reason.slice(0, 200),
     actorUserId: actor.userId,
     visibility: "CLINICIAN",
+  });
+
+  const locale = await resolveLocaleForUser(original.patientUserId);
+  const patientBody = await releasedVisitBodyForAppointment(
+    original.appointmentId,
+    formatPatientFacingVisitNotes(locale, content),
+  );
+  await publishVisitSummaryToPatient({
+    appointmentId: original.appointmentId,
+    patientUserId: original.patientUserId,
+    doctorId: original.doctorId,
+    actorUserId: actor.userId,
+    body: patientBody,
   });
 
   await emrAudit({
@@ -375,30 +500,17 @@ export async function finalizeClinicalSummary(
       data: { status: "FINAL", signedAt, signerUserId: actor.userId, contentHash },
     });
     if (updated.count === 0) return false;
-
-    await tx.medicalRecord.create({
-      data: {
-        patientUserId: summary.patientUserId,
-        title: "Visit summary",
-        recordType: "VISIT_SUMMARY",
-        summary: summary.body.slice(0, 2_000),
-        recordedAt: signedAt,
-        doctorId: summary.doctorId,
-      },
-    });
-
-    await tx.notification.create({
-      data: {
-        recipientUserId: summary.patientUserId,
-        category: "CLINICAL",
-        title: "Visit summary available",
-        body: "Your doctor has published a summary of your recent visit.",
-        href: "/patient/records",
-      },
-    });
     return true;
   });
   if (!finalized) return platformFail("CONFLICT", "Summary could not be finalized");
+
+  await publishVisitSummaryToPatient({
+    appointmentId: summary.appointmentId,
+    patientUserId: summary.patientUserId,
+    doctorId: summary.doctorId,
+    actorUserId: actor.userId,
+    body: summary.body,
+  });
 
   await upsertTimelineEvent({
     patientUserId: summary.patientUserId,
@@ -409,7 +521,7 @@ export async function finalizeClinicalSummary(
     title: "Visit summary published",
     summary: summary.body.slice(0, 200) || null,
     actorUserId: actor.userId,
-    visibility: "ALL_AUTHORIZED",
+    visibility: "CLINICIAN",
   });
 
   await emrAudit({

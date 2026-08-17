@@ -1,4 +1,25 @@
+import { ASIA_RIYADH } from "@/domain/platform/localization";
+
 const localeTag = (locale: string) => (locale === "ar" ? "ar-SA" : "en-GB");
+
+const portalDateTimeOptions = (locale: string) => ({
+  dateStyle: "medium" as const,
+  timeStyle: "short" as const,
+  timeZone: ASIA_RIYADH,
+  ...(locale === "ar" ? { calendar: "gregory" as const } : {}),
+});
+
+export function formatPortalDate(value: Date | string, locale: string) {
+  return new Date(value).toLocaleDateString(localeTag(locale), {
+    dateStyle: "medium",
+    timeZone: ASIA_RIYADH,
+    ...(locale === "ar" ? { calendar: "gregory" as const } : {}),
+  });
+}
+
+export function formatPortalDateTime(value: Date | string, locale: string) {
+  return new Date(value).toLocaleString(localeTag(locale), portalDateTimeOptions(locale));
+}
 
 export function formatApptWhen(value: Date | string, locale: string) {
   return new Date(value).toLocaleString(localeTag(locale), {
@@ -7,6 +28,7 @@ export function formatApptWhen(value: Date | string, locale: string) {
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: ASIA_RIYADH,
   });
 }
 
@@ -15,6 +37,7 @@ export function formatApptDay(value: Date | string, locale: string) {
     weekday: "long",
     month: "short",
     day: "numeric",
+    timeZone: ASIA_RIYADH,
   });
 }
 
@@ -22,6 +45,7 @@ export function formatApptTime(value: Date | string, locale: string) {
   return new Date(value).toLocaleTimeString(localeTag(locale), {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: ASIA_RIYADH,
   });
 }
 

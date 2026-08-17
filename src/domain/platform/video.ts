@@ -64,5 +64,40 @@ export type VideoCallEventKind =
   | "RECORDING_START"
   | "RECORDING_STOP"
   | "CHAT_META"
+  | "CHAT_MESSAGE"
   | "WAITING"
   | "IN_CALL";
+
+export const VISIT_CHAT_MAX_LENGTH = 1000;
+
+export type VisitChatRole = "patient" | "doctor";
+
+export type VisitChatMetadata = {
+  type: "message";
+  body: string;
+  senderName: string;
+  role: VisitChatRole;
+};
+
+export function normalizeVisitChatBody(raw: string): string | null {
+  const body = raw.replace(/\s+/g, " ").trim();
+  if (!body) return null;
+  return body.slice(0, VISIT_CHAT_MAX_LENGTH);
+}
+
+export function parseVisitChatMetadata(metadata: unknown): VisitChatMetadata | null {
+  if (!metadata || typeof metadata !== "object") return null;
+  const value = metadata as Record<string, unknown>;
+  if (value.type !== "message") return null;
+  if (typeof value.body !== "string") return null;
+  if (value.role !== "patient" && value.role !== "doctor") return null;
+  const body = normalizeVisitChatBody(value.body);
+  if (!body) return null;
+  const senderName =
+    typeof value.senderName === "string" && value.senderName.trim()
+      ? value.senderName.trim().slice(0, 120)
+      : value.role === "doctor"
+        ? "Doctor"
+        : "Patient";
+  return { type: "message", body, senderName, role: value.role };
+}

@@ -45,3 +45,16 @@ export function hashSoapContent(content: SoapContent): string {
 export function hashSummaryContent(body: string): string {
   return createHash("sha256").update(body).digest("hex");
 }
+
+/** Patient-facing visit note from signed SOAP (Assessment + Plan only). */
+export function formatPatientFacingVisitNotes(
+  locale: "en" | "ar",
+  content: Pick<SoapContent, "assessment" | "plan">,
+): string {
+  const assessment = content.assessment.trim();
+  const plan = content.plan.trim();
+  if (locale === "ar") {
+    return `التقييم\n${assessment}\n\nالخطة\n${plan}`;
+  }
+  return `Assessment\n${assessment}\n\nPlan\n${plan}`;
+}

@@ -62,3 +62,30 @@ export async function getMyActivityTimeline() {
     return result.data;
   });
 }
+
+export async function getMyVisitNotes(appointmentId: string) {
+  return withPatient(async (userId) => {
+    const appt = await prisma.appointment.findFirst({
+      where: { id: appointmentId, patientUserId: userId },
+      select: { id: true },
+    });
+    if (!appt) throw new AuthDomainError("FORBIDDEN");
+
+    const record = await prisma.medicalRecord.findFirst({
+      where: {
+        appointmentId,
+        patientUserId: userId,
+        recordType: "VISIT_SUMMARY",
+      },
+      select: { id: true, title: true, summary: true, recordedAt: true },
+    });
+    if (!record?.summary) return null;
+    await auditPhiAccess("phi.view.record", userId, { recordId: record.id, appointmentId });
+    return {
+      id: record.id,
+      title: record.title,
+      body: record.summary,
+      recordedAt: record.recordedAt.toISOString(),
+    };
+  });
+}

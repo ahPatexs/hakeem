@@ -19,6 +19,7 @@ import { localizedText } from "@/lib/utils";
 import type { Appointment, Doctor } from "@prisma/client";
 import type { AvailabilitySlot } from "@/lib/patient/availability";
 import { RateDoctorForm } from "@/components/patient/appointments/rate-doctor";
+import { VisitNotesCard, type PatientVisitNotes } from "@/components/patient/records/visit-notes-card";
 
 type ApptDetail = Appointment & {
   doctor: Pick<Doctor, "id" | "slug" | "nameEn" | "nameAr" | "photoUrl">;
@@ -28,9 +29,11 @@ type ApptDetail = Appointment & {
 export function AppointmentDetailView({
   appointment,
   availability,
+  visitNotes,
 }: {
   appointment: ApptDetail;
   availability: AvailabilitySlot[];
+  visitNotes?: PatientVisitNotes | null;
 }) {
   const t = useTranslations("patient.appointments");
   const ts = useTranslations("patient.appointments.status");
@@ -150,6 +153,8 @@ export function AppointmentDetailView({
           />
         ) : null}
       </div>
+
+      {visitNotes ? <VisitNotesCard notes={visitNotes} /> : null}
 
       {appointment.status === "COMPLETED" ? (
         <RateDoctorForm

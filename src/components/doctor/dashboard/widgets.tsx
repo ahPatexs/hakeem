@@ -23,21 +23,14 @@ import type {
   ScheduleItem,
   WidgetResult,
 } from "@/lib/doctor/dashboard";
+import { formatApptTime, formatPortalDateTime } from "@/lib/datetime";
 import type { Notification } from "@prisma/client";
 
 function useFmt() {
   const locale = useLocale();
   return {
-    time: (d: Date | string) =>
-      new Date(d).toLocaleTimeString(locale === "ar" ? "ar-SA" : "en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    dateTime: (d: Date | string) =>
-      new Date(d).toLocaleString(locale === "ar" ? "ar-SA" : "en-US", {
-        dateStyle: "medium",
-        timeStyle: "short",
-      }),
+    time: (d: Date | string) => formatApptTime(d, locale),
+    dateTime: (d: Date | string) => formatPortalDateTime(d, locale),
   };
 }
 

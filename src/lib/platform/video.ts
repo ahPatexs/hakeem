@@ -6,6 +6,8 @@ import {
   canJoinVideo,
   canTransitionVideoSession,
   computeJoinTokenTtlSeconds,
+  normalizeVisitChatBody,
+  parseVisitChatMetadata,
   type VideoAppointment,
   type VideoCallEventKind,
   type VideoSessionStateName,
@@ -494,6 +496,123 @@ export async function listVideoCallEvents(input: {
   });
 }
 
+export type VisitChatMessageDto = {
+  id: string;
+  body: string;
+  senderName: string;
+  role: "patient" | "doctor";
+  mine: boolean;
+  createdAt: string;
+};
+
+export async function listVisitChatMessages(input: {
+  appointmentId: string;
+  actorUserId: string;
+}): Promise<PlatformResult<{ messages: VisitChatMessageDto[] }>> {
+  const appointment = await loadVideoAppointment(input.appointmentId);
+  if (!appointment) return platformFail("NOT_FOUND", "Appointment not found");
+
+  const participant = await resolveParticipant(appointment, input.actorUserId);
+  if (!participant) return platformFail("FORBIDDEN", "Not allowed to view visit chat");
+
+  const session = await prisma.videoSession.findUnique({
+    where: { appointmentId: input.appointmentId },
+    select: { id: true },
+  });
+  if (!session) return platformOk({ messages: [] });
+
+  const events = await prisma.videoCallEvent.findMany({
+    where: { sessionId: session.id, kind: "CHAT_MESSAGE" },
+    orderBy: { createdAt: "asc" },
+    take: 200,
+    select: { id: true, actorUserId: true, metadata: true, createdAt: true },
+  });
+
+  const messages = events.flatMap((event) => {
+    const parsed = parseVisitChatMetadata(event.metadata);
+    if (!parsed) return [];
+    return [
+      {
+        id: event.id,
+        body: parsed.body,
+        senderName: parsed.senderName,
+        role: parsed.role,
+        mine: event.actorUserId === input.actorUserId,
+        createdAt: event.createdAt.toISOString(),
+      } satisfies VisitChatMessageDto,
+    ];
+  });
+
+  return platformOk({ messages });
+}
+
+export async function sendVisitChatMessage(input: {
+  appointmentId: string;
+  actorUserId: string;
+  body: string;
+}): Promise<PlatformResult<{ message: VisitChatMessageDto }>> {
+  const body = normalizeVisitChatBody(input.body);
+  if (!body) return platformFail("VALIDATION_ERROR", "Message cannot be empty");
+
+  const appointment = await loadVideoAppointment(input.appointmentId);
+  if (!appointment) return platformFail("NOT_FOUND", "Appointment not found");
+
+  const participant = await resolveParticipant(appointment, input.actorUserId);
+  if (!participant) return platformFail("FORBIDDEN", "Not a participant on this appointment");
+
+  const videoCheck = assertVideoAppointment(appointment);
+  if (!videoCheck.ok) return videoCheck;
+
+  let session = await prisma.videoSession.findUnique({
+    where: { appointmentId: appointment.id },
+    select: { id: true },
+  });
+  if (!session) {
+    const sessionResult = await createConsultationSession(input);
+    if (!sessionResult.ok) return sessionResult;
+    session = { id: sessionResult.data.sessionId };
+  }
+
+  const created = await prisma.videoCallEvent.create({
+    data: {
+      sessionId: session.id,
+      actorUserId: input.actorUserId,
+      kind: "CHAT_MESSAGE",
+      metadata: redactSecrets({
+        type: "message",
+        body,
+        senderName: participant.participantName,
+        role: participant.role,
+      }) as Prisma.InputJsonValue,
+    },
+    select: { id: true, createdAt: true },
+  });
+
+  await platformAudit({
+    type: "platform.video.chat_send",
+    outcome: "SUCCESS",
+    actorUserId: input.actorUserId,
+    targetUserId: appointment.patientUserId,
+    meta: {
+      appointmentId: appointment.id,
+      sessionId: session.id,
+      messageId: created.id,
+      length: body.length,
+    },
+  });
+
+  return platformOk({
+    message: {
+      id: created.id,
+      body,
+      senderName: participant.participantName,
+      role: participant.role,
+      mine: true,
+      createdAt: created.createdAt.toISOString(),
+    },
+  });
+}
+
 export type VideoSessionAnalyticsSummary = {
   sessionCount: number;
   joinedCount: number;
@@ -543,6 +662,94 @@ export async function getSessionAnalytics(input: {
     deniedCount: countKind("DENY"),
     reconnectCount: countKind("RECONNECT"),
     avgDurationSeconds,
+  });
+}
+
+export type AdminVideoSessionRow = {
+  sessionId: string;
+  appointmentId: string;
+  state: string;
+  provider: string;
+  startedAt: string | null;
+  endedAt: string | null;
+  createdAt: string;
+  durationSeconds: number | null;
+  patientName: string;
+  doctorName: string;
+  appointmentStatus: string;
+  startAt: string;
+};
+
+function mapAdminSessionRow(row: {
+  id: string;
+  state: string;
+  provider: string;
+  startedAt: Date | null;
+  endedAt: Date | null;
+  createdAt: Date;
+  appointment: {
+    id: string;
+    status: string;
+    startAt: Date;
+    patient: { name: string | null; email: string };
+    doctor: { nameEn: string; nameAr: string };
+  };
+}): AdminVideoSessionRow {
+  const durationSeconds =
+    row.startedAt && row.endedAt
+      ? Math.max(0, Math.round((row.endedAt.getTime() - row.startedAt.getTime()) / 1000))
+      : row.startedAt
+        ? Math.max(0, Math.round((Date.now() - row.startedAt.getTime()) / 1000))
+        : null;
+  return {
+    sessionId: row.id,
+    appointmentId: row.appointment.id,
+    state: row.state,
+    provider: row.provider,
+    startedAt: row.startedAt?.toISOString() ?? null,
+    endedAt: row.endedAt?.toISOString() ?? null,
+    createdAt: row.createdAt.toISOString(),
+    durationSeconds,
+    patientName: row.appointment.patient.name?.trim() || row.appointment.patient.email,
+    doctorName: row.appointment.doctor.nameEn,
+    appointmentStatus: row.appointment.status,
+    startAt: row.appointment.startAt.toISOString(),
+  };
+}
+
+export async function listAdminVideoBoard(): Promise<
+  PlatformResult<{ live: AdminVideoSessionRow[]; recent: AdminVideoSessionRow[] }>
+> {
+  const include = {
+    appointment: {
+      select: {
+        id: true,
+        status: true,
+        startAt: true,
+        patient: { select: { name: true, email: true } },
+        doctor: { select: { nameEn: true, nameAr: true } },
+      },
+    },
+  } as const;
+
+  const [live, recent] = await Promise.all([
+    prisma.videoSession.findMany({
+      where: { state: { in: ["WAITING", "IN_CALL"] } },
+      orderBy: { updatedAt: "desc" },
+      take: 50,
+      include,
+    }),
+    prisma.videoSession.findMany({
+      where: { state: { in: ["ENDED", "CANCELLED"] } },
+      orderBy: { updatedAt: "desc" },
+      take: 20,
+      include,
+    }),
+  ]);
+
+  return platformOk({
+    live: live.map(mapAdminSessionRow),
+    recent: recent.map(mapAdminSessionRow),
   });
 }
 

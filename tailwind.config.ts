@@ -57,9 +57,9 @@ const config: Config = {
         "margin-desktop": "2.5rem",
       },
       fontFamily: {
-        sans: ["var(--font-montserrat)", "system-ui", "sans-serif"],
-        headline: ["var(--font-montserrat)", "system-ui", "sans-serif"],
-        arabic: ["var(--font-noto-arabic)", "var(--font-montserrat)", "system-ui", "sans-serif"],
+        sans: ["var(--font-app)", "system-ui", "sans-serif"],
+        headline: ["var(--font-app)", "system-ui", "sans-serif"],
+        arabic: ["var(--font-app)", "system-ui", "sans-serif"],
       },
       fontSize: {
         "headline-lg": ["2rem", { lineHeight: "1.2", fontWeight: "700" }],

@@ -157,6 +157,9 @@ export const SoapEditor = forwardRef<
       {field("objective", t("objective"))}
       {field("assessment", t("assessment"), true)}
       {field("plan", t("plan"), true)}
+      {!isFinal && !readOnly ? (
+        <p className="text-xs text-on-surface-variant">{t("patientReleaseHint")}</p>
+      ) : null}
 
       {error ? (
         <p className="text-sm text-red-600" role="alert">

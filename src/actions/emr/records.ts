@@ -18,6 +18,7 @@ export async function emrListMedicalRecords(raw: unknown) {
     patientUserId: z.string().cuid(),
     page: z.number().int().min(1).optional(),
     q: z.string().max(200).optional(),
+    tab: z.enum(["notes", "files", "all"]).optional(),
   });
   const parsed = schema.safeParse(raw);
   if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };

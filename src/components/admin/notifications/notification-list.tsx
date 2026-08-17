@@ -1,9 +1,11 @@
 "use client";
 
 import { useTransition } from "react";
+import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import { markNotificationRead } from "@/actions/admin/notifications";
+import { formatPortalDateTime } from "@/lib/datetime";
 
 export function NotificationList({
   items,
@@ -19,6 +21,7 @@ export function NotificationList({
   }>;
 }) {
   const router = useRouter();
+  const locale = useLocale();
   const [pending, startTransition] = useTransition();
 
   return (
@@ -38,7 +41,7 @@ export function NotificationList({
                 <p className="font-medium text-primary">{n.title}</p>
               )}
               <p className="mt-1 text-sm text-on-surface-variant">{n.body}</p>
-              <p className="mt-2 text-xs text-on-surface-variant">{new Date(n.createdAt).toLocaleString()}</p>
+              <p className="mt-2 text-xs text-on-surface-variant">{formatPortalDateTime(n.createdAt, locale)}</p>
             </div>
             {!n.readAt ? (
               <button

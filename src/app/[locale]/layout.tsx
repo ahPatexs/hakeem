@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { cookies } from "next/headers";
-import { Montserrat, Noto_Sans_Arabic } from "next/font/google";
+import { Alexandria, Montserrat } from "next/font/google";
 import { routing } from "@/i18n/routing";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
@@ -17,9 +17,10 @@ const montserrat = Montserrat({
   display: "swap",
 });
 
-const notoArabic = Noto_Sans_Arabic({
-  subsets: ["arabic"],
-  variable: "--font-noto-arabic",
+/** Official Arabic companion to Montserrat (Google Fonts name: Alexandria). */
+const montserratArabic = Alexandria({
+  subsets: ["arabic", "latin"],
+  variable: "--font-alexandria",
   display: "swap",
 });
 
@@ -47,9 +48,9 @@ export default async function LocaleLayout({
       lang={locale}
       dir={dir}
       suppressHydrationWarning
-      className={`${montserrat.variable} ${notoArabic.variable} ${darkClass}`.trim()}
+      className={`${montserrat.variable} ${montserratArabic.variable} ${darkClass}`.trim()}
     >
-      <body className={locale === "ar" ? "font-arabic" : "font-sans"}>
+      <body className="font-sans">
         <ThemeScript />
         <NextIntlClientProvider messages={messages}>
           <a

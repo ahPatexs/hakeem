@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { Link } from "@/i18n/routing";
 import { getAppointment } from "@/actions/admin/appointments";
 import { AppointmentOpsActions } from "@/components/admin/appointments/appointment-ops-actions";
 
@@ -47,6 +48,11 @@ export default async function AdminAppointmentDetailPage({
         ) : null}
       </dl>
       <AppointmentOpsActions appointmentId={appt.id} status={appt.status} />
+      {appt.mode === "VIDEO" ? (
+        <Link href={`/admin/video/${appt.id}`} className="text-sm font-semibold text-med-green hover:underline">
+          {t("openVideoLog")}
+        </Link>
+      ) : null}
     </div>
   );
 }

@@ -26,20 +26,30 @@ export async function listLabResults(
   const search = inChartSearch(filters);
   const contains = textContains(search.q);
   const statuses = visibleStatusesForRole(actor.role);
+  const criticalOnly = filters.type === "critical";
 
   const where = {
     patientUserId,
     releaseStatus: { in: statuses },
+    ...(criticalOnly ? { criticalFlag: true } : {}),
     ...(contains ? { title: contains } : {}),
   };
 
-  const [total, rows] = await Promise.all([
+  const [total, criticalCount, rows] = await Promise.all([
     prisma.labResult.count({ where }),
+    prisma.labResult.count({
+      where: {
+        patientUserId,
+        releaseStatus: { in: statuses },
+        criticalFlag: true,
+      },
+    }),
     prisma.labResult.findMany({
       where,
       orderBy: [{ criticalFlag: "desc" }, { resultedAt: "desc" }],
       skip: search.skip,
       take: search.take,
+      include: { document: { select: { id: true, title: true } } },
     }),
   ]);
 
@@ -54,6 +64,7 @@ export async function listLabResults(
     total,
     page: search.page,
     pageCount: Math.max(1, Math.ceil(total / search.take)),
+    criticalCount,
   });
 }
 
@@ -150,7 +161,10 @@ export async function listLabInboxForDoctor(
 export async function getLabResult(actor: EmrActor, labResultId: string) {
   const lab = await prisma.labResult.findUnique({
     where: { id: labResultId },
-    include: { document: true },
+    include: {
+      document: true,
+      patient: { select: { id: true, name: true } },
+    },
   });
   if (!lab) return platformFail("NOT_FOUND", "Lab result not found");
 
@@ -203,7 +217,7 @@ export async function releaseLabToPatient(
       category: "RESULTS",
       title: "Lab result available",
       body: "A lab result has been reviewed and released.",
-      href: "/patient/labs",
+      href: `/patient/labs/${lab.id}`,
     },
   });
 

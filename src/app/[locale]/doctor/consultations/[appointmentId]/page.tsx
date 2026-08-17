@@ -7,8 +7,11 @@ import { emrGetSummary } from "@/actions/emr/summary";
 import { ErrorState, StatusBadge, AllergyBanner } from "@/components/doctor/shared";
 import { WorkspaceTabs } from "@/components/doctor/workspace/workspace-tabs";
 import { CompleteVisitButton } from "@/components/doctor/workspace/complete-visit-button";
-import { VideoJoinButton } from "@/components/doctor/workspace/video-join-button";
+import { ConsultationStage } from "@/components/doctor/workspace/consultation-stage";
 import { VersionHistoryList } from "@/components/emr";
+import { formatPortalDateTime } from "@/lib/datetime";
+import { portalCardClass } from "@/components/portal/chrome";
+import { cn } from "@/lib/utils";
 
 export default async function ConsultationWorkspacePage({
   params,
@@ -54,9 +57,8 @@ export default async function ConsultationWorkspacePage({
   const readOnly = appt.status === "COMPLETED" || appt.status === "CANCELLED" || appt.status === "NO_SHOW";
   const canComplete = appt.status === "IN_PROGRESS";
   const isVideo = appt.mode === "VIDEO";
-  const isAr = locale === "ar";
-  const fmt = (d: Date | string) =>
-    new Date(d).toLocaleString(isAr ? "ar-SA" : "en-US", { dateStyle: "medium", timeStyle: "short" });
+  const patientName = patient.name ?? patient.email;
+  const fmt = (d: Date | string) => formatPortalDateTime(d, locale);
 
   const soap = bundle.latestSoap
     ? {
@@ -88,18 +90,16 @@ export default async function ConsultationWorkspacePage({
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-on-surface-variant">{t("title")}</p>
-          <h1 className="font-headline text-2xl text-primary md:text-3xl">
-            {patient.name ?? patient.email}
-          </h1>
+          <h1 className="font-headline text-2xl text-primary md:text-3xl">{patientName}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-on-surface-variant">
             <StatusBadge status={appt.status} label={ts(appt.status as never)} variant="appointment" />
             <span>{fmt(appt.startAt)}</span>
             <span>·</span>
-            <span>{appt.mode === "VIDEO" ? t("modeVideo") : t("modeInPerson")}</span>
+            <span>{isVideo ? t("modeVideo") : t("modeInPerson")}</span>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -109,7 +109,6 @@ export default async function ConsultationWorkspacePage({
           >
             {t("viewChart")}
           </Link>
-          {isVideo ? <VideoJoinButton appointmentId={appointmentId} /> : null}
           {canComplete ? <CompleteVisitButton appointmentId={appointmentId} /> : null}
         </div>
       </div>
@@ -121,11 +120,20 @@ export default async function ConsultationWorkspacePage({
         noneLabel={tc("noAllergies")}
       />
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <aside className="space-y-4 lg:col-span-1">
-          <section className="glass-card rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5">
+      <div className={cn("grid gap-5", isVideo ? "xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.9fr)]" : "")}>
+        {isVideo ? (
+          <ConsultationStage
+            appointmentId={appointmentId}
+            patientName={patientName}
+            doctorName={t("you")}
+          />
+        ) : null}
+
+        <div className="space-y-4">
+          <section className={cn(portalCardClass, "p-5")}>
             <h2 className="font-headline text-lg text-primary">{t("context")}</h2>
-            <dl className="mt-3 space-y-2 text-sm">
+            <p className="mt-1 text-xs text-on-surface-variant">{t("contextHint")}</p>
+            <dl className="mt-3 space-y-3 text-sm">
               <div>
                 <dt className="text-xs uppercase text-on-surface-variant">{t("reason")}</dt>
                 <dd className="text-primary">{appt.reason ?? "—"}</dd>
@@ -159,7 +167,7 @@ export default async function ConsultationWorkspacePage({
             </dl>
           </section>
 
-          <section className="glass-card rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5">
+          <section className={cn(portalCardClass, "p-5")}>
             <h2 className="font-headline text-lg text-primary">{t("recentLabs")}</h2>
             <ul className="mt-3 space-y-2 text-sm">
               {recentLabs.length === 0 ? (
@@ -182,9 +190,7 @@ export default async function ConsultationWorkspacePage({
               {t("viewAllLabs")}
             </Link>
           </section>
-        </aside>
 
-        <div className="space-y-4 lg:col-span-2">
           <WorkspaceTabs
             appointmentId={appointmentId}
             patientUserId={patientUserId}

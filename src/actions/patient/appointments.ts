@@ -18,8 +18,21 @@ import { CareLoopError } from "@/domain/care-loop/errors";
 import { assertSlotIsOfferable } from "@/lib/patient/availability";
 import { notifyDoctorAppointmentConfirmed } from "@/lib/doctor/notification-triggers";
 import { patientHistoryWhere, patientUpcomingWhere } from "@/lib/patient/appointment-queries";
+import { formatApptWhen } from "@/lib/datetime";
 
 const PAGE_SIZE = 20;
+
+async function patientLocaleFor(userId: string): Promise<"en" | "ar"> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      localePreference: true,
+      portalSettings: { select: { locale: true } },
+    },
+  });
+  const pref = user?.portalSettings?.locale ?? user?.localePreference;
+  return pref === "EN" ? "en" : "ar";
+}
 
 const holdSchema = z.object({
   doctorId: z.string().min(1),
@@ -134,11 +147,13 @@ export async function confirmAppointment(input: unknown) {
       },
     });
 
+    const locale = await patientLocaleFor(userId);
+
     await createNotification({
       recipientUserId: userId,
       category: "APPOINTMENT",
       title: "Appointment confirmed",
-      body: `Your appointment on ${updated.startAt.toLocaleString()} is confirmed.`,
+      body: `Your appointment on ${formatApptWhen(updated.startAt, locale)} is confirmed.`,
       href: `/patient/appointments/${updated.id}`,
     });
 
@@ -181,11 +196,13 @@ export async function cancelAppointment(input: unknown) {
       },
     });
 
+    const locale = await patientLocaleFor(userId);
+
     await createNotification({
       recipientUserId: userId,
       category: "APPOINTMENT",
       title: "Appointment cancelled",
-      body: `Your appointment on ${updated.startAt.toLocaleString()} was cancelled.`,
+      body: `Your appointment on ${formatApptWhen(updated.startAt, locale)} was cancelled.`,
       href: `/patient/appointments/history`,
     });
 
@@ -236,11 +253,13 @@ export async function rescheduleAppointment(input: unknown) {
       }),
     ]);
 
+    const locale = await patientLocaleFor(userId);
+
     await createNotification({
       recipientUserId: userId,
       category: "APPOINTMENT",
       title: "Appointment rescheduled",
-      body: `Your appointment was moved to ${start.toLocaleString()}.`,
+      body: `Your appointment was moved to ${formatApptWhen(start, locale)}.`,
       href: `/patient/appointments/${created.id}`,
     });
 

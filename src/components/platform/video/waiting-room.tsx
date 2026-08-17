@@ -15,6 +15,7 @@ type Props = {
   pending?: boolean;
   error?: string | null;
   demoHint?: boolean;
+  compact?: boolean;
 };
 
 export function VideoWaitingRoom({
@@ -27,14 +28,17 @@ export function VideoWaitingRoom({
   pending,
   error,
   demoHint,
+  compact,
 }: Props) {
   const t = useTranslations("platform.video");
 
   return (
-    <section className="mx-auto max-w-2xl space-y-6">
-      <header className="text-center">
-        <h1 className="font-headline text-2xl text-primary">{t("waitingTitle")}</h1>
-        <p className="mt-2 text-sm text-on-surface-variant">
+    <section className={compact ? "space-y-4" : "mx-auto max-w-2xl space-y-6"}>
+      <header className={compact ? "" : "text-center"}>
+        <h2 className={compact ? "font-headline text-lg text-primary" : "font-headline text-2xl text-primary"}>
+          {t("waitingTitle")}
+        </h2>
+        <p className="mt-1 text-sm text-on-surface-variant">
           {role === "doctor" ? t("waitingDoctorHint") : t("waitingPatientHint")}
         </p>
         {demoHint ? (
@@ -47,19 +51,19 @@ export function VideoWaitingRoom({
       <CameraPreview deviceId={devices.videoInputId} />
       <DeviceSelector value={devices} onChange={onDevicesChange} />
 
-      <div className="flex flex-col items-center gap-3">
+      <div className={compact ? "flex flex-col items-stretch gap-3" : "flex flex-col items-center gap-3"}>
         {needsConsent && onAcceptConsent ? (
-          <Button variant="soft" disabled={pending} onClick={onAcceptConsent} aria-busy={pending}>
+          <Button variant="soft" disabled={pending} onClick={onAcceptConsent} aria-busy={pending} className="rounded-full">
             {pending ? t("joining") : t("acceptConsentAndJoin")}
           </Button>
         ) : (
-          <Button variant="soft" disabled={pending} onClick={onReady} aria-busy={pending}>
+          <Button variant="soft" disabled={pending} onClick={onReady} aria-busy={pending} className="rounded-full">
             {pending ? t("joining") : t("joinCall")}
           </Button>
         )}
       </div>
       {error ? (
-        <p className="text-center text-sm text-red-600" role="alert">
+        <p className="text-sm text-red-600" role="alert">
           {error}
         </p>
       ) : null}

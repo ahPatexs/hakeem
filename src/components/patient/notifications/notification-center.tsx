@@ -1,11 +1,12 @@
 "use client";
 
 import { useTransition } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter, Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/patient/shared/pagination";
 import { EmptyState } from "@/components/patient/shared/empty-state";
+import { formatPortalDateTime } from "@/lib/datetime";
 import {
   markNotificationRead,
   markAllNotificationsRead,
@@ -28,6 +29,7 @@ export function NotificationCenter({
   unreadCount: number;
 }) {
   const t = useTranslations("patient.notifications");
+  const locale = useLocale();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -57,7 +59,7 @@ export function NotificationCenter({
 
       <ul className="divide-y divide-outline-variant/15 rounded-2xl border border-outline-variant/20 bg-surface-container-low">
         {items.map((n) => (
-          <NotificationRow key={n.id} notification={n} onUpdate={() => router.refresh()} />
+          <NotificationRow key={n.id} notification={n} locale={locale} onUpdate={() => router.refresh()} />
         ))}
       </ul>
       <Pagination page={page} pageSize={pageSize} total={total} />
@@ -67,9 +69,11 @@ export function NotificationCenter({
 
 function NotificationRow({
   notification,
+  locale,
   onUpdate,
 }: {
   notification: Notification;
+  locale: string;
   onUpdate: () => void;
 }) {
   const t = useTranslations("patient.notifications");
@@ -103,7 +107,7 @@ function NotificationRow({
           )}
           <p className="mt-1 text-sm text-on-surface-variant">{notification.body}</p>
           <p className="mt-1 text-xs text-on-surface-variant">
-            {new Date(notification.createdAt).toLocaleString()}
+            {formatPortalDateTime(notification.createdAt, locale)}
           </p>
         </div>
         <div className="flex gap-2">

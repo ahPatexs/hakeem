@@ -8,7 +8,7 @@ import {
 } from "@/domain/doctor/consultation";
 import { DomainRuleError } from "@/domain/doctor/errors";
 import { assertSafeToSign, assertHasLines } from "@/domain/doctor/prescriptions";
-import { assertSoapFinalizable, soapFinalizeWarnings, isLateAmendment } from "@/domain/doctor/soap";
+import { assertSoapFinalizable, soapFinalizeWarnings, isLateAmendment, formatPatientFacingVisitNotes } from "@/domain/doctor/soap";
 
 describe("doctor dashboard caps", () => {
   it("enforces widget limits from clarifications", () => {
@@ -67,6 +67,15 @@ describe("SOAP finalize", () => {
     const signed = new Date(Date.now() - 73 * 60 * 60 * 1000);
     expect(isLateAmendment(signed)).toBe(true);
     expect(isLateAmendment(new Date())).toBe(false);
+  });
+
+  it("formats patient-facing visit notes from assessment and plan", () => {
+    expect(
+      formatPatientFacingVisitNotes("en", { assessment: "Gingivitis", plan: "Rinse twice daily" }),
+    ).toBe("Assessment\nGingivitis\n\nPlan\nRinse twice daily");
+    expect(
+      formatPatientFacingVisitNotes("ar", { assessment: "التهاب لثة", plan: "مضمضة" }),
+    ).toContain("التقييم");
   });
 });
 

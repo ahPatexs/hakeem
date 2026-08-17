@@ -27,6 +27,14 @@ describe("notification channel matrix", () => {
     expect(off.inApp).toBe(true);
   });
 
+  it("honors clinical email preference for visit summaries", () => {
+    const off = resolveEffectiveChannels("clinical.visit_summary", { notifyClinicalEmail: false });
+    expect(off.email).toBe(false);
+    expect(off.inApp).toBe(true);
+    const on = resolveEffectiveChannels("clinical.visit_summary", { notifyClinicalEmail: true });
+    expect(on.email).toBe(true);
+  });
+
   it("defaults unknown events to in-app only", () => {
     const policy = getEventChannelPolicy("custom.event");
     expect(policy).toEqual({ inApp: true, email: false, sms: false, push: false });

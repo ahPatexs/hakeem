@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { LiveKitRoom, VideoConference, RoomAudioRenderer } from "@livekit/components-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { LiveKitRoom } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { useTranslations } from "next-intl";
 import { isStubTelemedicineUrl } from "@/domain/platform/video";
@@ -15,7 +15,10 @@ import {
 import { VideoWaitingRoom } from "./waiting-room";
 import { ParticipantGrid } from "./participant-grid";
 import { CallControls } from "./call-controls";
+import { VisitChat } from "./visit-chat";
+import { LiveKitConferenceStage, LiveKitMediaSync, LiveKitScreenShareSync } from "./livekit-stage";
 import type { MediaDeviceSelection } from "./device-selector";
+import { cn } from "@/lib/utils";
 
 type Phase = "waiting" | "connecting" | "in_call" | "ended";
 
@@ -31,9 +34,19 @@ type Props = {
   appointmentId: string;
   role: "patient" | "doctor";
   className?: string;
+  embedded?: boolean;
+  localName?: string;
+  remoteName?: string;
 };
 
-export function VideoSessionShell({ appointmentId, role, className }: Props) {
+export function VideoSessionShell({
+  appointmentId,
+  role,
+  className,
+  embedded,
+  localName,
+  remoteName,
+}: Props) {
   const t = useTranslations("platform.video");
   const [phase, setPhase] = useState<Phase>("waiting");
   const [devices, setDevices] = useState<MediaDeviceSelection>({});
@@ -44,7 +57,8 @@ export function VideoSessionShell({ appointmentId, role, className }: Props) {
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [videoEnabled, setVideoEnabled] = useState(true);
   const [screenSharing, setScreenSharing] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(true);
+  const screenShareToggleRef = useRef<(() => void) | null>(null);
 
   const stubMode = useMemo(
     () => (creds ? isStubTelemedicineUrl(creds.url) : false),
@@ -115,6 +129,24 @@ export function VideoSessionShell({ appointmentId, role, className }: Props) {
     return () => window.removeEventListener("online", onOffline);
   }, [phase, creds, stubMode, appointmentId]);
 
+  const controls = (
+    <CallControls
+      audioEnabled={audioEnabled}
+      videoEnabled={videoEnabled}
+      screenSharing={screenSharing}
+      chatOpen={chatOpen}
+      enableScreenShare={!stubMode}
+      enableInCallChat
+      onToggleAudio={() => setAudioEnabled((value) => !value)}
+      onToggleVideo={() => setVideoEnabled((value) => !value)}
+      onToggleScreenShare={() => screenShareToggleRef.current?.()}
+      onToggleChat={() => setChatOpen((value) => !value)}
+      onLeave={() => void leave()}
+    />
+  );
+
+  const chat = chatOpen ? <VisitChat appointmentId={appointmentId} /> : null;
+
   if (phase === "waiting" || phase === "connecting") {
     return (
       <div className={className}>
@@ -128,6 +160,7 @@ export function VideoSessionShell({ appointmentId, role, className }: Props) {
           pending={pending || phase === "connecting"}
           error={error}
           demoHint
+          compact={embedded}
         />
       </div>
     );
@@ -143,30 +176,34 @@ export function VideoSessionShell({ appointmentId, role, className }: Props) {
 
   if (stubMode && creds) {
     return (
-      <div className={className + " space-y-4"}>
+      <div className={cn("space-y-4", className)}>
         <p
           className="rounded-xl border border-outline-variant/30 bg-surface-container-high px-4 py-2 text-center text-sm font-medium text-primary"
           role="status"
         >
           {t("demoBanner")}
         </p>
-        <ParticipantGrid
-          participants={[
-            { id: "local", name: role === "doctor" ? "Doctor" : "Patient", isLocal: true, muted: !audioEnabled },
-            { id: "remote", name: role === "doctor" ? "Patient" : "Doctor", muted: false },
-          ]}
-        />
-        <CallControls
-          audioEnabled={audioEnabled}
-          videoEnabled={videoEnabled}
-          screenSharing={screenSharing}
-          chatOpen={false}
-          enableScreenShare={false}
-          enableInCallChat={false}
-          onToggleAudio={() => setAudioEnabled((v) => !v)}
-          onToggleVideo={() => setVideoEnabled((v) => !v)}
-          onLeave={() => void leave()}
-        />
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-stretch">
+          <div className="min-w-0 flex-1 space-y-3">
+            <ParticipantGrid
+              participants={[
+                {
+                  id: "local",
+                  name: localName ?? (role === "doctor" ? "Doctor" : "Patient"),
+                  isLocal: true,
+                  muted: !audioEnabled,
+                },
+                {
+                  id: "remote",
+                  name: remoteName ?? (role === "doctor" ? "Patient" : "Doctor"),
+                  muted: false,
+                },
+              ]}
+            />
+            {controls}
+          </div>
+          {chat}
+        </div>
       </div>
     );
   }
@@ -174,32 +211,32 @@ export function VideoSessionShell({ appointmentId, role, className }: Props) {
   if (!creds) return null;
 
   return (
-    <div className={className + " space-y-4"}>
-      <LiveKitRoom
-        token={creds.token}
-        serverUrl={creds.url}
-        connect
-        audio={audioEnabled}
-        video={videoEnabled}
-        onDisconnected={() => {
-          void platformRecordVideoReconnect({ appointmentId });
-        }}
-        className="min-h-[360px] overflow-hidden rounded-2xl"
-      >
-        <VideoConference />
-        <RoomAudioRenderer />
-      </LiveKitRoom>
-      <CallControls
-        audioEnabled={audioEnabled}
-        videoEnabled={videoEnabled}
-        screenSharing={screenSharing}
-        chatOpen={chatOpen}
-        onToggleAudio={() => setAudioEnabled((v) => !v)}
-        onToggleVideo={() => setVideoEnabled((v) => !v)}
-        onToggleScreenShare={() => setScreenSharing((v) => !v)}
-        onToggleChat={() => setChatOpen((v) => !v)}
-        onLeave={() => void leave()}
-      />
+    <div className={className}>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-stretch">
+        <div className="min-w-0 flex-1 space-y-3">
+          <LiveKitRoom
+            token={creds.token}
+            serverUrl={creds.url}
+            connect
+            audio={audioEnabled}
+            video={videoEnabled}
+            data-lk-theme="default"
+            onDisconnected={() => {
+              void platformRecordVideoReconnect({ appointmentId });
+            }}
+            className="lk-video-conference h-[min(68vh,560px)] min-h-[320px] overflow-hidden rounded-2xl bg-[#071525]"
+          >
+            <LiveKitConferenceStage />
+            <LiveKitMediaSync audioEnabled={audioEnabled} videoEnabled={videoEnabled} />
+            <LiveKitScreenShareSync
+              toggleRef={screenShareToggleRef}
+              onScreenSharingChange={setScreenSharing}
+            />
+          </LiveKitRoom>
+          {controls}
+        </div>
+        {chat}
+      </div>
     </div>
   );
 }

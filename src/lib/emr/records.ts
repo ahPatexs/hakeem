@@ -3,14 +3,14 @@ import { softDeleteWhere } from "@/domain/emr/soft-delete";
 import { platformFail, platformOk } from "@/domain/platform/outcomes";
 import { prisma } from "@/lib/prisma";
 import { emrAudit } from "./audit";
-import { inChartSearch, type InChartSearchFilters } from "./search";
+import { inChartSearch, textContains, type InChartSearchFilters } from "./search";
 
 /** Patient medical-record detail with EMR RBAC (T128). */
 export async function getMedicalRecord(actor: EmrActor, recordId: string) {
   const record = await prisma.medicalRecord.findUnique({
     where: { id: recordId },
     include: {
-      doctor: { select: { nameEn: true, nameAr: true, slug: true } },
+      doctor: { select: { nameEn: true, nameAr: true, slug: true, photoUrl: true } },
       document: true,
     },
   });
@@ -34,34 +34,49 @@ export async function getMedicalRecord(actor: EmrActor, recordId: string) {
 export async function listMedicalRecords(
   actor: EmrActor,
   patientUserId: string,
-  filters: InChartSearchFilters = {},
+  filters: InChartSearchFilters & { tab?: "notes" | "files" | "all" } = {},
 ) {
   const access = await assertEmrAccess(actor, patientUserId, "read");
   if (!access.ok) return access;
 
   const search = inChartSearch(filters);
+  const contains = textContains(search.q);
+  const tab = filters.tab ?? "notes";
+  const recordTypeFilter =
+    tab === "notes"
+      ? { recordType: "VISIT_SUMMARY" as const }
+      : tab === "files"
+        ? { recordType: { not: "VISIT_SUMMARY" as const } }
+        : {};
+
   const where = {
     patientUserId,
-    ...(search.q
+    ...recordTypeFilter,
+    ...(contains
       ? {
           OR: [
-            { title: { contains: search.q, mode: "insensitive" as const } },
-            { summary: { contains: search.q, mode: "insensitive" as const } },
-            { recordType: { contains: search.q, mode: "insensitive" as const } },
+            { title: contains },
+            { summary: contains },
+            { recordType: contains },
           ],
         }
       : {}),
   };
 
-  const [total, items] = await Promise.all([
+  const visitNotesWhere = { patientUserId, recordType: "VISIT_SUMMARY" as const };
+  const filesWhere = { patientUserId, recordType: { not: "VISIT_SUMMARY" as const } };
+
+  const [total, visitNotesCount, filesCount, items] = await Promise.all([
     prisma.medicalRecord.count({ where }),
+    prisma.medicalRecord.count({ where: visitNotesWhere }),
+    prisma.medicalRecord.count({ where: filesWhere }),
     prisma.medicalRecord.findMany({
       where,
       orderBy: { recordedAt: "desc" },
       skip: search.skip,
       take: search.take,
       include: {
-        doctor: { select: { nameEn: true, nameAr: true } },
+        doctor: { select: { nameEn: true, nameAr: true, photoUrl: true } },
         document: { select: { id: true, title: true } },
       },
     }),
@@ -81,5 +96,7 @@ export async function listMedicalRecords(
     page: search.page,
     pageSize: search.take,
     pageCount: Math.max(1, Math.ceil(total / search.take)),
+    visitNotesCount,
+    filesCount,
   });
 }

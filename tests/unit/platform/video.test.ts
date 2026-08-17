@@ -5,6 +5,8 @@ import {
   computeJoinTokenTtlSeconds,
   isAuthorizedVideoParticipant,
   isStubTelemedicineUrl,
+  normalizeVisitChatBody,
+  parseVisitChatMetadata,
   type VideoAppointment,
 } from "@/domain/platform/video";
 
@@ -95,5 +97,31 @@ describe("stub url detection", () => {
   it("detects stub telemedicine urls", () => {
     expect(isStubTelemedicineUrl("https://stub-telemedicine.local/join/x")).toBe(true);
     expect(isStubTelemedicineUrl("wss://project.livekit.cloud")).toBe(false);
+  });
+});
+
+describe("visit chat", () => {
+  it("normalizes and caps message bodies", () => {
+    expect(normalizeVisitChatBody("   hello   there  ")).toBe("hello there");
+    expect(normalizeVisitChatBody("   ")).toBeNull();
+    expect(normalizeVisitChatBody("x".repeat(1200))?.length).toBe(1000);
+  });
+
+  it("parses chat metadata and ignores webhook chat-meta events", () => {
+    expect(
+      parseVisitChatMetadata({
+        type: "message",
+        body: "Need the lab result",
+        senderName: "Dr. Alaa Helal",
+        role: "doctor",
+      }),
+    ).toEqual({
+      type: "message",
+      body: "Need the lab result",
+      senderName: "Dr. Alaa Helal",
+      role: "doctor",
+    });
+    expect(parseVisitChatMetadata({ providerEventType: "room_finished" })).toBeNull();
+    expect(parseVisitChatMetadata({ type: "message", body: " ", role: "patient" })).toBeNull();
   });
 });

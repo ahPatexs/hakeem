@@ -4,6 +4,7 @@ import { getAppointment } from "@/actions/patient/appointments";
 import { getDoctorAvailability } from "@/actions/patient/doctors";
 import { AppointmentDetailView } from "@/components/patient/appointments/appointment-detail";
 import { ErrorState } from "@/components/patient/shared/error-state";
+import { getMyVisitNotes } from "@/actions/patient/records";
 
 export default async function AppointmentDetailPage({
   params,
@@ -21,11 +22,13 @@ export default async function AppointmentDetailPage({
   }
 
   const availability = await getDoctorAvailability({ slug: result.data.doctor.slug });
+  const visitNotes = await getMyVisitNotes(id);
 
   return (
     <AppointmentDetailView
       appointment={result.data}
       availability={availability.ok ? availability.data.slots : []}
+      visitNotes={visitNotes.ok ? visitNotes.data : null}
     />
   );
 }

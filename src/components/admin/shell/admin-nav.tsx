@@ -17,6 +17,7 @@ import {
   Stethoscope,
   Users,
   Wallet,
+  Video,
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
@@ -31,6 +32,7 @@ const GROUPS = [
       { href: "/admin/users", labelKey: "users" as const, icon: Users },
       { href: "/admin/doctors", labelKey: "doctors" as const, icon: Stethoscope },
       { href: "/admin/appointments", labelKey: "appointments" as const, icon: CalendarDays },
+      { href: "/admin/video", labelKey: "video" as const, icon: Video },
       { href: "/admin/emr", labelKey: "emr" as const, icon: FolderHeart },
     ],
   },

@@ -97,6 +97,7 @@ export async function finalizeSoap(raw: { noteId: string; expectedVersion: numbe
       note?.patientUserId,
     );
     revalidatePath("/[locale]/doctor", "layout");
+    revalidatePath("/[locale]/patient", "layout");
     return { noteId: result.data.noteId };
   });
 }
@@ -146,6 +147,7 @@ export async function amendSoap(raw: {
       amendment?.patientUserId,
     );
     revalidatePath("/[locale]/doctor", "layout");
+    revalidatePath("/[locale]/patient", "layout");
     return { noteId: result.data.noteId };
   });
 }
@@ -256,6 +258,7 @@ export async function finalizeSummary(raw: { summaryId: string; expectedVersion:
       summary?.patientUserId,
     );
     revalidatePath("/[locale]/doctor", "layout");
+    revalidatePath("/[locale]/patient", "layout");
     return { summaryId: result.data.summaryId };
   });
 }

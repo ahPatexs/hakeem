@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getAppointment } from "@/actions/patient/appointments";
 import { VideoConsultation } from "@/components/patient/appointments/video-consultation";
 import { ErrorState } from "@/components/patient/shared/error-state";
+import { getMyVisitNotes } from "@/actions/patient/records";
+import { VisitNotesCard } from "@/components/patient/records/visit-notes-card";
 
 export default async function ConsultationPage({
   params,
@@ -23,5 +25,12 @@ export default async function ConsultationPage({
     notFound();
   }
 
-  return <VideoConsultation appointment={result.data} />;
+  const visitNotes = await getMyVisitNotes(id);
+
+  return (
+    <div className="space-y-5">
+      <VideoConsultation appointment={result.data} />
+      {visitNotes.ok && visitNotes.data ? <VisitNotesCard notes={visitNotes.data} /> : null}
+    </div>
+  );
 }

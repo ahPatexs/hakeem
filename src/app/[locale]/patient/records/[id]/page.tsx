@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { emrGetMedicalRecord } from "@/actions/emr/records";
+import { DetailBackLink } from "@/components/patient/care/detail-back-link";
 import { RecordDetail } from "@/components/patient/records/records-list";
 import { ErrorState } from "@/components/patient/shared/error-state";
 
@@ -19,5 +20,10 @@ export default async function RecordDetailPage({
     return <ErrorState title={t("loadError")} />;
   }
 
-  return <RecordDetail record={result.data} />;
+  return (
+    <div>
+      <DetailBackLink href="/patient/records" label={t("backToList")} />
+      <RecordDetail record={result.data} locale={locale} />
+    </div>
+  );
 }

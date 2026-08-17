@@ -75,6 +75,7 @@ export function CallControls({
           aria-label={t("chat")}
           aria-pressed={chatOpen}
           onClick={onToggleChat}
+          className={chatOpen ? "bg-primary/10" : undefined}
         >
           <MessageSquare className="h-4 w-4" />
         </Button>

@@ -730,6 +730,7 @@ model Appointment {
   aiSymptomSessions AiSymptomSession[]
   aiDrafts          AiDraftArtifact[]
   rating            DoctorRating?
+  medicalRecords    MedicalRecord[]
 
   @@index([patientUserId, startAt])
   @@index([doctorId, startAt])
@@ -773,6 +774,7 @@ model StorageObject {
 model MedicalRecord {
   id            String            @id @default(cuid())
   patientUserId String
+  appointmentId String?
   title         String
   recordType    String
   summary       String?
@@ -781,10 +783,13 @@ model MedicalRecord {
   documentId    String?
   createdAt     DateTime          @default(now())
   patient       User              @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+  appointment   Appointment?      @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
   doctor        Doctor?           @relation(fields: [doctorId], references: [id])
   document      ClinicalDocument? @relation(fields: [documentId], references: [id])
 
+  @@unique([appointmentId, recordType])
   @@index([patientUserId, recordedAt])
+  @@index([appointmentId])
 }
 
 model LabResult {
