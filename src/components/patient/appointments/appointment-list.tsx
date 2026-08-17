@@ -7,8 +7,9 @@ import { StatusBadge } from "@/components/patient/shared/status-badge";
 import { Pagination } from "@/components/patient/shared/pagination";
 import { EmptyState } from "@/components/patient/shared/empty-state";
 import { PersonAvatar } from "@/components/portal/person-avatar";
+import { canJoinVideo } from "@/domain/patient/video";
 import { formatApptWhen } from "@/lib/datetime";
-import { localizedText } from "@/lib/utils";
+import { cn, localizedText } from "@/lib/utils";
 import type { Appointment, Doctor } from "@prisma/client";
 
 type ApptRow = Appointment & {
@@ -53,41 +54,65 @@ export function AppointmentList({
       <ul className="space-y-3">
         {items.map((appt) => {
           const name = localizedText(locale, appt.doctor.nameEn, appt.doctor.nameAr);
+          const joinable = canJoinVideo({
+            mode: appt.mode,
+            status: appt.status,
+            startAt: new Date(appt.startAt),
+            endAt: new Date(appt.endAt),
+          });
+          const live = appt.status === "IN_PROGRESS" || appt.status === "CHECKED_IN";
           return (
             <li key={appt.id}>
-              <Link
-                href={`/patient/appointments/${appt.id}`}
-                className="glass-card flex items-center gap-4 rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-4 shadow-sm transition hover:border-med-green/30 hover:shadow-md"
+              <div
+                className={cn(
+                  "glass-card flex items-center gap-4 rounded-3xl border bg-surface-container-lowest p-4 shadow-sm",
+                  live
+                    ? "border-med-green/40 ring-1 ring-med-green/20"
+                    : "border-outline-variant/20",
+                )}
               >
-                <PersonAvatar name={name} photoUrl={appt.doctor.photoUrl} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="truncate font-semibold text-primary">{name}</p>
-                    <StatusBadge
-                      status={appt.status}
-                      variant="appointment"
-                      label={ts(appt.status)}
-                    />
-                  </div>
-                  <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-on-surface-variant">
-                    <span>{formatApptWhen(appt.startAt, locale)}</span>
-                    <span className="inline-flex items-center gap-1">
-                      {appt.mode === "VIDEO" ? (
-                        <Video className="h-3.5 w-3.5 text-med-green" aria-hidden />
-                      ) : (
-                        <MapPin className="h-3.5 w-3.5 text-med-green" aria-hidden />
-                      )}
-                      {t(`mode.${appt.mode}`)}
-                    </span>
-                    {appt.status === "COMPLETED" ? (
-                      <span className="text-xs font-semibold text-med-green">
-                        {appt.rating ? t("yourRating") + ` · ${appt.rating.score}/5` : t("rateCta")}
+                <Link
+                  href={`/patient/appointments/${appt.id}`}
+                  className="flex min-w-0 flex-1 items-center gap-4"
+                >
+                  <PersonAvatar name={name} photoUrl={appt.doctor.photoUrl} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="truncate font-semibold text-primary">{name}</p>
+                      <StatusBadge
+                        status={appt.status}
+                        variant="appointment"
+                        label={ts(appt.status)}
+                      />
+                    </div>
+                    <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-on-surface-variant">
+                      <span>{formatApptWhen(appt.startAt, locale)}</span>
+                      <span className="inline-flex items-center gap-1">
+                        {appt.mode === "VIDEO" ? (
+                          <Video className="h-3.5 w-3.5 text-med-green" aria-hidden />
+                        ) : (
+                          <MapPin className="h-3.5 w-3.5 text-med-green" aria-hidden />
+                        )}
+                        {t(`mode.${appt.mode}`)}
                       </span>
-                    ) : null}
-                  </p>
-                </div>
-                <ChevronRight className="h-5 w-5 shrink-0 text-on-surface-variant rtl:rotate-180" aria-hidden />
-              </Link>
+                      {appt.status === "COMPLETED" ? (
+                        <span className="text-xs font-semibold text-med-green">
+                          {appt.rating ? t("yourRating") + ` · ${appt.rating.score}/5` : t("rateCta")}
+                        </span>
+                      ) : null}
+                    </p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 shrink-0 text-on-surface-variant rtl:rotate-180" aria-hidden />
+                </Link>
+                {joinable ? (
+                  <Link
+                    href={`/patient/consultations/${appt.id}`}
+                    className="inline-flex shrink-0 items-center rounded-full bg-med-green px-4 py-2 text-sm font-semibold text-white hover:bg-med-green/90"
+                  >
+                    {t("joinVideo")}
+                  </Link>
+                ) : null}
+              </div>
             </li>
           );
         })}

@@ -2,9 +2,9 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-const PATIENT_EMAIL = "ahelal@patexs.com";
-const DOCTOR_EMAIL = "alaa-helal@outlook.com";
 const SLOT_MINUTES = 30;
+const PATIENT_EMAIL = process.argv[2] ?? "patient@hakeem.local";
+const DOCTOR_EMAIL = process.argv[3] ?? "doctor@hakeem.local";
 
 async function main() {
   const patient = await prisma.user.findUnique({
@@ -54,7 +54,7 @@ async function main() {
         recipientUserId: patient.id,
         category: "APPOINTMENT",
         title: "Video visit is ready",
-        body: "You can join your visit with Dr. Alaa Helal now.",
+        body: `You can join your visit with ${doctorUser.name ?? "your doctor"} now.`,
         href: `/patient/consultations/${appointment.id}`,
       },
       {
@@ -67,6 +67,8 @@ async function main() {
     ],
   });
 
+  console.log("patient", PATIENT_EMAIL);
+  console.log("doctor", DOCTOR_EMAIL);
   console.log("appointmentId", appointment.id);
   console.log("patientJoin", `/en/patient/consultations/${appointment.id}`);
   console.log("doctorJoin", `/en/doctor/consultations/${appointment.id}`);

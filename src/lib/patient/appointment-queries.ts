@@ -1,5 +1,5 @@
 import type { AppointmentStatus, Prisma } from "@prisma/client";
-import { startOfLocalDay } from "@/lib/datetime";
+import { JOIN_WINDOW_AFTER_MS } from "@/domain/patient/video";
 
 export const PATIENT_UPCOMING_STATUSES: AppointmentStatus[] = [
   "HELD",
@@ -14,19 +14,22 @@ export const PATIENT_HISTORY_STATUSES: AppointmentStatus[] = [
   "NO_SHOW",
 ];
 
-/** Prisma filter: today and future visits still in the care loop. Past dates belong in history. */
+const LIVE_STATUSES: AppointmentStatus[] = ["CONFIRMED", "CHECKED_IN", "IN_PROGRESS"];
+
+/** Prisma filter: future bookings plus visits you can still attend or join. */
 export function patientUpcomingWhere(
   userId: string,
   now: Date = new Date(),
 ): Prisma.AppointmentWhereInput {
-  const today = startOfLocalDay(now);
+  const joinWindowStart = new Date(now.getTime() - JOIN_WINDOW_AFTER_MS);
   return {
     patientUserId: userId,
     AND: [
       {
         OR: [
-          { status: { in: ["CONFIRMED", "HELD"] }, startAt: { gte: now } },
-          { status: { in: ["CHECKED_IN", "IN_PROGRESS"] }, startAt: { gte: today } },
+          { status: { in: LIVE_STATUSES }, endAt: { gte: now } },
+          { status: { in: LIVE_STATUSES }, mode: "VIDEO", startAt: { gte: joinWindowStart } },
+          { status: "HELD", startAt: { gte: now } },
         ],
       },
       {
@@ -36,18 +39,22 @@ export function patientUpcomingWhere(
   };
 }
 
-/** Prisma filter: finished visits, plus overdue live visits from previous days. */
+/** Prisma filter: finished visits, and live visits whose join/attend window has closed. */
 export function patientHistoryWhere(
   userId: string,
   now: Date = new Date(),
 ): Prisma.AppointmentWhereInput {
-  const today = startOfLocalDay(now);
+  const joinWindowStart = new Date(now.getTime() - JOIN_WINDOW_AFTER_MS);
   return {
     patientUserId: userId,
     OR: [
       { status: { in: PATIENT_HISTORY_STATUSES } },
-      { status: { in: ["CONFIRMED", "HELD"] }, startAt: { lt: now } },
-      { status: { in: ["CHECKED_IN", "IN_PROGRESS"] }, startAt: { lt: today } },
+      { status: "HELD", OR: [{ startAt: { lt: now } }, { holdExpiresAt: { lte: now } }] },
+      {
+        status: { in: LIVE_STATUSES },
+        endAt: { lt: now },
+        OR: [{ mode: { not: "VIDEO" } }, { startAt: { lt: joinWindowStart } }],
+      },
     ],
   };
 }
