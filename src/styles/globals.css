@@ -109,6 +109,11 @@
     display: none !important;
   }
 
+  .hakeem-visit-chat {
+    font-family: var(--font-app), system-ui, sans-serif;
+    isolation: isolate;
+  }
+
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-primary;
   }

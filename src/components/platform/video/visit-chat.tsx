@@ -2,10 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Send } from "lucide-react";
+import { MessageSquare, Send } from "lucide-react";
 import { platformListVisitChat, platformSendVisitChat } from "@/actions/platform/video";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PersonAvatar } from "@/components/portal/person-avatar";
 import { VISIT_CHAT_MAX_LENGTH, type VisitChatRole } from "@/domain/platform/video";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +23,15 @@ function isOkList(result: ListResult): result is Extract<ListResult, { ok: true 
   return result.ok;
 }
 
+function formatChatTime(iso: string, locale: string) {
+  return new Date(iso).toLocaleTimeString(locale === "ar" ? "ar-SA" : "en-GB", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    numberingSystem: "latn",
+  });
+}
+
 export function VisitChatFrame({
   className,
   children,
@@ -39,18 +47,25 @@ export function VisitChatFrame({
   return (
     <section
       className={cn(
-        "flex h-[min(68vh,560px)] min-h-[320px] w-full shrink-0 flex-col overflow-hidden border border-outline-variant/20 bg-white lg:w-80",
+        "hakeem-visit-chat flex h-[min(68vh,560px)] min-h-[320px] w-full shrink-0 flex-col overflow-hidden bg-[#fbf9f8] lg:w-[22rem]",
         className,
       )}
       aria-label={t("chatTitle")}
     >
-      <header className="border-b border-outline-variant/15 px-4 py-3">
-        <h3 className="text-sm font-semibold text-primary">{t("chatTitle")}</h3>
+      <header className="flex items-center gap-3 bg-primary px-4 py-3.5 text-white">
+        <span className="relative flex h-2.5 w-2.5 shrink-0" aria-hidden>
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-med-green opacity-60" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-med-green" />
+        </span>
+        <div className="min-w-0">
+          <h3 className="font-headline text-base leading-tight">{t("chatTitle")}</h3>
+          <p className="text-[11px] font-medium text-white/70">{t("chatSubtitle")}</p>
+        </div>
       </header>
-      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-3" aria-live="polite">
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-4" aria-live="polite">
         {children}
       </div>
-      <div className="border-t border-outline-variant/15 p-3">
+      <div className="border-t border-outline-variant/15 bg-white p-3">
         {composer}
         {error ? <p className="mt-2 text-xs text-warm-coral">{error}</p> : null}
       </div>
@@ -67,34 +82,62 @@ export function VisitChatBubbles({ messages, empty }: { messages: ChatMessage[];
     bottomRef.current?.scrollIntoView({ block: "end" });
   }, [messages]);
 
-  const time = (iso: string) =>
-    new Date(iso).toLocaleTimeString(locale === "ar" ? "ar-SA" : "en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
   if (messages.length === 0) {
-    return <p className="px-1 py-8 text-center text-sm text-on-surface-variant">{empty}</p>;
+    return (
+      <div className="flex h-full min-h-[12rem] flex-col items-center justify-center px-4 text-center">
+        <span className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <MessageSquare className="h-5 w-5" aria-hidden />
+        </span>
+        <p className="text-sm font-medium text-primary">{t("chatEmptyTitle")}</p>
+        <p className="mt-1 max-w-[16rem] text-xs leading-relaxed text-on-surface-variant">{empty}</p>
+      </div>
+    );
   }
 
   return (
     <>
-      {messages.map((message) => (
-        <div key={message.id} className={cn("flex", message.mine ? "justify-end" : "justify-start")}>
+      {messages.map((message, index) => {
+        const previous = messages[index - 1];
+        const grouped = previous?.senderName === message.senderName && previous.mine === message.mine;
+        const name = message.mine ? t("chatYou") : message.senderName;
+        return (
           <div
-            className={cn(
-              "max-w-[85%] rounded-2xl px-3 py-2 text-sm",
-              message.mine ? "bg-med-green text-white" : "bg-surface-container-high text-primary",
-            )}
+            key={message.id}
+            className={cn("flex items-end gap-2", message.mine ? "flex-row-reverse" : "flex-row")}
           >
-            <p className="text-[11px] font-medium opacity-80">
-              {message.mine ? t("chatYou") : message.senderName}
-            </p>
-            <p className="whitespace-pre-wrap break-words">{message.body}</p>
-            <p className="mt-1 text-[10px] opacity-70">{time(message.createdAt)}</p>
+            {grouped ? (
+              <span className="h-7 w-7 shrink-0" aria-hidden />
+            ) : (
+              <PersonAvatar
+                name={name}
+                size="sm"
+                className={cn(
+                  "!h-7 !w-7 text-[10px]",
+                  message.mine ? "bg-med-green/20 text-med-green" : "bg-primary/10 text-primary",
+                )}
+              />
+            )}
+            <div
+              className={cn(
+                "max-w-[78%] px-3.5 py-2.5 text-sm leading-relaxed shadow-sm",
+                message.mine
+                  ? "rounded-2xl rounded-ee-md bg-med-green text-white"
+                  : "rounded-2xl rounded-es-md bg-white text-primary",
+              )}
+            >
+              {grouped ? null : (
+                <p className={cn("mb-1 text-[11px] font-semibold", message.mine ? "text-white/80" : "text-primary/70")}>
+                  {name}
+                </p>
+              )}
+              <p className="whitespace-pre-wrap break-words">{message.body}</p>
+              <p className={cn("mt-1 text-[10px] tabular-nums", message.mine ? "text-white/70" : "text-on-surface-variant")}>
+                {formatChatTime(message.createdAt, locale)}
+              </p>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
       <div ref={bottomRef} />
     </>
   );
@@ -113,18 +156,34 @@ export function VisitChatComposer({
 }) {
   const t = useTranslations("platform.video");
   return (
-    <form onSubmit={onSubmit} className="flex gap-2">
-      <Input
+    <form onSubmit={onSubmit} className="flex items-end gap-2">
+      <label className="sr-only" htmlFor="visit-chat-input">
+        {t("chatPlaceholder")}
+      </label>
+      <textarea
+        id="visit-chat-input"
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            event.currentTarget.form?.requestSubmit();
+          }
+        }}
         placeholder={t("chatPlaceholder")}
         maxLength={VISIT_CHAT_MAX_LENGTH}
-        aria-label={t("chatPlaceholder")}
+        rows={1}
         disabled={sending}
+        className="max-h-28 min-h-11 flex-1 resize-none rounded-2xl border border-outline-variant/30 bg-[#fbf9f8] px-4 py-2.5 text-sm text-primary outline-none placeholder:text-on-surface-variant focus:border-med-green/50 focus:ring-2 focus:ring-med-green/20 disabled:opacity-50"
       />
-      <Button type="submit" size="icon" disabled={sending || !draft.trim()} aria-label={t("send")}>
-        <Send className="h-4 w-4" />
-      </Button>
+      <button
+        type="submit"
+        disabled={sending || !draft.trim()}
+        aria-label={t("send")}
+        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-med-green text-white shadow-sm transition hover:bg-med-green/90 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        <Send className="h-4 w-4 rtl:rotate-180" aria-hidden />
+      </button>
     </form>
   );
 }
@@ -206,7 +265,12 @@ export function VisitChat({
       className={className}
       error={error}
       composer={
-        <VisitChatComposer draft={draft} setDraft={setDraft} sending={sending} onSubmit={(event) => void onSubmit(event)} />
+        <VisitChatComposer
+          draft={draft}
+          setDraft={setDraft}
+          sending={sending}
+          onSubmit={(event) => void onSubmit(event)}
+        />
       }
     >
       <VisitChatBubbles messages={messages} empty={t("chatEmpty")} />

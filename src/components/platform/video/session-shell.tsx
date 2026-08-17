@@ -151,7 +151,7 @@ export function VideoSessionShell({
     <LiveKitVisitChat
       appointmentId={appointmentId}
       role={role}
-      className="h-full min-h-0 rounded-none border-0 border-t lg:w-80 lg:border-s lg:border-t-0"
+      className="h-full min-h-0 w-full rounded-none border-0 lg:w-[22rem]"
     />
   ) : null;
 
@@ -227,14 +227,13 @@ export function VideoSessionShell({
           connect
           audio={audioEnabled}
           video={videoEnabled}
-          data-lk-theme="default"
           onDisconnected={() => {
             void platformRecordVideoReconnect({ appointmentId });
           }}
           className="overflow-hidden rounded-2xl border border-outline-variant/20 bg-[#071525]"
         >
           <div className="flex h-[min(68vh,560px)] min-h-[320px] flex-col lg:flex-row">
-            <div className="relative min-h-[240px] min-w-0 flex-1">
+            <div className="relative min-h-[240px] min-w-0 flex-1" data-lk-theme="default">
               <LiveKitConferenceStage />
               <LiveKitMediaSync audioEnabled={audioEnabled} videoEnabled={videoEnabled} />
               <LiveKitScreenShareSync
