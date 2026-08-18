@@ -48,7 +48,7 @@ export function VisitChatFrame({
   return (
     <section
       className={cn(
-        "hakeem-visit-chat flex h-[min(68vh,560px)] min-h-[320px] w-full shrink-0 flex-col overflow-hidden border-outline-variant/15 bg-[#fbf9f8] lg:w-[24rem] lg:border-s lg:shadow-[-12px_0_32px_rgba(0,67,111,0.08)]",
+        "hakeem-visit-chat flex h-full min-h-[320px] w-full shrink-0 flex-col overflow-hidden rounded-none border-outline-variant/15 bg-[#fbf9f8] lg:max-w-[24rem] lg:border-s lg:shadow-[-12px_0_32px_rgba(0,67,111,0.12)]",
         className,
       )}
       aria-label={t("chatTitle")}

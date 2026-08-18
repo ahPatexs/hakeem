@@ -18,6 +18,7 @@ import { CallControls } from "./call-controls";
 import { VisitChat } from "./visit-chat";
 import { LiveKitVisitChat } from "./livekit-visit-chat";
 import { LiveKitConferenceStage, LiveKitMediaSync, LiveKitScreenShareSync } from "./livekit-stage";
+import { LiveKitPrefabGuard } from "./livekit-prefab-guard";
 import type { MediaDeviceSelection } from "./device-selector";
 import { cn } from "@/lib/utils";
 
@@ -184,7 +185,7 @@ export function VideoSessionShell({
 
   if (stubMode && creds) {
     return (
-      <div className={cn("space-y-4", className)}>
+      <div className={cn("hakeem-video-shell space-y-4", className)}>
         <p
           className="rounded-xl border border-outline-variant/30 bg-surface-container-high px-4 py-2 text-center text-sm font-medium text-primary"
           role="status"
@@ -219,7 +220,7 @@ export function VideoSessionShell({
   if (!creds) return null;
 
   return (
-    <div className={className}>
+    <div className={cn("hakeem-video-shell", className)}>
       <div className="space-y-3">
         <LiveKitRoom
           token={creds.token}
@@ -232,6 +233,7 @@ export function VideoSessionShell({
           }}
           className="overflow-hidden rounded-2xl border border-outline-variant/20 bg-[#071525]"
         >
+          <LiveKitPrefabGuard />
           <div className="flex h-[min(68vh,560px)] min-h-[320px] flex-col lg:flex-row">
             <div className="relative min-h-[240px] min-w-0 flex-1" data-lk-theme="default">
               <LiveKitConferenceStage />

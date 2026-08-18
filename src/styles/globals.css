@@ -104,14 +104,30 @@
   }
 
   /* Hakeem owns in-call chat; hide LiveKit prefab chrome so both parties use the same panel. */
+  .hakeem-video-shell .lk-control-bar,
+  .hakeem-video-shell .lk-chat,
+  .hakeem-video-shell .lk-video-conference,
+  .hakeem-video-shell .lk-widget-chat,
   .lk-control-bar,
   .lk-chat {
     display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    height: 0 !important;
+    overflow: hidden !important;
   }
 
   .hakeem-visit-chat {
     font-family: var(--font-app), system-ui, sans-serif;
     isolation: isolate;
+  }
+
+  .hakeem-video-shell .hakeem-visit-chat {
+    display: flex !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    min-height: 320px;
+    z-index: 5;
   }
 
   .visit-chat-thread {
