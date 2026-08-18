@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appointmentInstantSchema } from "@/lib/appointment-instant";
+import { appointmentInstantSchema, parseInstant } from "@/lib/appointment-instant";
 
 describe("appointmentInstantSchema", () => {
   it("accepts UTC ISO strings", () => {
@@ -14,9 +14,10 @@ describe("appointmentInstantSchema", () => {
     if (parsed.success) expect(parsed.data.toISOString()).toBe("2026-08-31T08:00:00.000Z");
   });
 
-  it("accepts Date objects from server-action revival", () => {
-    const parsed = appointmentInstantSchema.safeParse(new Date("2026-08-31T08:00:00.000Z"));
-    expect(parsed.success).toBe(true);
-    if (parsed.success) expect(parsed.data.toISOString()).toBe("2026-08-31T08:00:00.000Z");
+  it("accepts Date-like objects that fail instanceof Date", () => {
+    const real = new Date("2026-08-31T08:00:00.000Z");
+    const like = { getTime: () => real.getTime() };
+    const parsed = parseInstant(like);
+    expect(parsed?.toISOString()).toBe("2026-08-31T08:00:00.000Z");
   });
 });

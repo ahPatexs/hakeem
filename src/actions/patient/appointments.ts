@@ -19,7 +19,7 @@ import { assertSlotIsOfferable } from "@/lib/patient/availability";
 import { notifyDoctorAppointmentConfirmed } from "@/lib/doctor/notification-triggers";
 import { patientHistoryWhere, patientUpcomingWhere } from "@/lib/patient/appointment-queries";
 import { formatApptWhen } from "@/lib/datetime";
-import { appointmentInstantSchema } from "@/lib/appointment-instant";
+import { parseInstant } from "@/lib/appointment-instant";
 
 const PAGE_SIZE = 20;
 
@@ -30,6 +30,36 @@ const doctorPreviewSelect = {
   nameAr: true,
   photoUrl: true,
 } as const;
+
+type BookingDoctor = {
+  id: string;
+  slug: string;
+  nameEn: string;
+  nameAr: string;
+  photoUrl: string | null;
+};
+
+function toBookingDto(row: {
+  id: string;
+  status: string;
+  startAt: Date;
+  endAt: Date;
+  doctor: BookingDoctor;
+}) {
+  return {
+    id: row.id,
+    status: row.status,
+    startAt: row.startAt.toISOString(),
+    endAt: row.endAt.toISOString(),
+    doctor: {
+      id: row.doctor.id,
+      slug: row.doctor.slug,
+      nameEn: row.doctor.nameEn,
+      nameAr: row.doctor.nameAr,
+      photoUrl: row.doctor.photoUrl,
+    },
+  };
+}
 
 async function patientLocaleFor(userId: string): Promise<"en" | "ar"> {
   const user = await prisma.user.findUnique({
@@ -46,8 +76,8 @@ async function patientLocaleFor(userId: string): Promise<"en" | "ar"> {
 const holdSchema = z.object({
   doctorId: z.string().min(1),
   mode: z.enum(["IN_PERSON", "VIDEO"]),
-  startAt: appointmentInstantSchema,
-  endAt: appointmentInstantSchema,
+  startAt: z.unknown(),
+  endAt: z.unknown(),
   reason: z.string().max(500).optional(),
 });
 
@@ -60,8 +90,8 @@ const cancelSchema = z.object({
 
 const rescheduleSchema = z.object({
   id: z.string().min(1),
-  startAt: appointmentInstantSchema,
-  endAt: appointmentInstantSchema,
+  startAt: z.unknown(),
+  endAt: z.unknown(),
 });
 
 const listSchema = z.object({
@@ -86,10 +116,20 @@ async function assertOwnAppointment(userId: string, id: string) {
 
 export async function holdAppointmentSlot(input: unknown) {
   const parsed = holdSchema.safeParse(input);
-  if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
+  const start = parseInstant(parsed.success ? parsed.data.startAt : undefined);
+  const end = parseInstant(parsed.success ? parsed.data.endAt : undefined);
+  if (!parsed.success || !start || !end) {
+    console.error("[holdAppointmentSlot] validation", {
+      success: parsed.success,
+      issues: parsed.success ? undefined : parsed.error.flatten(),
+      startAtType: typeof (input as { startAt?: unknown } | null)?.startAt,
+      endAtType: typeof (input as { endAt?: unknown } | null)?.endAt,
+    });
+    return { ok: false as const, code: "VALIDATION_ERROR" };
+  }
 
   return withPatient(async (userId) => {
-    const { doctorId, mode, startAt: start, endAt: end, reason } = parsed.data;
+    const { doctorId, mode, reason } = parsed.data;
     if (start.getTime() <= Date.now()) {
       throw new AuthDomainError("VALIDATION_ERROR", "Slot must be in the future");
     }
@@ -142,7 +182,7 @@ export async function holdAppointmentSlot(input: unknown) {
       });
     });
 
-    return appointment;
+    return toBookingDto(appointment);
   });
 }
 
@@ -159,50 +199,65 @@ export async function confirmAppointment(input: unknown) {
     const updated = await prisma.appointment.update({
       where: { id: appt.id },
       data: { status: "CONFIRMED", holdExpiresAt: null },
-      include: {
-        doctor: {
-          select: { id: true, slug: true, nameEn: true, nameAr: true, photoUrl: true },
-        },
-      },
+      include: { doctor: { select: doctorPreviewSelect } },
     });
 
-    const { ensurePayableObligation } = await import("@/lib/platform/payments");
-    const { getConsultationFeeCents } = await import("@/lib/admin/maintenance");
-    await ensurePayableObligation({
-      appointmentId: updated.id,
-      patientUserId: userId,
-      amountCents: await getConsultationFeeCents(),
-      description: `Consultation — ${updated.doctor.nameEn}`,
-    });
+    try {
+      const { ensurePayableObligation } = await import("@/lib/platform/payments");
+      const { getConsultationFeeCents } = await import("@/lib/admin/maintenance");
+      await ensurePayableObligation({
+        appointmentId: updated.id,
+        patientUserId: userId,
+        amountCents: await getConsultationFeeCents(),
+        description: `Consultation — ${updated.doctor.nameEn}`,
+      });
+    } catch (error) {
+      console.error("[confirmAppointment] obligation", error);
+      throw error;
+    }
 
     const locale = await patientLocaleFor(userId);
 
-    await createNotification({
-      recipientUserId: userId,
-      category: "APPOINTMENT",
-      title: "Appointment confirmed",
-      body: `Your appointment on ${formatApptWhen(updated.startAt, locale)} is confirmed.`,
-      href: `/patient/appointments/${updated.id}`,
-    });
-
-    const doctorUser = await prisma.user.findFirst({
-      where: { doctorProfileId: updated.doctorId },
-      select: { id: true },
-    });
-    if (doctorUser) {
-      const patient = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { name: true, email: true },
+    try {
+      await createNotification({
+        recipientUserId: userId,
+        category: "APPOINTMENT",
+        title: "Appointment confirmed",
+        body: `Your appointment on ${formatApptWhen(updated.startAt, locale)} is confirmed.`,
+        href: `/patient/appointments/${updated.id}`,
       });
-      await notifyDoctorAppointmentConfirmed(
-        doctorUser.id,
-        updated.id,
-        patient?.name ?? patient?.email ?? "Patient",
-      );
+    } catch (error) {
+      console.error("[confirmAppointment] notify patient", error);
     }
 
-    return updated;
+    try {
+      const doctorUser = await prisma.user.findFirst({
+        where: { doctorProfileId: updated.doctorId },
+        select: { id: true },
+      });
+      if (doctorUser) {
+        const patient = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { name: true, email: true },
+        });
+        await notifyDoctorAppointmentConfirmed(
+          doctorUser.id,
+          updated.id,
+          patient?.name ?? patient?.email ?? "Patient",
+        );
+      }
+    } catch (error) {
+      console.error("[confirmAppointment] notify doctor", error);
+    }
+
+    return toBookingDto(updated);
   });
+}
+
+export async function bookDoctorSlot(input: unknown) {
+  const held = await holdAppointmentSlot(input);
+  if (!held.ok) return held;
+  return confirmAppointment({ id: held.data.id });
 }
 
 export async function cancelAppointment(input: unknown) {
@@ -251,8 +306,11 @@ export async function rescheduleAppointment(input: unknown) {
       throw new AuthDomainError("VALIDATION_ERROR", "Cannot reschedule this appointment");
     }
 
-    const start = new Date(parsed.data.startAt);
-    const end = new Date(parsed.data.endAt);
+    const start = parseInstant(parsed.data.startAt);
+    const end = parseInstant(parsed.data.endAt);
+    if (!start || !end) {
+      throw new AuthDomainError("VALIDATION_ERROR", "Invalid slot time");
+    }
     await assertSlotIsOfferable({
       doctorId: appt.doctorId,
       startAt: start,

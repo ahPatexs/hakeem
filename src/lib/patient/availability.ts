@@ -203,7 +203,7 @@ export function classifyRequestedSlot(input: {
 }): CareLoopErrorCode | null {
   const now = input.now ?? new Date();
   const timezone = resolveIanaTimezone(input.timezone);
-  if (input.endAt.getTime() - input.startAt.getTime() !== SLOT_MS) {
+  if (Math.abs(input.endAt.getTime() - input.startAt.getTime() - SLOT_MS) > 1000) {
     return "SLOT_OUTSIDE_HOURS";
   }
   if (input.startAt.getTime() <= now.getTime()) return "SLOT_HORIZON";
@@ -347,14 +347,20 @@ export async function assertSlotIsOfferable(input: {
     ? await loadBlockingAppointments(input.doctorId, input.ignoreAppointmentIds)
     : ctx.appointments;
 
-  const code = classifyRequestedSlot({
-    startAt: input.startAt,
-    endAt: input.endAt,
-    week: ctx.week,
-    unavailableDates: ctx.unavailableDates,
-    appointments: blocking,
-    timezone: ctx.timezone,
-    now: input.now,
-  });
+  let code: CareLoopErrorCode | null;
+  try {
+    code = classifyRequestedSlot({
+      startAt: input.startAt,
+      endAt: input.endAt,
+      week: ctx.week,
+      unavailableDates: ctx.unavailableDates,
+      appointments: blocking,
+      timezone: ctx.timezone,
+      now: input.now,
+    });
+  } catch (error) {
+    console.error("[assertSlotIsOfferable]", error);
+    throw new CareLoopError("SCHEDULE_MISSING");
+  }
   if (code) throw new CareLoopError(code);
 }

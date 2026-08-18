@@ -8,7 +8,7 @@ import { Link, useRouter } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { PersonAvatar } from "@/components/portal/person-avatar";
 import { SlotPicker, VisitModeToggle } from "@/components/portal/slot-picker";
-import { holdAppointmentSlot, confirmAppointment } from "@/actions/patient/appointments";
+import { bookDoctorSlot } from "@/actions/patient/appointments";
 import { aiAttachSessionToBooking } from "@/actions/ai/symptom";
 import { formatApptWhen } from "@/lib/datetime";
 import { minutesToTimeLabel } from "@/domain/doctor/hours";
@@ -93,32 +93,30 @@ export function DoctorProfileView({
     if (!selected) return;
     setError(null);
     startTransition(async () => {
-      const held = await holdAppointmentSlot({
+      const booked = await bookDoctorSlot({
         doctorId: doctor.id,
         mode,
         startAt: new Date(selected.startAt).toISOString(),
         endAt: new Date(selected.endAt).toISOString(),
       });
-      if (!held.ok) {
+      if (!booked.ok) {
+        console.error("bookDoctorSlot failed", booked);
         setError(
-          held.code === "SLOT_UNAVAILABLE" ? t("bookError") : t("bookErrorRetry"),
+          booked.code === "SLOT_UNAVAILABLE"
+            ? t("bookError")
+            : `${t("bookErrorRetry")} (${booked.code})`,
         );
-        return;
-      }
-      const confirmed = await confirmAppointment({ id: held.data.id });
-      if (!confirmed.ok) {
-        setError(t("confirmError"));
         return;
       }
 
       if (symptomSessionId) {
         await aiAttachSessionToBooking({
           sessionId: symptomSessionId,
-          appointmentId: confirmed.data.id,
+          appointmentId: booked.data.id,
         });
       }
 
-      router.push(`/patient/appointments/${confirmed.data.id}`);
+      router.push(`/patient/appointments/${booked.data.id}`);
     });
   }
 
