@@ -43,18 +43,43 @@ function estimateTokens(text: string): number {
   return Math.max(1, Math.ceil(text.length / 4));
 }
 
+function isSoapDraftAsk(text: string): boolean {
+  return /"subjective"/i.test(text) || /structured SOAP/i.test(text);
+}
+
+function isSummaryDraftAsk(text: string): boolean {
+  return /"body"/i.test(text) && /consultation summary/i.test(text);
+}
+
 function buildReply(input: AiChatInput): AiChatResult {
   const disclaimer = input.locale === "ar" ? DISCLAIMER_AR : DISCLAIMER_EN;
   const userText = lastUserContent(input);
-  const body = isPrescribeOrDiagnoseAsk(userText)
-    ? input.locale === "ar"
-      ? REFUSAL_AR
-      : REFUSAL_EN
-    : input.locale === "ar"
-      ? `${HELP_AR}\n\n[Stub] قلتَ: ${userText || "(رسالة فارغة)"}`
-      : `${HELP_EN}\n\n[Stub] You said: ${userText || "(empty message)"}`;
 
-  const content = `${disclaimer}\n\n${body}`;
+  let body: string;
+  if (isSoapDraftAsk(userText)) {
+    body = JSON.stringify({
+      subjective: "Patient-reported history from this visit (draft — clinician review required).",
+      objective: "Exam findings and vitals were not fully captured in this draft.",
+      assessment: "Working assessment pending clinician confirmation.",
+      plan: "Plan pending clinician review. This is an AI-assisted draft, not a signed note.",
+    });
+  } else if (isSummaryDraftAsk(userText)) {
+    body = JSON.stringify({
+      body:
+        input.locale === "ar"
+          ? "ملخص استشارة مسودة للمراجعة السريرية. لم يُعتمد بعد وليس بديلاً عن ملاحظات الطبيب."
+          : "Draft consultation summary for clinician review. Not finalized and not a substitute for the clinician's note.",
+    });
+  } else if (isPrescribeOrDiagnoseAsk(userText)) {
+    body = input.locale === "ar" ? REFUSAL_AR : REFUSAL_EN;
+  } else {
+    body =
+      input.locale === "ar"
+        ? `${HELP_AR}\n\n[Stub] قلتَ: ${userText || "(رسالة فارغة)"}`
+        : `${HELP_EN}\n\n[Stub] You said: ${userText || "(empty message)"}`;
+  }
+
+  const content = isSoapDraftAsk(userText) || isSummaryDraftAsk(userText) ? body : `${disclaimer}\n\n${body}`;
   const promptBlob = input.messages.map((m) => m.content).join("\n");
   return {
     content,

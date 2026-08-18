@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
@@ -31,19 +31,29 @@ type RxSuggestion = {
 
 export function RxSuggestPanel({
   patientUserId,
+  initialIntent,
   readOnly = false,
 }: {
   patientUserId: string;
+  initialIntent?: string;
   readOnly?: boolean;
 }) {
   const t = useTranslations("ai.rx");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [intent, setIntent] = useState("");
+  const [intent, setIntent] = useState(initialIntent ?? "");
   const [suggestion, setSuggestion] = useState<RxSuggestion | null>(null);
   const [noSafeReason, setNoSafeReason] = useState<string | null>(null);
   const [error, setError] = useState<"unavailable" | "generic" | "forbidden" | null>(null);
   const [status, setStatus] = useState<"idle" | "accepted" | "discarded">("idle");
+  useEffect(() => {
+    // When opening the visit assistant, we may have a transcript-derived intent.
+    // Keep manual edits if the doctor already typed something.
+    if (initialIntent && !intent.trim()) {
+      setIntent(initialIntent);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialIntent]);
 
   function mapError(code: string) {
     if (code === "FORBIDDEN") {

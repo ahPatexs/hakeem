@@ -6,7 +6,7 @@ import type {
   AiMessage,
 } from "@/ports/ai-assistant";
 
-const DEFAULT_MODEL = "gemini-flash-latest";
+const MODEL_FALLBACKS = ["gemini-3.5-flash", "gemini-2.5-flash", "gemini-flash-latest"];
 const DEFAULT_TEMPERATURE = 0.3;
 const DEFAULT_MAX_TOKENS = 1024;
 
@@ -57,12 +57,21 @@ function client(): GoogleGenAI {
   return new GoogleGenAI({ apiKey });
 }
 
-function modelName(input: AiChatInput): string {
-  const fallback = process.env.GEMINI_AI_MODEL || DEFAULT_MODEL;
+function modelCandidates(input: AiChatInput): string[] {
   const requested = input.model?.model?.trim();
-  // Active DB configs may still list OpenAI ids (gpt-*); ignore those for Gemini.
-  if (requested && /^gemini/i.test(requested)) return requested;
-  return fallback;
+  const envModel = process.env.GEMINI_AI_MODEL?.trim();
+  const names: string[] = [];
+  if (requested && /^gemini/i.test(requested)) names.push(requested);
+  if (envModel && /^gemini/i.test(envModel)) names.push(envModel);
+  names.push(...MODEL_FALLBACKS);
+  return [...new Set(names)];
+}
+
+function isRetryableModelError(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err);
+  const status = (err as { status?: number } | null)?.status;
+  if (status === 404 || status === 429) return true;
+  return /NOT_FOUND|not found|no longer available|UNAVAILABLE|RESOURCE_EXHAUSTED/i.test(message);
 }
 
 function generationConfig(input: AiChatInput) {
@@ -78,42 +87,76 @@ function generationConfig(input: AiChatInput) {
 export class GeminiAssistantAdapter implements AiAssistantPort {
   async chat(input: AiChatInput): Promise<AiChatResult> {
     const { systemInstruction, contents } = splitMessages(input.messages);
-    const response = await client().models.generateContent({
-      model: modelName(input),
-      contents,
-      config: {
-        ...generationConfig(input),
-        ...(systemInstruction ? { systemInstruction } : {}),
-      },
-    });
-
-    const content = (response.text ?? "").trim();
     const disclaimer = input.locale === "ar" ? DISCLAIMER_AR : DISCLAIMER_EN;
-    const usage = response.usageMetadata
-      ? {
-          promptTokens: response.usageMetadata.promptTokenCount ?? 0,
-          completionTokens: response.usageMetadata.candidatesTokenCount ?? 0,
-        }
-      : undefined;
+    let lastError: unknown;
 
-    return { content, disclaimer, usage };
+    for (const model of modelCandidates(input)) {
+      try {
+        const response = await client().models.generateContent({
+          model,
+          contents,
+          config: {
+            ...generationConfig(input),
+            ...(systemInstruction ? { systemInstruction } : {}),
+          },
+        });
+
+        const content = (response.text ?? "").trim();
+        if (!content) {
+          lastError = new Error(`Gemini ${model} returned empty content`);
+          continue;
+        }
+        const usage = response.usageMetadata
+          ? {
+              promptTokens: response.usageMetadata.promptTokenCount ?? 0,
+              completionTokens: response.usageMetadata.candidatesTokenCount ?? 0,
+            }
+          : undefined;
+
+        return { content, disclaimer, usage };
+      } catch (err) {
+        lastError = err;
+        if (!isRetryableModelError(err)) throw err;
+        console.warn(`[ai.gemini] ${model} failed; trying next model`);
+      }
+    }
+
+    throw lastError instanceof Error ? lastError : new Error("Gemini provider unavailable");
   }
 
   async *streamChat(input: AiChatInput): AsyncIterable<string> {
     const { systemInstruction, contents } = splitMessages(input.messages);
-    const stream = await client().models.generateContentStream({
-      model: modelName(input),
-      contents,
-      config: {
-        ...generationConfig(input),
-        ...(systemInstruction ? { systemInstruction } : {}),
-      },
-    });
+    let lastError: unknown;
 
-    for await (const chunk of stream) {
-      const delta = chunk.text;
-      if (delta) yield delta;
+    for (const model of modelCandidates(input)) {
+      try {
+        const stream = await client().models.generateContentStream({
+          model,
+          contents,
+          config: {
+            ...generationConfig(input),
+            ...(systemInstruction ? { systemInstruction } : {}),
+          },
+        });
+
+        let yielded = false;
+        for await (const chunk of stream) {
+          const delta = chunk.text;
+          if (delta) {
+            yielded = true;
+            yield delta;
+          }
+        }
+        if (yielded) return;
+        lastError = new Error(`Gemini ${model} streamed empty content`);
+      } catch (err) {
+        lastError = err;
+        if (!isRetryableModelError(err)) throw err;
+        console.warn(`[ai.gemini] ${model} stream failed; trying next model`);
+      }
     }
+
+    throw lastError instanceof Error ? lastError : new Error("Gemini provider unavailable");
   }
 }
 

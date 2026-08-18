@@ -2,20 +2,17 @@ import { getAiAdapter } from "@/adapters";
 import { assertAiAllowed as domainAssertAiAllowed } from "@/domain/platform/ai-governance";
 import { platformFail, platformOk, type PlatformResult } from "@/domain/platform/outcomes";
 import type { AiChatInput, AiChatResult } from "@/ports/ai-assistant";
+import { isAiProviderAllowed, normalizeAiProviderName } from "@/lib/platform/ai-gate";
 
 export type AiFeature = "patient" | "doctorDocumentation" | "doctorPrescription";
 
-function isProduction(): boolean {
-  return process.env.NODE_ENV === "production";
-}
-
-function isStubProvider(): boolean {
-  return (process.env.AI_ASSISTANT_PROVIDER ?? "stub") === "stub";
-}
-
-/** Block non-stub AI providers in production without BAA gate. */
+/**
+ * Live-provider guard. Callers that can degrade to stub should catch this
+ * and keep going — `getAiAdapter()` already returns stub when the gate fails.
+ */
 export function assertBaaGate(): void {
-  if (isProduction() && !isStubProvider() && process.env.PLATFORM_AI_BAA_SATISFIED !== "true") {
+  const name = normalizeAiProviderName(process.env.AI_ASSISTANT_PROVIDER);
+  if (!isAiProviderAllowed(name)) {
     throw new Error("PLATFORM_AI_BAA_REQUIRED");
   }
 }

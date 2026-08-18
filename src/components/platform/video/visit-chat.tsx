@@ -7,6 +7,7 @@ import { platformListVisitChat, platformSendVisitChat } from "@/actions/platform
 import { PersonAvatar } from "@/components/portal/person-avatar";
 import { VISIT_CHAT_MAX_LENGTH, type VisitChatRole } from "@/domain/platform/video";
 import { cn } from "@/lib/utils";
+import { VideoDoctorAiAssist } from "./video-doctor-ai-assist";
 
 export type ChatMessage = {
   id: string;
@@ -200,9 +201,11 @@ function mergeMessages(incoming: ChatMessage[], previous: ChatMessage[]): ChatMe
 
 export function VisitChat({
   appointmentId,
+  role,
   className,
 }: {
   appointmentId: string;
+  role: VisitChatRole;
   className?: string;
 }) {
   const t = useTranslations("platform.video");
@@ -273,6 +276,7 @@ export function VisitChat({
         />
       }
     >
+      <VideoDoctorAiAssist appointmentId={appointmentId} role={role} />
       <VisitChatBubbles messages={messages} empty={t("chatEmpty")} />
     </VisitChatFrame>
   );

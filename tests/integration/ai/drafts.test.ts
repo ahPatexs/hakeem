@@ -17,6 +17,9 @@ vi.mock("@/lib/prisma", () => ({
       findUnique: vi.fn(),
       update: vi.fn(),
     },
+    soapNote: {
+      findFirst: vi.fn(),
+    },
   },
 }));
 
@@ -70,6 +73,7 @@ const mockApptFind = vi.mocked(prisma.appointment.findUnique);
 const mockDraftCreate = vi.mocked(prisma.aiDraftArtifact.create);
 const mockDraftFind = vi.mocked(prisma.aiDraftArtifact.findUnique);
 const mockDraftUpdate = vi.mocked(prisma.aiDraftArtifact.update);
+const mockSoapFindFirst = vi.mocked(prisma.soapNote.findFirst);
 
 const doctor = {
   userId: "doc-user-1",
@@ -104,6 +108,8 @@ describe("AI draft lifecycle", () => {
       patientUserId: "patient-1",
       doctorId: "doctor-1",
     } as never);
+
+    mockSoapFindFirst.mockResolvedValue(null);
   });
 
   it("generate (stub) → PENDING artifact with evidence", async () => {

@@ -17,6 +17,7 @@ import {
   VisitChatFrame,
   type ChatMessage,
 } from "./visit-chat";
+import { VideoDoctorAiAssist } from "./video-doctor-ai-assist";
 
 export function LiveKitVisitChat({
   appointmentId,
@@ -134,6 +135,7 @@ export function LiveKitVisitChat({
         />
       }
     >
+      <VideoDoctorAiAssist appointmentId={appointmentId} role={role} />
       <VisitChatBubbles messages={messages} empty={t("chatEmpty")} />
     </VisitChatFrame>
   );

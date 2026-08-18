@@ -23,23 +23,18 @@ import type { SafetyCheckPort } from "@/ports/safety-check";
 import type { SmsPort } from "@/ports/sms";
 import type { StoragePort } from "@/ports/storage";
 import type { TelemedicinePort } from "@/ports/telemedicine";
+import { isAiProviderAllowed } from "@/lib/platform/ai-gate";
 
 function provider(name: string | undefined, fallback = "stub"): string {
   return (name ?? fallback).toLowerCase();
 }
 
-/**
- * BAA gate for non-stub AI providers (inlined here to avoid circular import
- * with `lib/platform/ai` which already consumes `getAiAdapter`).
- */
-function assertBaaGateForProvider(providerName: string): void {
-  if (
-    process.env.NODE_ENV === "production" &&
-    providerName !== "stub" &&
-    process.env.PLATFORM_AI_BAA_SATISFIED !== "true"
-  ) {
-    throw new Error("PLATFORM_AI_BAA_REQUIRED");
+function liveOrStub<T>(providerName: string, live: T, stub: T, label: string): T {
+  if (isAiProviderAllowed(providerName)) return live;
+  if (providerName !== "stub") {
+    console.warn(`[ai] ${label} provider "${providerName}" is not eligible; using stub`);
   }
+  return stub;
 }
 
 export function getPaymentsAdapter(): PaymentsPort {
@@ -76,13 +71,12 @@ export function getPushAdapter(): PushPort {
 
 export function getAiAdapter(): AiAssistantPort {
   const name = provider(process.env.AI_ASSISTANT_PROVIDER);
-  assertBaaGateForProvider(name);
   switch (name) {
     case "gemini":
     case "google":
-      return geminiAssistantAdapter;
+      return liveOrStub<AiAssistantPort>(name, geminiAssistantAdapter, stubAiAssistantAdapter, "assistant");
     case "openai":
-      return openAiAssistantAdapter;
+      return liveOrStub<AiAssistantPort>(name, openAiAssistantAdapter, stubAiAssistantAdapter, "assistant");
     case "stub":
     default:
       return stubAiAssistantAdapter;
@@ -91,13 +85,12 @@ export function getAiAdapter(): AiAssistantPort {
 
 export function getEmbeddingsAdapter(): AiEmbeddingsPort {
   const name = provider(process.env.AI_EMBEDDINGS_PROVIDER ?? process.env.AI_ASSISTANT_PROVIDER);
-  assertBaaGateForProvider(name);
   switch (name) {
     case "gemini":
     case "google":
-      return geminiEmbeddingsAdapter;
+      return liveOrStub<AiEmbeddingsPort>(name, geminiEmbeddingsAdapter, stubEmbeddingsAdapter, "embeddings");
     case "openai":
-      return openAiEmbeddingsAdapter;
+      return liveOrStub<AiEmbeddingsPort>(name, openAiEmbeddingsAdapter, stubEmbeddingsAdapter, "embeddings");
     case "stub":
     default:
       return stubEmbeddingsAdapter;

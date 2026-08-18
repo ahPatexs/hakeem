@@ -50,6 +50,41 @@ async function loadVideoAppointment(appointmentId: string): Promise<AppointmentR
   });
 }
 
+/**
+ * Resolve the patient user id for a video appointment while enforcing
+ * minimum access checks (the caller must be a participant).
+ *
+ * Used to scope AI actions (SOAP summary, Rx suggestions) to the correct
+ * patient context from inside the visit video experience.
+ */
+export async function getVideoAppointmentPatientUserId(input: {
+  appointmentId: string;
+  actorUserId: string;
+}): Promise<PlatformResult<{ patientUserId: string }>> {
+  const appointment = await loadVideoAppointment(input.appointmentId);
+  if (!appointment) return platformFail("NOT_FOUND", "Appointment not found");
+
+  const videoCheck = assertVideoAppointment(appointment);
+  if (!videoCheck.ok) return videoCheck;
+
+  // Patient can always resolve their own appointment patientUserId.
+  if (appointment.patientUserId === input.actorUserId) {
+    return platformOk({ patientUserId: appointment.patientUserId });
+  }
+
+  // Doctor must match by doctorProfileId (appointment.doctorId stores profile id).
+  const actorDoctorProfile = await prisma.user.findUnique({
+    where: { id: input.actorUserId },
+    select: { doctorProfileId: true },
+  });
+  const isDoctorParticipant = actorDoctorProfile?.doctorProfileId === appointment.doctorId;
+  if (!isDoctorParticipant) {
+    return platformFail("FORBIDDEN", "Not a participant on this appointment");
+  }
+
+  return platformOk({ patientUserId: appointment.patientUserId });
+}
+
 async function resolveParticipant(
   appointment: AppointmentRow,
   actorUserId: string,

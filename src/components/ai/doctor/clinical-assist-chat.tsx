@@ -12,10 +12,14 @@ import { Send } from "lucide-react";
 
 function errorMessage(
   t: ReturnType<typeof useTranslations>,
+  tRoot: ReturnType<typeof useTranslations>,
   code: string | null,
 ): string | null {
   if (!code) return null;
   if (code === "RATE_LIMITED") return t("rateLimited");
+  if (code === "BUDGET_EXHAUSTED" || code === "DEPENDENCY_UNAVAILABLE") {
+    return tRoot("unavailable");
+  }
   return t("error");
 }
 
@@ -101,7 +105,7 @@ export function ClinicalAssistChat({
     await chat.send(trimmed);
   }
 
-  const err = errorMessage(t, chat.errorCode);
+  const err = errorMessage(t, tRoot, chat.errorCode);
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>

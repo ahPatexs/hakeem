@@ -8,6 +8,7 @@ import {
   createConsultationSession,
   endConsultationSession,
   getJoinCredentials,
+  getVideoAppointmentPatientUserId,
   getSessionAnalytics,
   leaveConsultationSession,
   listVideoCallEvents,
@@ -188,6 +189,28 @@ export async function platformListVisitChat(input: unknown) {
       actorUserId: session.user.id,
     });
   } catch {
+    return { ok: false as const, code: "INTERNAL_FAILURE" };
+  }
+}
+
+export async function platformGetVideoAppointmentPatientUserId(input: unknown) {
+  try {
+    const parsed = appointmentSchema.safeParse(input);
+    if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
+
+    const session = await auth();
+    if (!session?.user?.id || !session.user.role) return { ok: false as const, code: "UNAUTHORIZED" };
+
+    if (session.user.role !== "DOCTOR" && session.user.role !== "ADMIN") {
+      return { ok: false as const, code: "FORBIDDEN" };
+    }
+
+    return getVideoAppointmentPatientUserId({
+      appointmentId: parsed.data.appointmentId,
+      actorUserId: session.user.id,
+    });
+  } catch (error) {
+    if (isAuthDomainError(error)) return { ok: false as const, code: error.code };
     return { ok: false as const, code: "INTERNAL_FAILURE" };
   }
 }

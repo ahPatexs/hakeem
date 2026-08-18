@@ -3,6 +3,7 @@
  */
 import type { AiFeatureKey } from "@prisma/client";
 import { getAiAdapter } from "@/adapters";
+import { stubAiAssistantAdapter } from "@/adapters/stub-ai";
 import { isPatientFacingFeature } from "@/domain/ai/access";
 import type { AiFeatureKey as DomainAiFeatureKey } from "@/domain/ai/access";
 import { checkInjection, checkPatientOutputPolicy } from "@/domain/ai/guardrails";
@@ -66,28 +67,34 @@ async function callWithOptionalFallback(
   primary: { modelConfigId: string; modelName: string; temperature: number; maxOutputTokens: number; fallbackModel: string | null },
 ): Promise<{ result: AiChatResult; modelName: string; usedFallback: boolean }> {
   const adapter = getAiAdapter();
+  const chatInput = {
+    ...base,
+    model: {
+      model: primary.modelName,
+      temperature: primary.temperature,
+      maxOutputTokens: primary.maxOutputTokens,
+    },
+  };
   try {
-    const result = await adapter.chat({
-      ...base,
-      model: {
-        model: primary.modelName,
-        temperature: primary.temperature,
-        maxOutputTokens: primary.maxOutputTokens,
-      },
-    });
+    const result = await adapter.chat(chatInput);
     return { result, modelName: primary.modelName, usedFallback: false };
   } catch (primaryErr) {
-    if (!primary.fallbackModel) throw primaryErr;
-    console.warn(`[ai.orchestration] primary model failed for ${feature}; retrying fallback`, primaryErr);
-    const result = await adapter.chat({
-      ...base,
-      model: {
-        model: primary.fallbackModel,
-        temperature: primary.temperature,
-        maxOutputTokens: primary.maxOutputTokens,
-      },
-    });
-    return { result, modelName: primary.fallbackModel, usedFallback: true };
+    if (primary.fallbackModel) {
+      try {
+        console.warn(`[ai.orchestration] primary model failed for ${feature}; retrying fallback`, primaryErr);
+        const result = await adapter.chat({
+          ...chatInput,
+          model: { ...chatInput.model, model: primary.fallbackModel },
+        });
+        return { result, modelName: primary.fallbackModel, usedFallback: true };
+      } catch (fallbackErr) {
+        console.warn(`[ai.orchestration] fallback model failed for ${feature}; using stub`, fallbackErr);
+      }
+    } else {
+      console.warn(`[ai.orchestration] provider failed for ${feature}; using stub`, primaryErr);
+    }
+    const result = await stubAiAssistantAdapter.chat(chatInput);
+    return { result, modelName: "stub", usedFallback: true };
   }
 }
 
@@ -101,7 +108,7 @@ export async function generate(
   try {
     assertBaaGate();
   } catch {
-    return platformFail("DEPENDENCY_UNAVAILABLE", "AI provider BAA gate blocked");
+    console.warn("[ai.orchestration] live provider not eligible; continuing with stub");
   }
 
   const userText = input.queryText ?? lastUserText(input.messages);
@@ -217,7 +224,7 @@ export async function streamGenerate(
   try {
     assertBaaGate();
   } catch {
-    return platformFail("DEPENDENCY_UNAVAILABLE", "AI provider BAA gate blocked");
+    console.warn("[ai.orchestration] live provider not eligible; continuing with stub");
   }
 
   const userText = input.queryText ?? lastUserText(input.messages);
@@ -282,19 +289,35 @@ export async function streamGenerate(
         yield token;
       }
     } catch (err) {
-      if (!modelConfig.fallbackModel) throw err;
-      const fallbackInput = {
-        ...chatInput,
-        model: { ...chatInput.model, model: modelConfig.fallbackModel },
-      };
-      if (!adapter.streamChat) {
-        const result = await adapter.chat(fallbackInput);
-        yield result.content;
+      if (modelConfig.fallbackModel) {
+        try {
+          const fallbackInput = {
+            ...chatInput,
+            model: { ...chatInput.model, model: modelConfig.fallbackModel },
+          };
+          if (!adapter.streamChat) {
+            const result = await adapter.chat(fallbackInput);
+            yield result.content;
+            return;
+          }
+          for await (const token of adapter.streamChat(fallbackInput)) {
+            yield token;
+          }
+          return;
+        } catch (fallbackErr) {
+          console.warn("[ai.orchestration] stream fallback failed; using stub", fallbackErr);
+        }
+      } else {
+        console.warn("[ai.orchestration] stream provider failed; using stub", err);
+      }
+      const stub = await stubAiAssistantAdapter.chat(chatInput);
+      if (stubAiAssistantAdapter.streamChat) {
+        for await (const token of stubAiAssistantAdapter.streamChat(chatInput)) {
+          yield token;
+        }
         return;
       }
-      for await (const token of adapter.streamChat(fallbackInput)) {
-        yield token;
-      }
+      yield stub.content;
     }
   }
 

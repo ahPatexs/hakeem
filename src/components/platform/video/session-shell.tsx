@@ -146,7 +146,7 @@ export function VideoSessionShell({
     />
   );
 
-  const chat = chatOpen ? <VisitChat appointmentId={appointmentId} /> : null;
+  const chat = chatOpen ? <VisitChat appointmentId={appointmentId} role={role} /> : null;
   const liveChat = chatOpen ? (
     <LiveKitVisitChat
       appointmentId={appointmentId}

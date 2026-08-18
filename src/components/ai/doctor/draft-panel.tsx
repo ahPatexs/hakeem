@@ -34,10 +34,12 @@ type ActiveDraft =
 export function DraftPanel({
   patientUserId,
   appointmentId,
+  doctorInput,
   readOnly = false,
 }: {
   patientUserId: string;
   appointmentId: string;
+  doctorInput?: string;
   readOnly?: boolean;
 }) {
   const t = useTranslations("ai.drafts");
@@ -64,7 +66,11 @@ export function DraftPanel({
     setError(null);
     setStatus("idle");
     startTransition(async () => {
-      const res = await aiGenerateSoapDraft({ patientUserId, appointmentId });
+      const res = await aiGenerateSoapDraft({
+        patientUserId,
+        appointmentId,
+        doctorInput: doctorInput?.trim() ? doctorInput.slice(0, 4000) : undefined,
+      });
       if (!res.ok) {
         mapError(res.code);
         return;
