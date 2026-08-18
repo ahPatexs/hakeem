@@ -40,6 +40,29 @@ const WEEKDAY_SHORT: Record<string, number> = {
   Sat: 6,
 };
 
+const TIMEZONE_ALIASES: Record<string, string> = {
+  egypt: "Africa/Cairo",
+  cairo: "Africa/Cairo",
+  riyadh: "Asia/Riyadh",
+  ksa: "Asia/Riyadh",
+  "saudi arabia": "Asia/Riyadh",
+};
+
+export function resolveIanaTimezone(
+  value: string | null | undefined,
+  fallback = DEFAULT_HOURS_TIMEZONE,
+): string {
+  const raw = value?.trim();
+  if (!raw) return fallback;
+  const mapped = TIMEZONE_ALIASES[raw.toLowerCase()] ?? raw;
+  try {
+    Intl.DateTimeFormat("en-US", { timeZone: mapped }).format(new Date());
+    return mapped;
+  } catch {
+    return fallback;
+  }
+}
+
 function pad(value: number): string {
   return String(value).padStart(2, "0");
 }
@@ -134,7 +157,7 @@ export function generateDoctorAvailability(input: {
   now?: Date;
 }): { slots: AvailabilitySlot[]; unavailableReason?: "NO_HOURS" } {
   const now = input.now ?? new Date();
-  const timezone = input.timezone || DEFAULT_HOURS_TIMEZONE;
+  const timezone = resolveIanaTimezone(input.timezone);
   if (input.week.length === 0) {
     return { slots: [], unavailableReason: "NO_HOURS" };
   }
@@ -179,7 +202,7 @@ export function classifyRequestedSlot(input: {
   now?: Date;
 }): CareLoopErrorCode | null {
   const now = input.now ?? new Date();
-  const timezone = input.timezone || DEFAULT_HOURS_TIMEZONE;
+  const timezone = resolveIanaTimezone(input.timezone);
   if (input.endAt.getTime() - input.startAt.getTime() !== SLOT_MS) {
     return "SLOT_OUTSIDE_HOURS";
   }
@@ -246,10 +269,9 @@ export async function loadDoctorScheduleContext(doctorId: string): Promise<{
     }),
   ]);
 
-  const timezone =
-    extrasUser?.doctorProfileExtras?.timezone ||
-    week[0]?.timezone ||
-    DEFAULT_HOURS_TIMEZONE;
+  const timezone = resolveIanaTimezone(
+    extrasUser?.doctorProfileExtras?.timezone || week[0]?.timezone,
+  );
 
   const bookable =
     doctor?.status === "PUBLISHED" &&

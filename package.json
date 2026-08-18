@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:turbo": "next dev --turbopack",
-    "build": "node scripts/safe-prisma-generate.cjs && next build",
+    "build": "node scripts/safe-prisma-generate.cjs && node scripts/prisma-migrate-deploy.cjs && next build",
     "postinstall": "node scripts/safe-prisma-generate.cjs",
     "prisma:generate": "node scripts/safe-prisma-generate.cjs",
     "prisma:migrate": "prisma migrate dev",

@@ -19,8 +19,17 @@ import { assertSlotIsOfferable } from "@/lib/patient/availability";
 import { notifyDoctorAppointmentConfirmed } from "@/lib/doctor/notification-triggers";
 import { patientHistoryWhere, patientUpcomingWhere } from "@/lib/patient/appointment-queries";
 import { formatApptWhen } from "@/lib/datetime";
+import { appointmentInstantSchema } from "@/lib/appointment-instant";
 
 const PAGE_SIZE = 20;
+
+const doctorPreviewSelect = {
+  id: true,
+  slug: true,
+  nameEn: true,
+  nameAr: true,
+  photoUrl: true,
+} as const;
 
 async function patientLocaleFor(userId: string): Promise<"en" | "ar"> {
   const user = await prisma.user.findUnique({
@@ -37,8 +46,8 @@ async function patientLocaleFor(userId: string): Promise<"en" | "ar"> {
 const holdSchema = z.object({
   doctorId: z.string().min(1),
   mode: z.enum(["IN_PERSON", "VIDEO"]),
-  startAt: z.string().datetime(),
-  endAt: z.string().datetime(),
+  startAt: appointmentInstantSchema,
+  endAt: appointmentInstantSchema,
   reason: z.string().max(500).optional(),
 });
 
@@ -51,8 +60,8 @@ const cancelSchema = z.object({
 
 const rescheduleSchema = z.object({
   id: z.string().min(1),
-  startAt: z.string().datetime(),
-  endAt: z.string().datetime(),
+  startAt: appointmentInstantSchema,
+  endAt: appointmentInstantSchema,
 });
 
 const listSchema = z.object({
@@ -63,9 +72,7 @@ async function assertOwnAppointment(userId: string, id: string) {
   const appt = await prisma.appointment.findFirst({
     where: { id, patientUserId: userId },
     include: {
-      doctor: {
-        select: { id: true, slug: true, nameEn: true, nameAr: true, photoUrl: true },
-      },
+      doctor: { select: doctorPreviewSelect },
       rating: { select: { id: true, score: true, comment: true } },
       paymentObligations: {
         select: { id: true, amountCents: true, currency: true, status: true },
@@ -82,9 +89,7 @@ export async function holdAppointmentSlot(input: unknown) {
   if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
 
   return withPatient(async (userId) => {
-    const { doctorId, mode, startAt, endAt, reason } = parsed.data;
-    const start = new Date(startAt);
-    const end = new Date(endAt);
+    const { doctorId, mode, startAt: start, endAt: end, reason } = parsed.data;
     if (start.getTime() <= Date.now()) {
       throw new AuthDomainError("VALIDATION_ERROR", "Slot must be in the future");
     }
@@ -105,8 +110,22 @@ export async function holdAppointmentSlot(input: unknown) {
           endAt: { gt: start },
           OR: [{ status: "HELD", holdExpiresAt: { gt: new Date() } }, { status: { not: "HELD" } }],
         },
+        include: { doctor: { select: doctorPreviewSelect } },
       });
-      if (conflict) throw new CareLoopError("SLOT_UNAVAILABLE");
+      if (conflict) {
+        if (conflict.patientUserId === userId && conflict.status === "HELD") {
+          return tx.appointment.update({
+            where: { id: conflict.id },
+            data: {
+              mode,
+              reason: reason ?? conflict.reason,
+              holdExpiresAt: computeHoldExpiresAt(),
+            },
+            include: { doctor: { select: doctorPreviewSelect } },
+          });
+        }
+        throw new CareLoopError("SLOT_UNAVAILABLE");
+      }
 
       return tx.appointment.create({
         data: {
@@ -119,11 +138,7 @@ export async function holdAppointmentSlot(input: unknown) {
           holdExpiresAt: computeHoldExpiresAt(),
           reason: reason ?? null,
         },
-        include: {
-          doctor: {
-            select: { id: true, slug: true, nameEn: true, nameAr: true, photoUrl: true },
-          },
-        },
+        include: { doctor: { select: doctorPreviewSelect } },
       });
     });
 

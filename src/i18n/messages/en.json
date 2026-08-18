@@ -405,6 +405,7 @@
       "bookSlot": "Book this time",
       "booking": "Booking…",
       "bookError": "This time is no longer free",
+      "bookErrorRetry": "Couldn’t book this time. Refresh the page and try again.",
       "confirmError": "Couldn’t confirm the visit",
       "loadError": "Could not load doctor",
       "slotHint": "30-minute visits, up to 2 weeks ahead.",

@@ -96,11 +96,13 @@ export function DoctorProfileView({
       const held = await holdAppointmentSlot({
         doctorId: doctor.id,
         mode,
-        startAt: selected.startAt,
-        endAt: selected.endAt,
+        startAt: new Date(selected.startAt).toISOString(),
+        endAt: new Date(selected.endAt).toISOString(),
       });
       if (!held.ok) {
-        setError(t("bookError"));
+        setError(
+          held.code === "SLOT_UNAVAILABLE" ? t("bookError") : t("bookErrorRetry"),
+        );
         return;
       }
       const confirmed = await confirmAppointment({ id: held.data.id });
@@ -315,6 +317,7 @@ export function DoctorProfileView({
                 selectedStartAt={selected?.startAt}
                 onSelect={setSelected}
                 emptyLabel={t("noSlots")}
+                timeZone={availability.timezone}
               />
               {selected ? (
                 <p className="rounded-2xl bg-primary/5 px-4 py-3 text-sm font-medium text-primary">

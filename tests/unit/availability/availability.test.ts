@@ -4,6 +4,7 @@ import {
   addCalendarDays,
   classifyRequestedSlot,
   generateDoctorAvailability,
+  resolveIanaTimezone,
 } from "@/lib/patient/availability";
 
 const TZ = "Asia/Riyadh";
@@ -188,5 +189,39 @@ describe("requested slot classification", () => {
         now,
       }),
     ).toBe("SLOT_UNAVAILABLE");
+  });
+});
+
+describe("resolveIanaTimezone", () => {
+  it("maps country aliases and invalid zones to IANA ids", () => {
+    expect(resolveIanaTimezone("Egypt")).toBe("Africa/Cairo");
+    expect(resolveIanaTimezone("Asia/Riyadh")).toBe("Asia/Riyadh");
+    expect(resolveIanaTimezone("Not/AZone")).toBe("Asia/Riyadh");
+    expect(resolveIanaTimezone("")).toBe("Asia/Riyadh");
+  });
+
+  it("classifies a generated Egypt-offset slot as offerable", () => {
+    const now = new Date("2026-08-18T13:00:00.000Z");
+    const week = [{ weekday: 1, startMinutes: 9 * 60, endMinutes: 17 * 60 }];
+    const generated = generateDoctorAvailability({
+      week,
+      unavailableDates: [],
+      appointments: [],
+      timezone: "Egypt",
+      now,
+    });
+    const slot = generated.slots.find((row) => row.startAt === "2026-08-31T08:00:00.000Z");
+    expect(slot).toBeTruthy();
+    expect(
+      classifyRequestedSlot({
+        startAt: new Date(slot!.startAt),
+        endAt: new Date(slot!.endAt),
+        week,
+        unavailableDates: [],
+        appointments: [],
+        timezone: "Egypt",
+        now,
+      }),
+    ).toBeNull();
   });
 });

@@ -19,5 +19,9 @@ export class CareLoopError extends Error {
 }
 
 export function isCareLoopError(error: unknown): error is CareLoopError {
-  return error instanceof CareLoopError;
+  if (error instanceof CareLoopError) return true;
+  if (!error || typeof error !== "object") return false;
+  const name = "name" in error ? error.name : null;
+  const code = "code" in error ? error.code : null;
+  return name === "CareLoopError" && typeof code === "string";
 }

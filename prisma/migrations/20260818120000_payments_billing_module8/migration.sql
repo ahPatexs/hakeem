@@ -14,12 +14,14 @@ CREATE TYPE "PaymentStatus_new" AS ENUM (
 );
 
 ALTER TABLE "PaymentObligation" ALTER COLUMN "status" DROP DEFAULT;
+ALTER TABLE "PaymentAttempt" ALTER COLUMN "status" DROP DEFAULT;
 ALTER TABLE "PaymentObligation" ALTER COLUMN "status" TYPE "PaymentStatus_new" USING ("status"::text::"PaymentStatus_new");
 ALTER TABLE "PaymentAttempt" ALTER COLUMN "status" TYPE "PaymentStatus_new" USING ("status"::text::"PaymentStatus_new");
 ALTER TYPE "PaymentStatus" RENAME TO "PaymentStatus_old";
 ALTER TYPE "PaymentStatus_new" RENAME TO "PaymentStatus";
 DROP TYPE "PaymentStatus_old";
 ALTER TABLE "PaymentObligation" ALTER COLUMN "status" SET DEFAULT 'PENDING';
+ALTER TABLE "PaymentAttempt" ALTER COLUMN "status" SET DEFAULT 'PENDING';
 
 -- AlterTable PaymentObligation
 ALTER TABLE "PaymentObligation" ADD COLUMN IF NOT EXISTS "invoiceNumber" TEXT;

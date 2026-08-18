@@ -83,11 +83,29 @@ export function weekDayKeys(dateKey: string): string[] {
   });
 }
 
-export function groupByLocalDay<T extends { startAt: string }>(items: T[]) {
+export function zonedDayKey(value: Date | string, timeZone = ASIA_RIYADH) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(value));
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? "00";
+  return `${get("year")}-${get("month")}-${get("day")}`;
+}
+
+export function groupByZonedDay<T extends { startAt: string }>(items: T[], timeZone = ASIA_RIYADH) {
+  let tz = timeZone || ASIA_RIYADH;
+  try {
+    Intl.DateTimeFormat("en-US", { timeZone: tz }).format(new Date());
+  } catch {
+    tz = ASIA_RIYADH;
+  }
   const groups: { key: string; items: T[] }[] = [];
   const index = new Map<string, T[]>();
   for (const item of items) {
-    const key = localDayKey(item.startAt);
+    const key = zonedDayKey(item.startAt, tz);
     let list = index.get(key);
     if (!list) {
       list = [];

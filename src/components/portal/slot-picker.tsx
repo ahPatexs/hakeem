@@ -3,7 +3,7 @@
 import { Video, MapPin } from "lucide-react";
 import { useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
-import { formatApptDay, formatApptTime, groupByLocalDay } from "@/lib/datetime";
+import { formatApptDay, formatApptTime, groupByZonedDay } from "@/lib/datetime";
 import { segmentedOptionClass, segmentedTrackClass } from "@/components/portal/chrome";
 import type { AvailabilitySlot } from "@/lib/patient/availability";
 
@@ -50,14 +50,16 @@ export function SlotPicker({
   selectedStartAt,
   onSelect,
   emptyLabel,
+  timeZone,
 }: {
   slots: AvailabilitySlot[];
   selectedStartAt?: string | null;
   onSelect: (slot: AvailabilitySlot) => void;
   emptyLabel: string;
+  timeZone?: string;
 }) {
   const locale = useLocale();
-  const groups = groupByLocalDay(slots);
+  const groups = groupByZonedDay(slots, timeZone);
 
   if (groups.length === 0) {
     return <p className="text-sm text-on-surface-variant">{emptyLabel}</p>;
