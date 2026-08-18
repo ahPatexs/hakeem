@@ -226,7 +226,7 @@
       "doctors": "Doctors",
       "records": "Health records",
       "labs": "Lab results",
-      "prescriptions": "Prescriptions",
+      "prescriptions": "Medicines",
       "payments": "Payments",
       "notifications": "Notifications",
       "ai": "Ask AI",
@@ -263,7 +263,7 @@
         "findDoctor": "Find doctor",
         "aiChat": "AI chat",
         "records": "Records",
-        "prescriptions": "Prescriptions",
+        "prescriptions": "Medicines",
         "profile": "Profile"
       },
       "upcoming": {
@@ -287,10 +287,10 @@
         "error": "Could not load records"
       },
       "prescriptions": {
-        "title": "Active prescriptions",
-        "emptyTitle": "No active prescriptions",
+        "title": "Active medicines",
+        "emptyTitle": "No active medicines",
         "viewAll": "View all",
-        "error": "Could not load prescriptions"
+        "error": "Could not load medicines"
       },
       "payments": {
         "title": "Payments",
@@ -374,7 +374,7 @@
       "notifications": "Email notifications",
       "notifyAppointments": "Appointments",
       "notifyClinical": "Health updates",
-      "notifyPrescriptions": "Prescriptions",
+      "notifyPrescriptions": "Medicines",
       "notifyPayments": "Payments",
       "notifySystem": "App messages",
       "security": "Security",
@@ -521,7 +521,7 @@
       "eyebrow": "Your chart",
       "subtitle": "Visit notes from your doctors and files you’ve uploaded — all in one place.",
       "snapshotTitle": "Health snapshot",
-      "noActiveMeds": "No active prescriptions on file.",
+      "noActiveMeds": "No active medicines on file.",
       "criticalHint": "Needs attention",
       "statVisitNotes": "Visit notes",
       "statFiles": "Files",
@@ -567,30 +567,30 @@
       "loadError": "Could not load lab results"
     },
     "prescriptions": {
-      "title": "Prescriptions",
+      "title": "Medicines",
       "eyebrow": "Your medicines",
-      "subtitle": "Prescriptions signed by your doctor during or after visits.",
+      "subtitle": "Medicines signed by your doctor during or after visits.",
       "statActive": "Taking now",
       "statPast": "Past",
       "tabActive": "Active",
       "tabPast": "Past",
       "searchPlaceholder": "Search medicines…",
-      "medications": "Medications",
+      "medications": "Medicines",
       "dose": "Dose",
       "frequency": "Frequency",
       "duration": "Duration",
       "quantity": "Quantity",
-      "medCount": "{count} medications",
+      "medCount": "{count} medicines",
       "byDoctor": "Dr. {name}",
-      "backToList": "All prescriptions",
+      "backToList": "All medicines",
       "bookVisit": "Book a visit",
-      "emptyTitle": "No active prescriptions",
-      "emptyDescription": "When your doctor signs a prescription, it will appear here.",
-      "emptyHistoryTitle": "No past prescriptions",
-      "emptyHistoryDescription": "Completed or expired prescriptions will show here.",
+      "emptyTitle": "No active medicines",
+      "emptyDescription": "When your doctor signs medicines for you, they will appear here.",
+      "emptyHistoryTitle": "No past medicines",
+      "emptyHistoryDescription": "Completed or expired medicines will show here.",
       "prescribed": "Prescribed",
-      "downloadDocument": "View prescription",
-      "loadError": "Could not load prescriptions"
+      "downloadDocument": "View medicines",
+      "loadError": "Could not load medicines"
     },
     "payments": {
       "title": "Payments",
@@ -1140,7 +1140,7 @@
       "notifications": "Email notifications",
       "notifyAppointments": "Appointments",
       "notifyClinical": "Health updates",
-      "notifyPrescriptions": "Prescriptions",
+      "notifyPrescriptions": "Medicines",
       "notifySystem": "App messages",
       "security": "Security",
       "securityHint": "Password and signed-in devices.",
@@ -1624,11 +1624,11 @@
       "empty": "No critical alerts"
     },
     "prescriptions": {
-      "title": "Prescriptions",
-      "active": "Active prescriptions",
-      "history": "Prescription history",
-      "empty": "No prescriptions yet.",
-      "renew": "Renew prescription"
+      "title": "Medicines",
+      "active": "Active medicines",
+      "history": "Medicine history",
+      "empty": "No medicines yet.",
+      "renew": "Renew medicines"
     },
     "labs": {
       "title": "Lab results"

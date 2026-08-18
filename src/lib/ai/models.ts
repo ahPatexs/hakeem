@@ -26,7 +26,10 @@ export async function resolveActiveConfig(
     orderBy: { version: "desc" },
   });
   if (!config) {
-    return platformFail("NOT_FOUND", `No active model config for ${feature}`);
+    const { fallbackModelConfig } = await import("./defaults");
+    const runtime = fallbackModelConfig(feature);
+    activeCache.set(feature, { expiresAt: Date.now() + CACHE_TTL_MS, config: runtime });
+    return platformOk(runtime);
   }
 
   activeCache.set(feature, { expiresAt: Date.now() + CACHE_TTL_MS, config });

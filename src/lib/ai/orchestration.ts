@@ -289,35 +289,22 @@ export async function streamGenerate(
         yield token;
       }
     } catch (err) {
-      if (modelConfig.fallbackModel) {
-        try {
-          const fallbackInput = {
-            ...chatInput,
-            model: { ...chatInput.model, model: modelConfig.fallbackModel },
-          };
-          if (!adapter.streamChat) {
-            const result = await adapter.chat(fallbackInput);
-            yield result.content;
-            return;
-          }
-          for await (const token of adapter.streamChat(fallbackInput)) {
+      console.warn("[ai.orchestration] stream provider failed; using stub", err);
+      try {
+        if (stubAiAssistantAdapter.streamChat) {
+          for await (const token of stubAiAssistantAdapter.streamChat(chatInput)) {
             yield token;
           }
           return;
-        } catch (fallbackErr) {
-          console.warn("[ai.orchestration] stream fallback failed; using stub", fallbackErr);
         }
-      } else {
-        console.warn("[ai.orchestration] stream provider failed; using stub", err);
+        const stub = await stubAiAssistantAdapter.chat(chatInput);
+        yield stub.content;
+      } catch (stubErr) {
+        console.error("[ai.orchestration] stub also failed", stubErr);
+        yield input.locale === "ar"
+          ? "يمكنني مشاركة معلومات صحية عامة. للحرارة الخفيفة: راحة وسوائل. لسلامة الدواء: اتبع الجرعة المكتوبة. هذه معلومات عامة وليست استشارة طبية."
+          : "I can share general health information. For a mild fever: rest and fluids. For medication safety: follow the labeled dose. This is general information, not medical advice.";
       }
-      const stub = await stubAiAssistantAdapter.chat(chatInput);
-      if (stubAiAssistantAdapter.streamChat) {
-        for await (const token of stubAiAssistantAdapter.streamChat(chatInput)) {
-          yield token;
-        }
-        return;
-      }
-      yield stub.content;
     }
   }
 

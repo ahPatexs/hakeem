@@ -16,6 +16,11 @@ export type AiChartContext = {
     clinicianCriticalFlag: boolean;
   } | null;
   releasedLabs: Array<{ title: string; summary: string | null; resultedAt: Date; criticalFlag: boolean }>;
+  bloodType?: string | null;
+  profileNotes?: string | null;
+  immunizations?: string[];
+  upcomingVisits?: string[];
+  recentVisitNotes?: string[];
 };
 
 /**
@@ -28,7 +33,8 @@ export async function buildAiChartContext(
   const access = await assertEmrAccess(actor, patientUserId, "read");
   if (!access.ok) return access;
 
-  const [allergies, conditions, meds, diagnoses, emergency, labs] = await Promise.all([
+  const [allergies, conditions, meds, diagnoses, emergency, labs, profile, immunizations, upcoming, visitNotes] =
+    await Promise.all([
     prisma.allergyEntry.findMany({
       where: { patientUserId, ...softDeleteWhere() },
       select: { substance: true, severity: true, criticalFlag: true },
@@ -66,6 +72,37 @@ export async function buildAiChartContext(
         releaseStatus: true,
       },
     }),
+    prisma.medicalProfile.findUnique({
+      where: { userId: patientUserId },
+      select: {
+        bloodType: true,
+        notes: true,
+        allergies: true,
+        conditions: true,
+        currentMedications: true,
+      },
+    }),
+    prisma.immunizationEntry.findMany({
+      where: { patientUserId, ...softDeleteWhere() },
+      select: { vaccineName: true, administeredOn: true },
+      take: 20,
+    }),
+    prisma.appointment.findMany({
+      where: {
+        patientUserId,
+        startAt: { gte: new Date() },
+        status: { in: ["CONFIRMED", "CHECKED_IN", "IN_PROGRESS", "HELD"] },
+      },
+      orderBy: { startAt: "asc" },
+      take: 5,
+      select: { startAt: true, mode: true, reason: true, doctor: { select: { nameEn: true } } },
+    }),
+    prisma.clinicalSummary.findMany({
+      where: { patientUserId, status: "FINAL" },
+      orderBy: { updatedAt: "desc" },
+      take: 3,
+      select: { body: true, updatedAt: true },
+    }),
   ]);
 
   const releasedLabs = labs
@@ -90,19 +127,54 @@ export async function buildAiChartContext(
 
   return platformOk({
     patientUserId,
-    allergies: allergies.map((a) => ({
-      substance: a.substance,
-      severity: a.severity,
-      criticalFlag: a.criticalFlag,
-    })),
-    conditions: conditions.map((c) => ({
-      display: c.display,
-      icd10Code: c.icd10Code,
-      status: c.status,
-    })),
-    activeMedications: meds,
+    allergies: [
+      ...allergies.map((a) => ({
+        substance: a.substance,
+        severity: a.severity,
+        criticalFlag: a.criticalFlag,
+      })),
+      ...(profile?.allergies ?? []).map((substance) => ({
+        substance,
+        severity: null,
+        criticalFlag: false,
+      })),
+    ],
+    conditions: [
+      ...conditions.map((c) => ({
+        display: c.display,
+        icd10Code: c.icd10Code,
+        status: c.status,
+      })),
+      ...(profile?.conditions ?? []).map((display) => ({
+        display,
+        icd10Code: null,
+        status: "ACTIVE",
+      })),
+    ],
+    activeMedications: [
+      ...meds,
+      ...(profile?.currentMedications ?? []).map((medicationName) => ({
+        medicationName,
+        instructions: "",
+      })),
+    ],
     recentDiagnoses: diagnoses,
     emergency,
     releasedLabs,
+    bloodType: profile?.bloodType ?? null,
+    profileNotes: profile?.notes ?? null,
+    immunizations: immunizations.map((row) =>
+      row.administeredOn
+        ? `${row.vaccineName} (${row.administeredOn.toISOString().slice(0, 10)})`
+        : row.vaccineName,
+    ),
+    upcomingVisits: upcoming.map((visit) => {
+      const when = visit.startAt.toISOString().slice(0, 16).replace("T", " ");
+      return `${when} ${visit.mode} with ${visit.doctor.nameEn}${visit.reason ? ` (${visit.reason})` : ""}`;
+    }),
+    recentVisitNotes: visitNotes
+      .map((note) => note.body.trim())
+      .filter(Boolean)
+      .map((body) => body.slice(0, 400)),
   });
 }

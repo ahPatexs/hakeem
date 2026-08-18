@@ -59,6 +59,11 @@ describe("consent mode at context assembly", () => {
         releasedLabs: [],
         emergency: null,
         recentDiagnoses: [],
+        bloodType: null,
+        profileNotes: null,
+        immunizations: [],
+        upcomingVisits: [],
+        recentVisitNotes: [],
       }) as never,
     );
 
@@ -77,13 +82,47 @@ describe("consent mode at context assembly", () => {
     expect(mockChart).toHaveBeenCalled();
   });
 
+  it("PATIENT_ASSISTANT includes the patient's own chart even without DATA_SHARING", async () => {
+    mockConsent.mockResolvedValue(platformFail("CONSENT_REQUIRED", "missing") as never);
+    mockChart.mockResolvedValue(
+      platformOk({
+        patientUserId: "patient-1",
+        allergies: [{ substance: "Penicillin", severity: "severe", criticalFlag: true }],
+        conditions: [],
+        activeMedications: [],
+        releasedLabs: [],
+        emergency: null,
+        recentDiagnoses: [],
+        bloodType: null,
+        profileNotes: null,
+        immunizations: [],
+        upcomingVisits: [],
+        recentVisitNotes: [],
+      }) as never,
+    );
+
+    const result = await assembleContext(
+      actor,
+      "patient-1",
+      "PATIENT_ASSISTANT",
+      "en",
+      "fever",
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.mode).toBe("PERSONALIZED");
+    expect(result.data.groundingText).toContain("<<<CHART_SNAPSHOT_DATA>>>");
+    expect(result.data.groundingText).toContain("<<<KNOWLEDGE_BASE_DATA>>>");
+    expect(mockChart).toHaveBeenCalled();
+  });
+
   it("GENERAL mode skips chart and records CONSENT_BLOCK", async () => {
     mockConsent.mockResolvedValue(platformFail("CONSENT_REQUIRED", "missing") as never);
 
     const result = await assembleContext(
       actor,
       "patient-1",
-      "PATIENT_ASSISTANT",
+      "RECOMMENDATIONS",
       "en",
       "fever",
     );

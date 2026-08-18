@@ -25,6 +25,54 @@ function assertStubOk(): void {
   }
 }
 
+function chartFacts(input: AiChatInput): string {
+  const system = input.messages.filter((m) => m.role === "system").map((m) => m.content).join("\n");
+  const facts: string[] = [];
+  const allergy = system.match(/allergies:\s*(.+)/i);
+  if (allergy?.[1] && allergy[1].trim() !== "none") facts.push(`Allergies on file: ${allergy[1].trim()}`);
+  const meds = system.match(/medications:\s*(.+)/i);
+  if (meds?.[1] && meds[1].trim() !== "none") facts.push(`Medicines on file: ${meds[1].trim()}`);
+  const conditions = system.match(/conditions:\s*(.+)/i);
+  if (conditions?.[1] && conditions[1].trim() !== "none") facts.push(`Conditions on file: ${conditions[1].trim()}`);
+  const visits = system.match(/upcomingVisits:\s*(.+)/i);
+  if (visits?.[1]) facts.push(`Upcoming visits: ${visits[1].trim()}`);
+  return facts.join(" ");
+}
+
+function helpfulReply(input: AiChatInput): string {
+  const userText = lastUserContent(input);
+  const lower = userText.toLowerCase();
+  const facts = chartFacts(input);
+  const ar = input.locale === "ar";
+
+  if (/\bfev|temperature|حرارة|سخون/.test(lower) || /mild fever/.test(lower)) {
+    return ar
+      ? `للحرارة الخفيفة: خذ راحة واشرب سوائل. راقب إن وصلت الحرارة إلى 38.5 أو ظهرت صعوبة تنفس أو تيبس رقبة أو ارتباك — حينها اطلب رعاية عاجلة. ${facts}`.trim()
+      : `For a mild fever: rest, drink fluids, and dress lightly. Recheck if it stays at 38.5C or higher, or if you get trouble breathing, a stiff neck, a rash, or confusion — those need urgent care. ${facts}`.trim();
+  }
+  if (/medicat|medicine|pill|دواء|أدوية|dose/.test(lower)) {
+    return ar
+      ? `لسلامة الدواء: خذ الجرعة المكتوبة، لا تشارك الدواء، وأخبر الطبيب بأي حساسية. لا توقف دواءً مزمناً دون استشارة. ${facts}`.trim()
+      : `Medication safety: take the labeled dose, do not share medicines, and tell your clinician about allergies. Do not stop a long-term medicine without advice. ${facts}`.trim();
+  }
+  if (/appoint|visit|موعد|حجز/.test(lower)) {
+    return ar
+      ? `من بوابة المريض يمكنك حجز موعد أو إلغاؤه أو الانضمام لزيارة مرئية في وقتها. ${facts}`.trim()
+      : `In this portal you can book, cancel, or join a video visit at the scheduled time. ${facts}`.trim();
+  }
+  if (/record|lab|نتيج|سجل|تحليل/.test(lower)) {
+    return ar
+      ? `ملاحظات الزيارة ونتائج المختبر تظهر هنا بعد أن يشاركها الطبيب أو يعتمدها. ${facts}`.trim()
+      : `Visit notes and lab results show here after your doctor shares or releases them. ${facts}`.trim();
+  }
+  if (facts) {
+    return ar
+      ? `${HELP_AR}\n\n${facts}`
+      : `${HELP_EN}\n\n${facts}`;
+  }
+  return ar ? HELP_AR : HELP_EN;
+}
+
 function lastUserContent(input: AiChatInput): string {
   const lastUser = [...input.messages].reverse().find((m) => m.role === "user");
   return lastUser?.content?.trim() || "";
@@ -73,10 +121,7 @@ function buildReply(input: AiChatInput): AiChatResult {
   } else if (isPrescribeOrDiagnoseAsk(userText)) {
     body = input.locale === "ar" ? REFUSAL_AR : REFUSAL_EN;
   } else {
-    body =
-      input.locale === "ar"
-        ? `${HELP_AR}\n\n[Stub] قلتَ: ${userText || "(رسالة فارغة)"}`
-        : `${HELP_EN}\n\n[Stub] You said: ${userText || "(empty message)"}`;
+    body = helpfulReply(input);
   }
 
   const content = isSoapDraftAsk(userText) || isSummaryDraftAsk(userText) ? body : `${disclaimer}\n\n${body}`;

@@ -508,7 +508,9 @@ export async function runChatTurn(
   if (!rate.ok) return rate;
 
   const budget = await checkBudget(input.feature);
-  if (!budget.ok) return budget;
+  if (!budget.ok) {
+    console.warn("[ai.chat] budget blocked; continuing with local assistant", budget.code);
+  }
 
   const convResult = await ensureConversationForChat(actor, input);
   if (!convResult.ok) return convResult;
@@ -678,8 +680,7 @@ export async function* streamChatTurn(
 
   const budget = await checkBudget(input.feature);
   if (!budget.ok) {
-    yield { event: "error", data: { code: budget.code } };
-    return;
+    console.warn("[ai.chat] budget blocked; continuing with local assistant", budget.code);
   }
 
   const convResult = await ensureConversationForChat(actor, input);
@@ -780,41 +781,37 @@ export async function* streamChatTurn(
     queryText: message,
   });
 
-  if (!streamResult.ok) {
-    await prisma.aiMessage.delete({ where: { id: assistantPlaceholder.id } }).catch(() => undefined);
-    recordUsage({
-      feature: input.feature,
-      role: actor.role,
-      locale: input.locale,
-      userId: actor.userId,
-      latencyMs: Date.now() - started,
-      outcome: "ERROR",
-    });
-    yield { event: "error", data: { code: streamResult.code } };
-    return;
-  }
-
   let full = "";
-  try {
-    for await (const token of streamResult.data.stream) {
-      full += token;
-      yield { event: "token", data: { t: token } };
-    }
-  } catch {
-    await prisma.aiMessage.delete({ where: { id: assistantPlaceholder.id } }).catch(() => undefined);
-    recordUsage({
-      feature: input.feature,
-      role: actor.role,
+  if (!streamResult.ok) {
+    console.warn("[ai.chat] live generate unavailable; using local assistant", streamResult.code);
+    const { stubAiAssistantAdapter } = await import("@/adapters/stub-ai");
+    const stub = await stubAiAssistantAdapter.chat({
+      conversationId: conversation.id,
+      messages: window,
       locale: input.locale,
-      userId: actor.userId,
-      latencyMs: Date.now() - started,
-      outcome: "ERROR",
     });
-    yield { event: "error", data: { code: "DEPENDENCY_UNAVAILABLE" } };
-    return;
+    full = stub.content;
+    yield { event: "token", data: { t: stub.content } };
+  } else {
+    try {
+      for await (const token of streamResult.data.stream) {
+        full += token;
+        yield { event: "token", data: { t: token } };
+      }
+    } catch (err) {
+      console.warn("[ai.chat] stream threw; using local assistant", err);
+      const { stubAiAssistantAdapter } = await import("@/adapters/stub-ai");
+      const stub = await stubAiAssistantAdapter.chat({
+        conversationId: conversation.id,
+        messages: window,
+        locale: input.locale,
+      });
+      full = stub.content;
+      yield { event: "token", data: { t: stub.content } };
+    }
   }
 
-  if (streamResult.data.evidence.mode === "GENERAL") {
+  if (streamResult.ok && streamResult.data.evidence.mode === "GENERAL") {
     const consentText =
       input.locale === "ar"
         ? "أنت في وضع الإرشاد العام — لا تُستخدم بياناتك السريرية حتى تمنح موافقة مشاركة البيانات."
@@ -825,16 +822,18 @@ export async function* streamChatTurn(
     };
   }
 
-  const finalized = streamResult.data.finalizePatientContent(full);
-  const evidence = toMessageEvidence(streamResult.data.evidence);
+  const finalized = streamResult.ok
+    ? streamResult.data.finalizePatientContent(full)
+    : { content: full, refused: false };
+  const evidence = streamResult.ok ? toMessageEvidence(streamResult.data.evidence) : null;
   await prisma.aiMessage.update({
     where: { id: assistantPlaceholder.id },
     data: {
       content: finalized.content,
       disclaimerShown: true,
       evidence: evidence as unknown as Prisma.InputJsonValue,
-      promptVersionId: streamResult.data.promptVersionId,
-      modelConfigId: streamResult.data.modelConfigId,
+      promptVersionId: streamResult.ok ? streamResult.data.promptVersionId : null,
+      modelConfigId: streamResult.ok ? streamResult.data.modelConfigId : null,
     },
   });
 
@@ -855,12 +854,12 @@ export async function* streamChatTurn(
     role: actor.role,
     locale: input.locale,
     userId: actor.userId,
-    modelConfigId: streamResult.data.modelConfigId,
-    promptVersionId: streamResult.data.promptVersionId,
+    modelConfigId: streamResult.ok ? streamResult.data.modelConfigId : undefined,
+    promptVersionId: streamResult.ok ? streamResult.data.promptVersionId : undefined,
     completionTokens: Math.ceil(finalized.content.length / 4),
     latencyMs: Date.now() - started,
     outcome: finalized.refused ? "REFUSED" : "SUCCESS",
-    modelName: streamResult.data.modelName,
+    modelName: streamResult.ok ? streamResult.data.modelName : "stub",
   });
 
   // If policy rewrote content, clients that only saw tokens may need the notice —
@@ -870,7 +869,7 @@ export async function* streamChatTurn(
     data: {
       messageId: assistantPlaceholder.id,
       disclaimerShown: true,
-      evidence,
+      evidence: evidence ?? undefined,
     },
   };
 

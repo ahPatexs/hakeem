@@ -12,6 +12,7 @@ import { buildAiChartContext, type AiChartContext } from "@/lib/emr/ai-context";
 import { requireConsent } from "@/lib/emr/consents";
 import { assertBaaGate } from "@/lib/platform/ai";
 import { recordGuardrailEventAsync } from "./guardrail-events";
+import { wellnessKnowledgeBlock } from "./defaults";
 import { formatKbGrounding, searchKnowledge, type KnowledgeHit } from "./vector";
 
 export type AssembledEvidence = {
@@ -48,8 +49,30 @@ function formatChartBlock(chart: AiChartContext, categories: readonly string[]):
   }
   if (categories.includes("labs")) {
     lines.push(
-      `labs: ${chart.releasedLabs.map((l) => l.title).join("; ") || "none"}`,
+      `labs: ${
+        chart.releasedLabs
+          .map((l) =>
+            [l.title, l.summary, l.criticalFlag ? "critical" : null]
+              .filter(Boolean)
+              .join(" — "),
+          )
+          .join("; ") || "none"
+      }`,
     );
+  }
+  if (chart.profileNotes || chart.bloodType) {
+    lines.push(
+      `profile: bloodType=${chart.bloodType ?? "unknown"}; notes=${chart.profileNotes ?? "none"}`,
+    );
+  }
+  if (chart.immunizations?.length) {
+    lines.push(`immunizations: ${chart.immunizations.join("; ")}`);
+  }
+  if (chart.upcomingVisits?.length) {
+    lines.push(`upcomingVisits: ${chart.upcomingVisits.join("; ")}`);
+  }
+  if (chart.recentVisitNotes?.length) {
+    lines.push(`recentVisitNotes: ${chart.recentVisitNotes.join(" | ")}`);
   }
   // Clinician-grade extras when actor is doctor/admin (beyond patient-visible allow-list)
   if (categories.includes("vitals") && chart.emergency) {
@@ -77,9 +100,13 @@ export async function assembleContext(
     patientUserId,
     typeCode: "DATA_SHARING",
   });
-  const mode = resolveConsentMode(consent.ok);
+  const selfChart =
+    actor.role === "PATIENT" &&
+    actor.userId === patientUserId &&
+    feature === "PATIENT_ASSISTANT";
+  const mode = selfChart ? "PERSONALIZED" : resolveConsentMode(consent.ok);
 
-  if (!consent.ok) {
+  if (!consent.ok && !selfChart) {
     recordGuardrailEventAsync({
       trigger: "CONSENT_BLOCK",
       feature,
@@ -124,6 +151,10 @@ export async function assembleContext(
     }
   } catch (err) {
     console.warn("[ai.context] KB retrieval skipped", err);
+  }
+
+  if (feature === "PATIENT_ASSISTANT") {
+    groundingParts.push(wellnessKnowledgeBlock(locale));
   }
 
   const evidence: AssembledEvidence = {

@@ -79,7 +79,7 @@ describe("composeFeaturePrompt", () => {
     expect(ar.data.body).toBe("FEATURE BODY AR");
   });
 
-  it("fails when no published version exists", async () => {
+  it("uses a built-in fallback when no published version exists", async () => {
     mockFind.mockResolvedValue({
       id: "tpl-1",
       feature: "CDS",
@@ -90,8 +90,10 @@ describe("composeFeaturePrompt", () => {
     } as never);
 
     const result = await composeFeaturePrompt("CDS", "en");
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.code).toBe("NOT_FOUND");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.systemPrompt).toContain(composeSafetyLayer("en"));
+    expect(result.data.promptVersionId).toBe("runtime-default-prompt");
   });
 });
 

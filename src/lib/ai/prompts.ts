@@ -67,7 +67,33 @@ export async function getPublishedPrompt(
     },
   });
   if (!template || !template.versions[0]) {
-    return platformFail("NOT_FOUND", `No published prompt for ${feature}`);
+    const { fallbackPromptBody, RUNTIME_PROMPT_ID } = await import("./defaults");
+    const safetyLayer = composeSafetyLayer("en");
+    const body = fallbackPromptBody(feature, "en");
+    return platformOk({
+      template: {
+        id: RUNTIME_PROMPT_ID,
+        feature,
+        name: feature,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      version: {
+        id: RUNTIME_PROMPT_ID,
+        templateId: RUNTIME_PROMPT_ID,
+        version: 0,
+        bodyEn: body,
+        bodyAr: fallbackPromptBody(feature, "ar"),
+        status: "PUBLISHED",
+        changeNote: "runtime-default",
+        publishedBy: null,
+        publishedAt: new Date(),
+        createdAt: new Date(),
+      } as AiPromptVersion,
+      body,
+      safetyLayer,
+      composedSystem: `${safetyLayer}\n\n---\n\n${body}`,
+    });
   }
 
   const version = { ...template.versions[0], template };

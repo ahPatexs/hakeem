@@ -226,7 +226,7 @@
       "doctors": "الأطباء",
       "records": "السجلات الصحية",
       "labs": "نتائج المختبر",
-      "prescriptions": "الوصفات",
+      "prescriptions": "الأدوية",
       "payments": "المدفوعات",
       "notifications": "الإشعارات",
       "ai": "اسأل الذكاء",
@@ -263,7 +263,7 @@
         "findDoctor": "بحث عن طبيب",
         "aiChat": "محادثة ذكية",
         "records": "السجلات",
-        "prescriptions": "الوصفات",
+        "prescriptions": "الأدوية",
         "profile": "الملف"
       },
       "upcoming": {
@@ -287,10 +287,10 @@
         "error": "تعذّر تحميل السجلات"
       },
       "prescriptions": {
-        "title": "وصفات نشطة",
-        "emptyTitle": "لا توجد وصفات نشطة",
+        "title": "أدوية نشطة",
+        "emptyTitle": "لا توجد أدوية نشطة",
         "viewAll": "عرض الكل",
-        "error": "تعذّر تحميل الوصفات"
+        "error": "تعذّر تحميل الأدوية"
       },
       "payments": {
         "title": "المدفوعات",
@@ -374,7 +374,7 @@
       "notifications": "إشعارات البريد",
       "notifyAppointments": "المواعيد",
       "notifyClinical": "تحديثات صحية",
-      "notifyPrescriptions": "الوصفات",
+      "notifyPrescriptions": "الأدوية",
       "notifyPayments": "المدفوعات",
       "notifySystem": "رسائل التطبيق",
       "security": "الأمان",
@@ -521,7 +521,7 @@
       "eyebrow": "ملفك الطبي",
       "subtitle": "ملخصات الزيارات من أطبائك والملفات التي ترفعها — في مكان واحد.",
       "snapshotTitle": "لمحة صحية",
-      "noActiveMeds": "لا توجد وصفات نشطة في الملف.",
+      "noActiveMeds": "لا توجد أدوية نشطة في الملف.",
       "criticalHint": "يحتاج انتباهاً",
       "statVisitNotes": "ملخصات الزيارات",
       "statFiles": "ملفات",
@@ -567,9 +567,9 @@
       "loadError": "تعذّر تحميل النتائج"
     },
     "prescriptions": {
-      "title": "الوصفات الطبية",
+      "title": "الأدوية",
       "eyebrow": "أدويتك",
-      "subtitle": "وصفات وقّعها طبيبك أثناء أو بعد الزيارات.",
+      "subtitle": "أدوية وقّعها طبيبك أثناء أو بعد الزيارات.",
       "statActive": "تتناولها الآن",
       "statPast": "سابقة",
       "tabActive": "نشطة",
@@ -582,15 +582,15 @@
       "quantity": "الكمية",
       "medCount": "{count} أدوية",
       "byDoctor": "د. {name}",
-      "backToList": "كل الوصفات",
+      "backToList": "كل الأدوية",
       "bookVisit": "احجز زيارة",
-      "emptyTitle": "لا توجد وصفات نشطة",
-      "emptyDescription": "عندما يوقّع طبيبك وصفة، ستظهر هنا.",
-      "emptyHistoryTitle": "لا توجد وصفات سابقة",
-      "emptyHistoryDescription": "الوصفات المكتملة أو المنتهية ستظهر هنا.",
+      "emptyTitle": "لا توجد أدوية نشطة",
+      "emptyDescription": "عندما يوقّع طبيبك أدوية لك، ستظهر هنا.",
+      "emptyHistoryTitle": "لا توجد أدوية سابقة",
+      "emptyHistoryDescription": "الأدوية المكتملة أو المنتهية ستظهر هنا.",
       "prescribed": "وُصفت في",
-      "downloadDocument": "عرض الوصفة",
-      "loadError": "تعذّر تحميل الوصفات"
+      "downloadDocument": "عرض الأدوية",
+      "loadError": "تعذّر تحميل الأدوية"
     },
     "payments": {
       "title": "المدفوعات",
@@ -1140,7 +1140,7 @@
       "notifications": "إشعارات البريد",
       "notifyAppointments": "المواعيد",
       "notifyClinical": "تحديثات صحية",
-      "notifyPrescriptions": "الوصفات",
+      "notifyPrescriptions": "الأدوية",
       "notifySystem": "رسائل التطبيق",
       "security": "الأمان",
       "securityHint": "كلمة المرور والأجهزة المتصلة.",
@@ -1624,11 +1624,11 @@
       "empty": "لا توجد تنبيهات حرجة"
     },
     "prescriptions": {
-      "title": "الوصفات الطبية",
-      "active": "الوصفات النشطة",
-      "history": "سجل الوصفات",
-      "empty": "لا توجد وصفات بعد.",
-      "renew": "تجديد الوصفة"
+      "title": "الأدوية",
+      "active": "الأدوية النشطة",
+      "history": "سجل الأدوية",
+      "empty": "لا توجد أدوية بعد.",
+      "renew": "تجديد الأدوية"
     },
     "labs": {
       "title": "نتائج المختبر"
