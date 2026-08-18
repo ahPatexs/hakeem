@@ -6,6 +6,8 @@ import { withDoctor, withDoctorMutation } from "./_helpers";
 import { getDaySchedule, getQueue, getUpcomingAppointments, getOwnedAppointment } from "@/lib/doctor/schedule";
 import { assertCanStart, assertCanComplete, assertCanMarkNoShow } from "@/domain/doctor/consultation";
 import { DomainRuleError } from "@/domain/doctor/errors";
+import { assertCanJoinAppointment } from "@/domain/billing/eligibility";
+import { PaymentDomainError } from "@/domain/billing/errors";
 import { appointmentIdSchema, markNoShowSchema, dateKeySchema } from "@/lib/doctor/schemas";
 import { auditDoctorEvent } from "@/lib/doctor/phi-audit";
 import { notifyDoctorPatientCheckedIn } from "@/lib/doctor/notification-triggers";
@@ -59,6 +61,18 @@ export async function startConsultation(raw: { appointmentId: string }) {
     const appointment = await getOwnedAppointment(ctx.doctorId, input.appointmentId);
     if (!appointment) throw new DomainRuleError("NOT_FOUND");
     assertCanStart(appointment.status);
+
+    const obligation = appointment.paymentObligations[0];
+    if (obligation) {
+      try {
+        assertCanJoinAppointment({ amountCents: obligation.amountCents, status: obligation.status });
+      } catch (error) {
+        if (error instanceof PaymentDomainError) {
+          throw new DomainRuleError("UNPAID_APPOINTMENT");
+        }
+        throw error;
+      }
+    }
 
     // Single-active-consultation guard (FR-006)
     const active = await prisma.appointment.findFirst({

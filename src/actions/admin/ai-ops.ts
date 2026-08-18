@@ -181,6 +181,10 @@ export async function updatePlatformSetting(input: unknown): Promise<AdminMutati
       .safeParse(input);
     if (!parsed.success) return { ok: false, code: "VALIDATION_ERROR" };
     const value = parseSettingValue(parsed.data.valueType, parsed.data.value);
+    if (parsed.data.key === "billing.consultationFeeCents") {
+      const n = Number(value);
+      if (!Number.isInteger(n) || n < 0 || n > 10_000_000) return { ok: false, code: "VALIDATION_ERROR" };
+    }
     const before = await prisma.platformSetting.findUnique({ where: { key: parsed.data.key } });
     await prisma.platformSetting.upsert({
       where: { key: parsed.data.key },
@@ -199,6 +203,15 @@ export async function updatePlatformSetting(input: unknown): Promise<AdminMutati
       meta: { key: parsed.data.key, before: before?.value, after: value },
       ...(await requestMeta()),
     });
+    if (parsed.data.key.startsWith("billing.")) {
+      await adminAudit({
+        type: ADMIN_AUDIT_TYPES.billingConfigChange,
+        outcome: "SUCCESS",
+        actorUserId: admin.id,
+        meta: { key: parsed.data.key, before: before?.value, after: value },
+        ...(await requestMeta()),
+      });
+    }
     revalidatePath("/admin/settings");
     return { ok: true, message: "Setting saved." };
   } catch (error) {

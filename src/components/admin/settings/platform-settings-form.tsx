@@ -16,6 +16,7 @@ const KEYS = [
   "ai.patientEnabled",
   "ai.doctorDocumentationEnabled",
   "ai.doctorPrescriptionEnabled",
+  "billing.consultationFeeCents",
 ] as const;
 
 export function PlatformSettingsForm({

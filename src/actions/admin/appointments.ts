@@ -139,6 +139,8 @@ export async function cancelAppointmentAdmin(input: unknown): Promise<AdminMutat
       where: { id: appt.id },
       data: { status: "CANCELLED", cancellationReason: reason },
     });
+    const { cancelUnpaidObligationForAppointment } = await import("@/lib/platform/payments");
+    await cancelUnpaidObligationForAppointment(appt.id);
     await adminAudit({
       type: ADMIN_AUDIT_TYPES.appointmentCancel,
       outcome: "SUCCESS",

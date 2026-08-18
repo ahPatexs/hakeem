@@ -477,6 +477,7 @@
       "upcomingSubtitle": "Booked and current visits.",
       "historySubtitle": "Visits you’ve already had.",
       "backToList": "All appointments",
+      "paymentFee": "Consultation fee",
       "selectedSummary": "New time: {when}",
       "findDoctorHint": "Choose a doctor and a 30-minute time.",
       "viewUpcoming": "My appointments",
@@ -596,11 +597,61 @@
       "title": "Payments",
       "emptyTitle": "No payments",
       "emptyDescription": "Invoices and payment history will appear here.",
-      "payNow": "Demo payment (not a real charge)",
+      "payNow": "Pay now (demo — not a real charge)",
+      "confirmPay": "Confirm payment",
       "paying": "Processing…",
-      "payError": "Payment failed",
-      "stubPayNote": "This is a demo payment. Booking a visit doesn’t charge you.",
-      "loadError": "Could not load payments"
+      "payError": "Payment failed. You can try again.",
+      "rateLimited": "Too many failed attempts. Please wait before trying again.",
+      "stubPayNote": "This is a demo payment. Card details are never entered on Hakeem.",
+      "loadError": "Could not load payments",
+      "checkoutTitle": "Consultation payment",
+      "processingNote": "Payment is in progress. Do not pay again. Confirm below if the demo checkout is waiting.",
+      "successNote": "Payment received. Your invoice is ready.",
+      "failedNote": "Payment failed. You can retry from this page.",
+      "invoiceTitle": "Invoice",
+      "invoiceNumber": "Invoice number",
+      "invoicePending": "Issued after payment",
+      "amount": "Amount",
+      "visit": "Visit",
+      "status": "Status",
+      "downloadReceipt": "Download receipt",
+      "receiptTitle": "Payment receipt",
+      "receiptHint": "Print this page or save as PDF. No card numbers are stored.",
+      "backToPayment": "Back to payment",
+      "creditNote": "Credit note",
+      "requestRefund": "Request refund",
+      "refundRequested": "Refund request submitted for review.",
+      "refundUnderReview": "A refund request is under review. No money has moved yet.",
+      "refundUnavailable": "Refund is not available for this payment.",
+      "refundIneligible": "Refunds are only for visits cancelled before the start time.",
+      "unpaid": "Pay this visit before joining.",
+      "filterAll": "All",
+      "filterPending": "Unpaid",
+      "filterPaid": "Paid",
+      "filterFailed": "Failed",
+      "filterRefunded": "Refunded",
+      "chargeDate": "Charged",
+      "fromDate": "From",
+      "toDate": "To",
+      "applyFilters": "Apply",
+      "payer": "Payer",
+      "issuedAt": "Issued (Asia/Riyadh)",
+      "refundRejected": "Refund request declined: {reason}",
+      "payConfirmTitle": "Confirm payment?",
+      "payConfirmBody": "This charges the consultation fee. Card details are never entered on Hakeem.",
+      "refundConfirmTitle": "Request a refund?",
+      "refundConfirmBody": "An administrator will review this. No money moves until they approve.",
+      "confirmCancel": "Cancel",
+      "statuses": {
+        "PENDING": "Pending",
+        "PROCESSING": "Processing",
+        "PAID": "Paid",
+        "FAILED": "Failed",
+        "CANCELLED": "Cancelled",
+        "REFUNDED": "Refunded",
+        "PARTIALLY_REFUNDED": "Partially refunded",
+        "DISPUTED": "Disputed"
+      }
     },
     "notifications": {
       "title": "Notifications",
@@ -640,6 +691,7 @@
       "notifications": "Notifications",
       "profile": "Profile",
       "settings": "Settings",
+      "earnings": "Earnings",
       "groupCare": "Clinic",
       "groupMore": "More",
       "menuLabel": "Main menu"
@@ -757,6 +809,7 @@
       "video": "Video",
       "inPerson": "In person",
       "activeConflict": "You already have a visit going. Finish it first.",
+      "unpaidStart": "This visit is unpaid. The patient must pay before you can start.",
       "hoursTitle": "Your hours",
       "hoursHint": "Patients book 30-minute times in these hours for the next 2 weeks. If you clear all hours, new booking stops. Existing visits stay.",
       "timezone": "Timezone",
@@ -766,6 +819,7 @@
       "saveHours": "Save hours",
       "hoursSaved": "Hours saved",
       "hoursError": "Could not save hours",
+      "paymentStatus": "Payment",
       "unavailableTitle": "Days off",
       "unavailableDate": "Date",
       "unavailableReason": "Reason (optional)",
@@ -1087,6 +1141,23 @@
       "documentationHint": "Pick a visit above, or open the visit from the waiting room.",
       "prescriptionHint": "Pick a patient to get medicine ideas from their file."
     },
+    "earnings": {
+      "title": "Earnings",
+      "subtitle": "Paid consultations for your visits. View only — payouts are not in this portal.",
+      "gross": "Gross",
+      "refunds": "Refunds",
+      "net": "Net",
+      "visits": "Paid visits",
+      "empty": "No paid consultations in this period.",
+      "visit": "Visit",
+      "status": "Status",
+      "loadError": "Could not load earnings",
+      "viewOnly": "This summary is informational. Card data is never shown.",
+      "patient": "Patient",
+      "periodMonth": "This month",
+      "period7d": "Last 7 days",
+      "period30d": "Last 30 days"
+    },
     "video": {
       "title": "Video visit",
       "joinAsHost": "Join as host",
@@ -1201,6 +1272,7 @@
       "refunds": "Refunds",
       "net": "Net",
       "viewRevenue": "View revenue",
+      "stuckProcessing": "Stuck processing",
       "aiUsage": "AI Usage (30d)",
       "patientMessages": "Patient messages",
       "doctorMessages": "Doctor messages",
@@ -1323,11 +1395,29 @@
       "status": "Status",
       "patient": "Patient",
       "view": "View",
+      "subtitle": "Transactions, invoices, and refund requests (SAR).",
+      "invoice": "Invoice",
+      "filterAll": "All",
+      "filterFailed": "Failed",
+      "filterStuck": "Stuck processing",
+      "filterRefunded": "Refunded",
+      "refundQueue": "Refund requests",
+      "fromDate": "From",
+      "toDate": "To",
+      "exportCsv": "Export CSV",
+      "applyFilters": "Apply",
+      "stuckBanner": "This payment has been processing longer than 15 minutes.",
       "actions": {
         "refund": "Refund",
         "dispute": "Mark disputed",
         "refundTitle": "Process refund",
-        "disputeTitle": "Record dispute"
+        "disputeTitle": "Record dispute",
+        "amount": "Amount (halalas)",
+        "approveRequest": "Approve request",
+        "rejectRequest": "Reject request",
+        "reconcile": "Reconcile",
+        "approveTitle": "Approve refund request",
+        "rejectTitle": "Reject refund request"
       }
     },
     "revenue": {
@@ -1336,6 +1426,8 @@
       "gross": "Gross revenue",
       "refunds": "Refunds",
       "net": "Net revenue",
+      "failed": "Failed payments",
+      "stuck": "Stuck processing",
       "fromDate": "From date",
       "toDate": "To date",
       "applyRange": "Apply range",
@@ -1402,6 +1494,9 @@
           "patientEnabled": "Patient Ask AI",
           "doctorDocumentationEnabled": "Doctor notes AI",
           "doctorPrescriptionEnabled": "Doctor medicines AI"
+        },
+        "billing": {
+          "consultationFeeCents": "New consultation fee (halalas)"
         }
       },
       "hints": {
@@ -1413,6 +1508,9 @@
           "patientEnabled": "Let patients use Ask AI.",
           "doctorDocumentationEnabled": "Let doctors draft visit notes with AI.",
           "doctorPrescriptionEnabled": "Let doctors get medicine ideas with AI."
+        },
+        "billing": {
+          "consultationFeeCents": "Applies only to newly created invoices. Existing amounts stay locked."
         }
       }
     },
@@ -1472,7 +1570,8 @@
       "allOutcomes": "All outcomes",
       "fromDate": "From date",
       "toDate": "To date",
-      "applyFilters": "Apply"
+      "applyFilters": "Apply",
+      "billingEvents": "Billing events"
     },
     "notifications": {
       "title": "Notification Center",
@@ -1531,6 +1630,7 @@
       "joinCall": "Join visit",
       "joining": "Joining…",
       "joinError": "Couldn’t join. Please try again.",
+      "unpaid": "Pay this visit before joining.",
       "consentRequired": "Please accept the video-visit consent to join.",
       "acceptConsentAndJoin": "Accept and join",
       "joinWindowClosed": "You can join from 15 minutes before the visit until 60 minutes after.",

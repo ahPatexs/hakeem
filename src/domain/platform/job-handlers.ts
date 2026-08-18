@@ -199,6 +199,14 @@ export async function handleBackgroundJob(type: BackgroundJobType, payload: unkn
       });
       return;
     }
+    case "PAYMENT_RECONCILE": {
+      const { reconcileObligation } = await import("@/lib/platform/payments");
+      await reconcileObligation({ obligationId: readString(record, "obligationId") });
+      return;
+    }
+    case "PAYMENT_RECEIPT_SIDE_EFFECT": {
+      return;
+    }
     default: {
       const _exhaustive: never = type;
       throw new Error(`UNSUPPORTED_JOB_TYPE:${String(_exhaustive)}`);

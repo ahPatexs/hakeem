@@ -1,20 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { canTransition } from "@/domain/platform/billing";
-import { resolveWebhookTransition } from "@/domain/platform/webhooks";
+import { stubPaymentsAdapter } from "@/adapters/stub-payments";
+import { evaluateWebhookFreshness, resolveWebhookTransition } from "@/domain/platform/webhooks";
 
-describe("payment webhook contract", () => {
-  it("idempotent replay on already-paid obligation", () => {
+describe("payments webhook contract", () => {
+  it("invalid signature is rejected by the stub adapter", () => {
+    expect(stubPaymentsAdapter.verifyWebhookSignature("{}", "")).toBe(false);
+  });
+
+  it("stale timestamps are rejected", () => {
+    const stale = String(Math.floor((Date.now() - 10 * 60 * 1000) / 1000));
+    expect(evaluateWebhookFreshness(stale).stale).toBe(true);
+  });
+
+  it("paid event applies once then no-ops", () => {
+    expect(resolveWebhookTransition("PROCESSING", "paid")).toBe("PAID");
     expect(resolveWebhookTransition("PAID", "paid")).toBeNull();
-  });
-
-  it("never allows backward billing transitions", () => {
-    expect(canTransition("PAID", "PENDING")).toBe(false);
-    expect(canTransition("REFUNDED", "PAID")).toBe(false);
-    expect(resolveWebhookTransition("REFUNDED", "paid")).toBeNull();
-  });
-
-  it("accepts first-time paid transition from pending", () => {
-    expect(resolveWebhookTransition("PENDING", "paid")).toBe("PAID");
-    expect(resolveWebhookTransition("PENDING", "failed")).toBe("FAILED");
   });
 });

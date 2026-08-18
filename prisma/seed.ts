@@ -1147,6 +1147,17 @@ async function main() {
     },
   }).catch(() => undefined);
 
+  await prisma.invoiceSequence.upsert({
+    where: { kind_year: { kind: "INV", year: new Date().getFullYear() } },
+    update: {},
+    create: { kind: "INV", year: new Date().getFullYear(), lastNumber: 1 },
+  });
+  await prisma.invoiceSequence.upsert({
+    where: { kind_year: { kind: "CN", year: new Date().getFullYear() } },
+    update: {},
+    create: { kind: "CN", year: new Date().getFullYear(), lastNumber: 0 },
+  });
+
   await prisma.paymentObligation.upsert({
     where: { idempotencyKey: `seed-pending-${patient.id}` },
     update: {},
@@ -1162,13 +1173,15 @@ async function main() {
 
   await prisma.paymentObligation.upsert({
     where: { idempotencyKey: `seed-paid-${patient.id}` },
-    update: { status: "PAID" },
+    update: { status: "PAID", invoiceNumber: `HK-INV-${new Date().getFullYear()}-000001`, invoicedAt: new Date() },
     create: {
       patientUserId: patient.id,
       description: "Completed consultation (demo paid)",
       amountCents: 20000,
       currency: "SAR",
       status: "PAID",
+      invoiceNumber: `HK-INV-${new Date().getFullYear()}-000001`,
+      invoicedAt: new Date(),
       idempotencyKey: `seed-paid-${patient.id}`,
     },
   });

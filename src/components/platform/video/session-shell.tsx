@@ -71,6 +71,7 @@ export function VideoSessionShell({
       if (code === "CONSENT_REQUIRED") return t("consentRequired");
       if (code === "FORBIDDEN" && message === "JOIN_WINDOW_CLOSED") return t("joinWindowClosed");
       if (code === "UNAUTHORIZED") return t("joinUnauthorized");
+      if (code === "CONFLICT" && message?.includes("Payment required")) return t("unpaid");
       return t("joinError");
     },
     [t],

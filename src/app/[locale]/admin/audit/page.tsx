@@ -1,4 +1,5 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/routing";
 import { listAuditEvents } from "@/actions/admin/audit";
 import { DataTable } from "@/components/admin/shared/data-table";
 import { Pagination } from "@/components/admin/shared/pagination";
@@ -49,6 +50,9 @@ export default async function AdminAuditPage({
         <a href={exportHref(filterParams)} className="text-sm font-medium text-med-green hover:underline">
           {t("exportCsv")}
         </a>
+        <Link href="/admin/audit?type=billing." className="text-sm font-medium text-med-green hover:underline">
+          {t("billingEvents")}
+        </Link>
       </div>
       <form method="get" className="flex flex-wrap items-end gap-2">
         <Input

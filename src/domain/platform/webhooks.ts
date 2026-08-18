@@ -1,6 +1,12 @@
 import { createHash } from "node:crypto";
+import type { PaymentStatus } from "@prisma/client";
 import type { PaymentWebhookEvent } from "@/ports/payments";
-import { applyFailedTransition, applyPaidTransition } from "@/domain/platform/billing";
+import {
+  applyFailedTransition,
+  applyPaidTransition,
+  applyProcessingTransition,
+  canTransition,
+} from "@/domain/platform/billing";
 
 export const PAYMENTS_WEBHOOK_PROVIDER = process.env.PAYMENT_PROVIDER ?? "stub";
 
@@ -21,10 +27,6 @@ export function parseWebhookTimestampMs(value: string | null | undefined): numbe
   return Number.isNaN(asDate) ? null : asDate;
 }
 
-/**
- * When a timestamp claim is present, require it within skew of now.
- * When absent, freshness is treated as unknown (null) — signature still required.
- */
 export function evaluateWebhookFreshness(
   timestampHeader: string | null | undefined,
   nowMs = Date.now(),
@@ -36,37 +38,49 @@ export function evaluateWebhookFreshness(
   return { freshnessValid: !stale, stale };
 }
 
-export type WebhookApplyInput = {
-  provider: string;
-  event: PaymentWebhookEvent;
-  signatureValid: boolean;
-  rawBody: string;
-  obligationStatus: string;
-};
-
-export type WebhookApplyResult =
-  | { applied: true; newStatus: "PAID" | "FAILED"; obligationId: string }
-  | { applied: false; reason: "ALREADY_PROCESSED" | "OBLIGATION_NOT_FOUND" | "INVALID_SIGNATURE" | "NO_OP" };
-
 export function resolveWebhookTransition(
   obligationStatus: string,
-  eventStatus: "paid" | "failed",
-): "PAID" | "FAILED" | null {
-  if (eventStatus === "paid") {
-    if (obligationStatus === "PAID") return null;
+  eventStatus: "processing" | "paid" | "failed" | "refunded",
+): PaymentStatus | null {
+  const from = obligationStatus as PaymentStatus;
+  if (eventStatus === "processing") {
     try {
-      applyPaidTransition(obligationStatus as "PENDING");
-      return "PAID";
+      return applyProcessingTransition(from);
+    } catch {
+      return from === "PROCESSING" ? null : null;
+    }
+  }
+  if (eventStatus === "paid") {
+    if (from === "PAID") return null;
+    try {
+      return applyPaidTransition(from);
     } catch {
       return null;
     }
   }
-  if (obligationStatus === "FAILED") return null;
-  try {
-    applyFailedTransition(obligationStatus as "PENDING");
-    return "FAILED";
-  } catch {
-    return null;
+  if (eventStatus === "failed") {
+    if (from === "FAILED") return null;
+    try {
+      return applyFailedTransition(from);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+export function webhookEventType(status: PaymentWebhookEvent["status"]): string {
+  switch (status) {
+    case "paid":
+      return "payment.paid";
+    case "failed":
+      return "payment.failed";
+    case "processing":
+      return "payment.processing";
+    case "refunded":
+      return "payment.refunded";
+    default:
+      return "payment.unknown";
   }
 }
 
@@ -81,10 +95,12 @@ export function buildWebhookReceipt(input: {
   return {
     provider: input.provider,
     providerEventId: input.event.eventId,
-    eventType: input.event.status === "paid" ? "payment.paid" : "payment.failed",
+    eventType: webhookEventType(input.event.status),
     signatureValid: input.signatureValid,
     freshnessValid: input.freshnessValid ?? null,
     obligationId: input.obligationId,
     rawHash: hashWebhookBody(input.rawBody),
   };
 }
+
+export { canTransition };

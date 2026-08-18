@@ -11,6 +11,7 @@ import {
   Settings,
   User,
   Users,
+  Wallet,
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
@@ -24,6 +25,7 @@ const CARE_ITEMS = [
   { href: "/doctor/patients", labelKey: "patients", icon: Users },
   { href: "/doctor/prescriptions", labelKey: "prescriptions", icon: Pill },
   { href: "/doctor/labs", labelKey: "labs", icon: FlaskConical },
+  { href: "/doctor/earnings", labelKey: "earnings", icon: Wallet },
 ] as const;
 
 const MORE_ITEMS = [

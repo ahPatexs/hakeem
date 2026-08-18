@@ -24,6 +24,12 @@ import { VisitNotesCard, type PatientVisitNotes } from "@/components/patient/rec
 type ApptDetail = Appointment & {
   doctor: Pick<Doctor, "id" | "slug" | "nameEn" | "nameAr" | "photoUrl">;
   rating?: { id: string; score: number; comment: string | null } | null;
+  paymentObligations?: Array<{
+    id: string;
+    amountCents: number;
+    currency: string;
+    status: string;
+  }>;
 };
 
 export function AppointmentDetailView({
@@ -113,6 +119,20 @@ export function AppointmentDetailView({
             <p className="mt-1 font-headline text-lg text-primary">{formatApptDay(appointment.startAt, locale)}</p>
             <p className="text-sm font-medium text-on-surface-variant">{formatApptTime(appointment.startAt, locale)}</p>
           </div>
+          {appointment.paymentObligations?.[0] ? (
+            <div className="rounded-2xl bg-surface-container-low px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-on-surface-variant">{t("paymentFee")}</p>
+              <p className="mt-1 font-headline text-lg text-primary">
+                {(appointment.paymentObligations[0].amountCents / 100).toFixed(2)} {appointment.paymentObligations[0].currency}
+              </p>
+              <Link
+                href={`/patient/payments/${appointment.paymentObligations[0].id}`}
+                className="text-sm text-med-green hover:underline"
+              >
+                {appointment.paymentObligations[0].status.replaceAll("_", " ")}
+              </Link>
+            </div>
+          ) : null}
           {appointment.reason ? (
             <div className="rounded-2xl bg-surface-container-low px-4 py-3">
               <p className="text-xs font-semibold uppercase tracking-wide text-on-surface-variant">{t("reason")}</p>

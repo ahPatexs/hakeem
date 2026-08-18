@@ -520,11 +520,19 @@ enum DoctorAiMode {
 
 enum PaymentStatus {
   PENDING
+  PROCESSING
   PAID
   FAILED
+  CANCELLED
   REFUNDED
   PARTIALLY_REFUNDED
   DISPUTED
+}
+
+enum RefundRequestStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
 }
 
 enum NotificationCategory {
@@ -864,33 +872,84 @@ model PrescriptionLine {
 }
 
 model PaymentObligation {
-  id                 String        @id @default(cuid())
-  patientUserId      String
-  appointmentId      String?
-  description        String
-  amountCents        Int
-  currency           String        @default("SAR")
-  status             PaymentStatus @default(PENDING)
-  providerRef        String?
-  idempotencyKey     String        @unique
-  receiptDocumentId  String?
-  refundedAmountCents Int          @default(0)
-  refundReason       String?
-  refundedAt         DateTime?
-  refundedByUserId   String?
-  disputeNote        String?
-  disputedAt         DateTime?
-  disputedByUserId   String?
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
-  patient            User          @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
-  appointment        Appointment?  @relation(fields: [appointmentId], references: [id])
-  receiptDocument    ClinicalDocument? @relation(fields: [receiptDocumentId], references: [id])
-  attempts           PaymentAttempt[]
+  id                  String        @id @default(cuid())
+  patientUserId       String
+  appointmentId       String?       @unique
+  description         String
+  amountCents         Int
+  currency            String        @default("SAR")
+  status              PaymentStatus @default(PENDING)
+  providerRef         String?
+  idempotencyKey      String        @unique
+  invoiceNumber       String?       @unique
+  invoicedAt          DateTime?
+  receiptDocumentId   String?
+  refundedAmountCents Int           @default(0)
+  refundReason        String?
+  refundedAt          DateTime?
+  refundedByUserId    String?
+  disputeNote         String?
+  disputedAt          DateTime?
+  disputedByUserId    String?
+  processingStartedAt DateTime?
+  lastReconciledAt    DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  patient             User          @relation(fields: [patientUserId], references: [id], onDelete: Cascade)
+  appointment         Appointment?  @relation(fields: [appointmentId], references: [id])
+  receiptDocument     ClinicalDocument? @relation(fields: [receiptDocumentId], references: [id])
+  attempts            PaymentAttempt[]
+  refunds             PaymentRefund[]
+  refundRequests      RefundRequest[]
 
   @@index([patientUserId, createdAt])
   @@index([patientUserId, status])
   @@index([status, createdAt])
+  @@index([status, processingStartedAt])
+}
+
+model PaymentRefund {
+  id                String            @id @default(cuid())
+  obligationId      String
+  amountCents       Int
+  currency          String            @default("SAR")
+  creditNoteNumber  String            @unique
+  reason            String
+  actorUserId       String
+  refundRequestId   String?
+  providerRefundId  String?
+  providerHandled   Boolean           @default(false)
+  createdAt         DateTime          @default(now())
+  obligation        PaymentObligation @relation(fields: [obligationId], references: [id], onDelete: Cascade)
+  refundRequest     RefundRequest?    @relation(fields: [refundRequestId], references: [id])
+
+  @@index([obligationId, createdAt])
+}
+
+model RefundRequest {
+  id                    String              @id @default(cuid())
+  obligationId          String
+  patientUserId         String
+  requestedAmountCents  Int
+  status                RefundRequestStatus @default(PENDING_REVIEW)
+  patientNote           String?
+  decisionReason        String?
+  decidedByUserId       String?
+  decidedAt             DateTime?
+  createdAt             DateTime            @default(now())
+  obligation            PaymentObligation   @relation(fields: [obligationId], references: [id], onDelete: Cascade)
+  refunds               PaymentRefund[]
+
+  @@index([obligationId, status])
+  @@index([status, createdAt])
+}
+
+model InvoiceSequence {
+  kind       String
+  year       Int
+  lastNumber Int    @default(0)
+
+  @@id([kind, year])
 }
 
 model PaymentAttempt {

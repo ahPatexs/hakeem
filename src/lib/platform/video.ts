@@ -324,6 +324,32 @@ export async function getJoinCredentials(input: {
   const videoCheck = assertVideoAppointment(appointment);
   if (!videoCheck.ok) return videoCheck;
 
+  {
+    const obligation = await prisma.paymentObligation.findUnique({
+      where: { appointmentId: appointment.id },
+      select: { status: true, amountCents: true },
+    });
+    if (obligation && obligation.amountCents > 0) {
+      const { assertCanJoinAppointment } = await import("@/domain/billing/eligibility");
+      const { PaymentDomainError } = await import("@/domain/billing/errors");
+      try {
+        assertCanJoinAppointment({ amountCents: obligation.amountCents, status: obligation.status });
+      } catch (error) {
+        if (error instanceof PaymentDomainError) {
+          await platformAudit({
+            type: "platform.video.join_credentials",
+            outcome: "DENIED",
+            actorUserId: input.actorUserId,
+            targetUserId: appointment.patientUserId,
+            meta: { appointmentId: appointment.id, reason: "unpaid" },
+          });
+          return platformFail("CONFLICT", "Payment required before joining this visit");
+        }
+        throw error;
+      }
+    }
+  }
+
   if (
     !canJoinVideo({
       mode: appointment.mode,

@@ -70,6 +70,12 @@ export async function getQueue(doctorId: string) {
 export async function getOwnedAppointment(doctorId: string, appointmentId: string) {
   return prisma.appointment.findFirst({
     where: { id: appointmentId, doctorId },
-    include: { patient: PATIENT_SELECT },
+    include: {
+      patient: PATIENT_SELECT,
+      paymentObligations: {
+        select: { id: true, status: true, amountCents: true, currency: true, invoiceNumber: true },
+        take: 1,
+      },
+    },
   });
 }

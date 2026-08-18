@@ -1,4 +1,4 @@
-export type PaymentProviderStatus = "pending" | "succeeded" | "failed" | "cancelled";
+export type PaymentProviderStatus = "pending" | "processing" | "succeeded" | "failed" | "cancelled";
 
 export interface CreatePaymentIntentInput {
   obligationId: string;
@@ -16,11 +16,24 @@ export interface PaymentIntentResult {
   status: PaymentProviderStatus;
 }
 
+export interface RetrievePaymentInput {
+  providerIntentId: string;
+  obligationId: string;
+}
+
+export interface RetrievePaymentResult {
+  providerIntentId: string;
+  status: PaymentProviderStatus;
+  captured: boolean;
+  capturedAmountCents?: number;
+}
+
 export interface PaymentWebhookEvent {
   eventId: string;
   obligationId: string;
   providerIntentId: string;
-  status: "paid" | "failed";
+  status: "processing" | "paid" | "failed" | "refunded";
+  refundAmountCents?: number;
 }
 
 export interface RefundPaymentInput {
@@ -40,8 +53,8 @@ export interface RefundPaymentResult {
 
 export interface PaymentsPort {
   createPaymentIntent(input: CreatePaymentIntentInput): Promise<PaymentIntentResult>;
+  retrievePayment(input: RetrievePaymentInput): Promise<RetrievePaymentResult>;
   verifyWebhookSignature(payload: string | Buffer, signature: string): boolean;
   parseWebhookEvent(payload: string | Buffer): PaymentWebhookEvent;
-  /** Optional; stub adapters may return providerHandled:false for manual ops */
   refund?(input: RefundPaymentInput): Promise<RefundPaymentResult>;
 }

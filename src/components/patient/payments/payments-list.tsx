@@ -1,11 +1,15 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { Pagination } from "@/components/patient/shared/pagination";
 import { EmptyState } from "@/components/patient/shared/empty-state";
-import { StatusBadge } from "@/components/patient/shared/status-badge";
-import type { PaymentObligation, PaymentAttempt } from "@prisma/client";
+import { PaymentStatusBadge } from "@/components/platform/payments/payment-status-badge";
+import { PaymentCheckoutPanel } from "@/components/platform/payments/payment-checkout-panel";
+import { InvoicePanel } from "@/components/patient/payments/invoice-panel";
+import { RefundRequestBanner } from "@/components/patient/payments/refund-request-banner";
+import { formatBillingDate } from "@/domain/billing/constants";
+import type { PaymentAttempt, PaymentObligation, PaymentRefund, RefundRequest } from "@prisma/client";
 
 export function PaymentsList({
   items,
@@ -19,6 +23,7 @@ export function PaymentsList({
   pageSize: number;
 }) {
   const t = useTranslations("patient.payments");
+  const locale = useLocale();
 
   if (items.length === 0) {
     return <EmptyState title={t("emptyTitle")} description={t("emptyDescription")} />;
@@ -35,9 +40,11 @@ export function PaymentsList({
               </Link>
               <p className="text-sm text-on-surface-variant">
                 {(o.amountCents / 100).toFixed(2)} {o.currency}
+                {o.invoiceNumber ? ` · ${o.invoiceNumber}` : ""}
+                {` · ${t("chargeDate")}: ${formatBillingDate(o.createdAt, locale)}`}
               </p>
             </div>
-            <StatusBadge status={o.status} variant="payment" />
+            <PaymentStatusBadge status={o.status} />
           </li>
         ))}
       </ul>
@@ -49,22 +56,35 @@ export function PaymentsList({
 export function PaymentDetail({
   obligation,
 }: {
-  obligation: PaymentObligation & { attempts: PaymentAttempt[] };
+  obligation: PaymentObligation & {
+    attempts: PaymentAttempt[];
+    refunds: PaymentRefund[];
+    refundRequests: RefundRequest[];
+    appointment: { id: string; status: string; startAt: Date } | null;
+    patient: { name: string | null; email: string };
+  };
 }) {
   const t = useTranslations("patient.payments");
 
   return (
-    <article className="glass-card space-y-4 rounded-2xl border border-outline-variant/20 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <h1 className="font-headline text-2xl text-primary">{obligation.description}</h1>
-        <StatusBadge status={obligation.status} variant="payment" />
-      </div>
-      <p className="text-lg font-semibold text-primary">
-        {(obligation.amountCents / 100).toFixed(2)} {obligation.currency}
-      </p>
-      {obligation.status === "PENDING" || obligation.status === "FAILED" ? (
-        <p className="text-sm text-on-surface-variant">{t("stubPayNote")}</p>
+    <div className="space-y-6">
+      <PaymentCheckoutPanel
+        obligationId={obligation.id}
+        amountCents={obligation.amountCents}
+        currency={obligation.currency}
+        description={obligation.description}
+        status={obligation.status}
+      />
+
+      {obligation.status === "PAID" ? (
+        <p className="rounded-2xl bg-med-green/10 px-4 py-3 text-sm text-med-green">{t("successNote")}</p>
       ) : null}
-    </article>
+      {obligation.status === "FAILED" ? (
+        <p className="rounded-2xl bg-warm-coral/10 px-4 py-3 text-sm text-warm-coral">{t("failedNote")}</p>
+      ) : null}
+
+      <InvoicePanel obligation={obligation} />
+      <RefundRequestBanner obligation={obligation} />
+    </div>
   );
 }

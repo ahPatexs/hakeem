@@ -132,7 +132,7 @@ async function loadPaymentStatus(userId: string): Promise<{
   obligations: PaymentObligation[];
 }> {
   const obligations = await prisma.paymentObligation.findMany({
-    where: { patientUserId: userId, status: "PENDING" },
+    where: { patientUserId: userId, status: { in: ["PENDING", "PROCESSING", "FAILED"] } },
     orderBy: { createdAt: "desc" },
     take: 5,
   });

@@ -53,6 +53,12 @@ export default async function DoctorAppointmentDetailPage({
           </div>
           <StatusBadge status={appt.status} label={ts(appt.status)} variant="appointment" />
         </div>
+        {appt.paymentObligations[0] ? (
+          <p className="mt-3 text-sm text-on-surface-variant">
+            {t("paymentStatus")}: {(appt.paymentObligations[0].amountCents / 100).toFixed(2)}{" "}
+            {appt.paymentObligations[0].currency} · {appt.paymentObligations[0].status.replaceAll("_", " ")}
+          </p>
+        ) : null}
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <div className="rounded-2xl bg-primary/5 px-4 py-3">
             <p className="text-xs font-semibold uppercase tracking-wide text-on-surface-variant">{t("title")}</p>

@@ -4,4 +4,5 @@ export {
   isMaintenanceMode,
   ensureDefaultPlatformSettings,
   getAllPlatformSettings,
+  getConsultationFeeCents,
 } from "@/lib/admin/maintenance";

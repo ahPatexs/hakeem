@@ -1,0 +1,58 @@
+{
+  "projectId": "2408493713147971043",
+  "projectTitle": "Hakeem AI Healthcare Landing Page",
+  "module": "010-payments-billing",
+  "exported": false,
+  "reviewedAt": "2026-08-18",
+  "note": "Stitch MCP list_screens/get_screen returned 401 after mcp_auth during /speckit-plan. SoT remains Stitch screen ids below + existing portal shells + admin PNGs in specs/005-admin-portal/design/. Do not redesign. Ignore Stitch billing extras (USD, Subscriptions, Upgrade, Admin New Payment).",
+  "screens": [
+    {
+      "id": "secure-checkout",
+      "stitchScreenId": "baccb518b56e49e086747e71e82b8d29",
+      "title": "Secure Checkout - Hakeem",
+      "route": "/patient/payments/[id]",
+      "device": "DESKTOP",
+      "file": null
+    },
+    {
+      "id": "payment-status",
+      "stitchScreenId": "5d6ca3aa9af348519e002592be6ed3d8",
+      "title": "Payment Status - Hakeem",
+      "route": "/patient/payments/[id]",
+      "device": "DESKTOP",
+      "file": null
+    },
+    {
+      "id": "payment-successful",
+      "stitchScreenId": "481ec39d22eb4e35b7a11c6e901e1c89",
+      "title": "Payment Successful - Hakeem",
+      "route": "/patient/payments/[id]",
+      "device": "DESKTOP",
+      "file": null
+    },
+    {
+      "id": "admin-billing",
+      "stitchScreenId": "58eef7a7942a42e1badc0691b45c7a8f",
+      "title": "Billing & Transactions - Hakeem",
+      "route": "/admin/billing",
+      "device": "DESKTOP",
+      "file": "../../005-admin-portal/design/d-admin-billing.png"
+    },
+    {
+      "id": "admin-revenue",
+      "stitchScreenId": "3a2b410376554f0782356d493a8b1b9b",
+      "title": "Payment & Revenue Management - Hakeem Admin",
+      "route": "/admin/revenue",
+      "device": "DESKTOP",
+      "file": "../../005-admin-portal/design/d-admin-revenue.png"
+    },
+    {
+      "id": "doctor-earnings",
+      "stitchScreenId": null,
+      "title": "Doctor earnings (adapt Payment Dashboard chrome in Doctor shell)",
+      "route": "/doctor/earnings",
+      "device": "DESKTOP",
+      "file": null
+    }
+  ]
+}

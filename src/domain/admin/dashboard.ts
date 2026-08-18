@@ -5,7 +5,7 @@ export type DashboardSnapshot = {
   totalPatients: WidgetResult<number>;
   totalDoctors: WidgetResult<number>;
   activeAppointments: WidgetResult<number>;
-  revenueSummary: WidgetResult<{ grossCents: number; refundCents: number; netCents: number }>;
+  revenueSummary: WidgetResult<{ grossCents: number; refundCents: number; netCents: number; stuckCount: number }>;
   aiUsage: WidgetResult<{ patientMessages: number; doctorMessages: number }>;
   platformStatus: WidgetResult<{ overall: string; checkedAt: string | null }>;
   pendingDoctorApprovals: WidgetResult<number>;
@@ -29,14 +29,22 @@ async function countActiveAppointments() {
 
 async function revenueSummary() {
   const since = periodStart(30);
-  const paid = await prisma.paymentObligation.findMany({
-    where: { status: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] }, createdAt: { gte: since } },
-    select: { amountCents: true, refundedAmountCents: true },
-    take: 5000,
-  });
+  const [paid, stuckCount] = await Promise.all([
+    prisma.paymentObligation.findMany({
+      where: { status: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] }, createdAt: { gte: since } },
+      select: { amountCents: true, refundedAmountCents: true },
+      take: 5000,
+    }),
+    prisma.paymentObligation.count({
+      where: {
+        status: "PROCESSING",
+        processingStartedAt: { lte: new Date(Date.now() - 15 * 60 * 1000) },
+      },
+    }),
+  ]);
   const grossCents = paid.reduce((s, p) => s + p.amountCents, 0);
   const refundCents = paid.reduce((s, p) => s + p.refundedAmountCents, 0);
-  return { grossCents, refundCents, netCents: grossCents - refundCents };
+  return { grossCents, refundCents, netCents: grossCents - refundCents, stuckCount };
 }
 
 async function aiUsage() {

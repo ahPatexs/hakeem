@@ -14,6 +14,19 @@ describe("payment webhook transitions", () => {
     expect(resolveWebhookTransition("PAID", "paid")).toBeNull();
   });
 
+  it("allows PROCESSING → PAID and PROCESSING → FAILED", () => {
+    expect(resolveWebhookTransition("PROCESSING", "paid")).toBe("PAID");
+    expect(resolveWebhookTransition("PROCESSING", "failed")).toBe("FAILED");
+  });
+
+  it("allows FAILED → PAID reconcile correction via paid event", () => {
+    expect(resolveWebhookTransition("FAILED", "paid")).toBe("PAID");
+  });
+
+  it("no-ops processing event when already PROCESSING", () => {
+    expect(resolveWebhookTransition("PROCESSING", "processing")).toBe("PROCESSING");
+  });
+
   it("rejects illegal backward PAID → FAILED", () => {
     expect(resolveWebhookTransition("PAID", "failed")).toBeNull();
     expect(resolveWebhookTransition("REFUNDED", "paid")).toBeNull();

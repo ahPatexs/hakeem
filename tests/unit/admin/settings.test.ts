@@ -21,5 +21,6 @@ describe("platform settings validation", () => {
   it("lists known setting keys", () => {
     expect(SETTING_KEYS).toContain("maintenanceMode");
     expect(SETTING_KEYS).toContain("ai.patientEnabled");
+    expect(SETTING_KEYS).toContain("billing.consultationFeeCents");
   });
 });

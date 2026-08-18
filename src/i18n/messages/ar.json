@@ -477,6 +477,7 @@
       "upcomingSubtitle": "الزيارات المحجوزة والجارية.",
       "historySubtitle": "زياراتك السابقة.",
       "backToList": "كل المواعيد",
+      "paymentFee": "رسوم الاستشارة",
       "selectedSummary": "الوقت الجديد: {when}",
       "findDoctorHint": "اختر طبيباً ومدة ٣٠ دقيقة.",
       "viewUpcoming": "مواعيدي",
@@ -596,11 +597,61 @@
       "title": "المدفوعات",
       "emptyTitle": "لا توجد مدفوعات",
       "emptyDescription": "ستظهر الفواتير وسجل المدفوعات هنا.",
-      "payNow": "دفع تجريبي (ليس خصماً حقيقياً)",
+      "payNow": "ادفع الآن (تجريبي — ليس خصماً حقيقياً)",
+      "confirmPay": "تأكيد الدفع",
       "paying": "جارٍ المعالجة…",
-      "payError": "فشل الدفع",
-      "stubPayNote": "دفع تجريبي. حجز الزيارة لا يخصم منك.",
-      "loadError": "تعذّر تحميل المدفوعات"
+      "payError": "فشل الدفع. يمكنك المحاولة مرة أخرى.",
+      "rateLimited": "محاولات فاشلة كثيرة. انتظر ثم حاول مجدداً.",
+      "stubPayNote": "دفع تجريبي. لا تُدخل بيانات البطاقة على حكيم.",
+      "loadError": "تعذّر تحميل المدفوعات",
+      "checkoutTitle": "دفع الاستشارة",
+      "processingNote": "الدفع قيد المعالجة. لا تدفع مرة أخرى. أكّد أدناه إن كانت التجربة بانتظار التأكيد.",
+      "successNote": "تم استلام الدفع. فاتورتك جاهزة.",
+      "failedNote": "فشل الدفع. يمكنك إعادة المحاولة من هذه الصفحة.",
+      "invoiceTitle": "الفاتورة",
+      "invoiceNumber": "رقم الفاتورة",
+      "invoicePending": "يُصدر بعد الدفع",
+      "amount": "المبلغ",
+      "visit": "الزيارة",
+      "status": "الحالة",
+      "downloadReceipt": "تنزيل الإيصال",
+      "receiptTitle": "إيصال الدفع",
+      "receiptHint": "اطبع هذه الصفحة أو احفظها PDF. لا تُحفظ أرقام البطاقات.",
+      "backToPayment": "العودة إلى الدفع",
+      "creditNote": "إشعار دائن",
+      "requestRefund": "طلب استرداد",
+      "refundRequested": "أُرسل طلب الاسترداد للمراجعة.",
+      "refundUnderReview": "طلب الاسترداد قيد المراجعة. لم يُحرَّك أي مبلغ بعد.",
+      "refundUnavailable": "الاسترداد غير متاح لهذه الدفعة.",
+      "refundIneligible": "الاسترداد متاح فقط للزيارات الملغاة قبل موعد البدء.",
+      "unpaid": "ادفع هذه الزيارة قبل الانضمام.",
+      "filterAll": "الكل",
+      "filterPending": "غير مدفوع",
+      "filterPaid": "مدفوع",
+      "filterFailed": "فاشل",
+      "filterRefunded": "مسترد",
+      "chargeDate": "تاريخ الرسوم",
+      "fromDate": "من",
+      "toDate": "إلى",
+      "applyFilters": "تطبيق",
+      "payer": "الدافع",
+      "issuedAt": "تاريخ الإصدار (آسيا/الرياض)",
+      "refundRejected": "رُفض طلب الاسترداد: {reason}",
+      "payConfirmTitle": "تأكيد الدفع؟",
+      "payConfirmBody": "سيتم تحصيل رسوم الاستشارة. لا تُدخل بيانات البطاقة في حكيم.",
+      "refundConfirmTitle": "طلب استرداد؟",
+      "refundConfirmBody": "سيراجع المشرف الطلب. لا يتحرك أي مبلغ حتى الموافقة.",
+      "confirmCancel": "إلغاء",
+      "statuses": {
+        "PENDING": "قيد الانتظار",
+        "PROCESSING": "قيد المعالجة",
+        "PAID": "مدفوع",
+        "FAILED": "فاشل",
+        "CANCELLED": "ملغى",
+        "REFUNDED": "مسترد",
+        "PARTIALLY_REFUNDED": "مسترد جزئياً",
+        "DISPUTED": "متنازع عليه"
+      }
     },
     "notifications": {
       "title": "الإشعارات",
@@ -640,6 +691,7 @@
       "notifications": "الإشعارات",
       "profile": "الملف الشخصي",
       "settings": "الإعدادات",
+      "earnings": "الأرباح",
       "groupCare": "العيادة",
       "groupMore": "المزيد",
       "menuLabel": "القائمة الرئيسية"
@@ -757,6 +809,7 @@
       "video": "فيديو",
       "inPerson": "حضوري",
       "activeConflict": "لديك زيارة جارية. أنهِها أولاً.",
+      "unpaidStart": "هذه الزيارة غير مدفوعة. يجب أن يدفع المريض قبل البدء.",
       "hoursTitle": "ساعاتك",
       "hoursHint": "يحجز المرضى ٣٠ دقيقة ضمن هذه الساعات لأسبوعين. إن مسحت كل الساعات يتوقف الحجز الجديد. الزيارات الحالية تبقى.",
       "timezone": "المنطقة الزمنية",
@@ -766,6 +819,7 @@
       "saveHours": "حفظ الساعات",
       "hoursSaved": "تم حفظ الساعات",
       "hoursError": "تعذر حفظ الساعات",
+      "paymentStatus": "الدفع",
       "unavailableTitle": "أيام الإجازة",
       "unavailableDate": "التاريخ",
       "unavailableReason": "السبب (اختياري)",
@@ -1087,6 +1141,23 @@
       "documentationHint": "اختر زيارة أعلاه، أو افتح الزيارة من غرفة الانتظار.",
       "prescriptionHint": "اختر مريضاً لاقتراحات أدوية من ملفه."
     },
+    "earnings": {
+      "title": "الأرباح",
+      "subtitle": "الاستشارات المدفوعة لزياراتك. للعرض فقط — التحويلات ليست في هذه البوابة.",
+      "gross": "الإجمالي",
+      "refunds": "المستردات",
+      "net": "الصافي",
+      "visits": "زيارات مدفوعة",
+      "empty": "لا استشارات مدفوعة في هذه الفترة.",
+      "visit": "الزيارة",
+      "status": "الحالة",
+      "loadError": "تعذّر تحميل الأرباح",
+      "viewOnly": "هذا الملخص للعرض. لا تظهر بيانات البطاقات.",
+      "patient": "المريض",
+      "periodMonth": "هذا الشهر",
+      "period7d": "آخر 7 أيام",
+      "period30d": "آخر 30 يوماً"
+    },
     "video": {
       "title": "زيارة فيديو",
       "joinAsHost": "الانضمام كمضيف",
@@ -1201,6 +1272,7 @@
       "refunds": "المستردات",
       "net": "الصافي",
       "viewRevenue": "عرض الإيرادات",
+      "stuckProcessing": "معالجة معلّقة",
       "aiUsage": "استخدام الذكاء الاصطناعي (30 يوماً)",
       "patientMessages": "رسائل المرضى",
       "doctorMessages": "رسائل الأطباء",
@@ -1323,11 +1395,29 @@
       "status": "الحالة",
       "patient": "المريض",
       "view": "عرض",
+      "subtitle": "المعاملات والفواتير وطلبات الاسترداد (ريال).",
+      "invoice": "الفاتورة",
+      "filterAll": "الكل",
+      "filterFailed": "فاشل",
+      "filterStuck": "معالجة معلّقة",
+      "filterRefunded": "مسترد",
+      "refundQueue": "طلبات الاسترداد",
+      "fromDate": "من",
+      "toDate": "إلى",
+      "exportCsv": "تصدير CSV",
+      "applyFilters": "تطبيق",
+      "stuckBanner": "هذه الدفعة قيد المعالجة لأكثر من ١٥ دقيقة.",
       "actions": {
         "refund": "استرداد",
         "dispute": "تعليم نزاع",
         "refundTitle": "معالجة الاسترداد",
-        "disputeTitle": "تسجيل نزاع"
+        "disputeTitle": "تسجيل نزاع",
+        "amount": "المبلغ (هللة)",
+        "approveRequest": "قبول الطلب",
+        "rejectRequest": "رفض الطلب",
+        "reconcile": "مطابقة",
+        "approveTitle": "قبول طلب الاسترداد",
+        "rejectTitle": "رفض طلب الاسترداد"
       }
     },
     "revenue": {
@@ -1336,6 +1426,8 @@
       "gross": "إجمالي الإيرادات",
       "refunds": "المستردات",
       "net": "صافي الإيرادات",
+      "failed": "مدفوعات فاشلة",
+      "stuck": "معالجة معلّقة",
       "fromDate": "من تاريخ",
       "toDate": "إلى تاريخ",
       "applyRange": "تطبيق النطاق",
@@ -1402,6 +1494,9 @@
           "patientEnabled": "اسأل الذكاء للمرضى",
           "doctorDocumentationEnabled": "ذكاء ملاحظات الطبيب",
           "doctorPrescriptionEnabled": "ذكاء أدوية الطبيب"
+        },
+        "billing": {
+          "consultationFeeCents": "رسوم الاستشارة الجديدة (هللات)"
         }
       },
       "hints": {
@@ -1413,6 +1508,9 @@
           "patientEnabled": "السماح للمرضى باستخدام اسأل الذكاء.",
           "doctorDocumentationEnabled": "السماح للأطباء بصياغة ملاحظات الزيارة بالذكاء.",
           "doctorPrescriptionEnabled": "السماح للأطباء باقتراحات الأدوية بالذكاء."
+        },
+        "billing": {
+          "consultationFeeCents": "تُطبَّق على الفواتير الجديدة فقط. المبالغ الحالية تبقى ثابتة."
         }
       }
     },
@@ -1472,7 +1570,8 @@
       "allOutcomes": "كل النتائج",
       "fromDate": "من تاريخ",
       "toDate": "إلى تاريخ",
-      "applyFilters": "تطبيق"
+      "applyFilters": "تطبيق",
+      "billingEvents": "أحداث الفوترة"
     },
     "notifications": {
       "title": "مركز الإشعارات",
@@ -1531,6 +1630,7 @@
       "joinCall": "انضم للزيارة",
       "joining": "جاري الانضمام…",
       "joinError": "تعذّر الانضمام. حاول مجدداً.",
+      "unpaid": "ادفع هذه الزيارة قبل الانضمام.",
       "consentRequired": "وافق على موافقة الزيارة بالفيديو للانضمام.",
       "acceptConsentAndJoin": "موافق وانضم",
       "joinWindowClosed": "يمكنك الانضمام من ١٥ دقيقة قبل الزيارة حتى ٦٠ دقيقة بعدها.",

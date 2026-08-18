@@ -13,6 +13,8 @@ export const BACKGROUND_JOB_TYPES = [
   "WEBHOOK_SIDE_EFFECT",
   "NOTIFY_ADMINS_FANOUT",
   "VIDEO_RECORDING_FINALIZE",
+  "PAYMENT_RECONCILE",
+  "PAYMENT_RECEIPT_SIDE_EFFECT",
 ] as const;
 
 export type BackgroundJobType = (typeof BACKGROUND_JOB_TYPES)[number];

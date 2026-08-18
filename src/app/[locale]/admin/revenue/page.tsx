@@ -22,7 +22,7 @@ export default async function AdminRevenuePage({
   const period = (PERIODS.includes(sp.period as Period) ? sp.period : "30d") as Period;
   const result = await getRevenueSummary({ period, from: sp.from, to: sp.to });
   if (!result.ok) return <p className="text-warm-coral">{result.code}</p>;
-  const { grossCents, refundCents, netCents } = result.data;
+  const { grossCents, refundCents, netCents, failedCount, stuckCount } = result.data;
   const appLocale = locale === "ar" ? "ar" : "en";
 
   return (
@@ -63,10 +63,12 @@ export default async function AdminRevenuePage({
           </button>
         </form>
       ) : null}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <KpiCard label={t("gross")} value={formatSar(grossCents, appLocale)} />
         <KpiCard label={t("refunds")} value={formatSar(refundCents, appLocale)} />
         <KpiCard label={t("net")} value={formatSar(netCents, appLocale)} />
+        <KpiCard label={t("failed")} value={String(failedCount)} />
+        <KpiCard label={t("stuck")} value={String(stuckCount)} />
       </div>
     </div>
   );

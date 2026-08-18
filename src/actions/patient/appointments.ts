@@ -67,6 +67,10 @@ async function assertOwnAppointment(userId: string, id: string) {
         select: { id: true, slug: true, nameEn: true, nameAr: true, photoUrl: true },
       },
       rating: { select: { id: true, score: true, comment: true } },
+      paymentObligations: {
+        select: { id: true, amountCents: true, currency: true, status: true },
+        take: 1,
+      },
     },
   });
   if (!appt) throw new AuthDomainError("FORBIDDEN", "Appointment not found");
@@ -147,6 +151,15 @@ export async function confirmAppointment(input: unknown) {
       },
     });
 
+    const { ensurePayableObligation } = await import("@/lib/platform/payments");
+    const { getConsultationFeeCents } = await import("@/lib/admin/maintenance");
+    await ensurePayableObligation({
+      appointmentId: updated.id,
+      patientUserId: userId,
+      amountCents: await getConsultationFeeCents(),
+      description: `Consultation — ${updated.doctor.nameEn}`,
+    });
+
     const locale = await patientLocaleFor(userId);
 
     await createNotification({
@@ -195,6 +208,9 @@ export async function cancelAppointment(input: unknown) {
         holdExpiresAt: null,
       },
     });
+
+    const { cancelUnpaidObligationForAppointment } = await import("@/lib/platform/payments");
+    await cancelUnpaidObligationForAppointment(updated.id);
 
     const locale = await patientLocaleFor(userId);
 
@@ -252,6 +268,18 @@ export async function rescheduleAppointment(input: unknown) {
         },
       }),
     ]);
+
+    const { cancelUnpaidObligationForAppointment, ensurePayableObligation } = await import(
+      "@/lib/platform/payments"
+    );
+    const { getConsultationFeeCents } = await import("@/lib/admin/maintenance");
+    await cancelUnpaidObligationForAppointment(updated.id);
+    await ensurePayableObligation({
+      appointmentId: created.id,
+      patientUserId: userId,
+      amountCents: await getConsultationFeeCents(),
+      description: `Consultation — ${created.doctor.nameEn}`,
+    });
 
     const locale = await patientLocaleFor(userId);
 

@@ -30,7 +30,13 @@ export function AppointmentActions({
     startTransition(async () => {
       const res = await action();
       if (!res.ok) {
-        setError(res.code === "ALREADY_IN_PROGRESS" ? t("activeConflict") : tc("loadError"));
+        setError(
+          res.code === "ALREADY_IN_PROGRESS"
+            ? t("activeConflict")
+            : res.code === "UNPAID_APPOINTMENT"
+              ? t("unpaidStart")
+              : tc("loadError"),
+        );
         return;
       }
       router.refresh();

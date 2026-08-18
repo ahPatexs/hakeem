@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { sessionCookieOptions, refreshCookieOptions, SESSION_COOKIE, REFRESH_COOKIE } from "@/auth/cookies";
 import { isCsrfError } from "@/auth/csrf";
-import { AUDIT_RETENTION_DAYS, auditRetentionCutoff } from "@/auth/audit-retention";
+import { AUDIT_RETENTION_DAYS, auditRetentionCutoff, BILLING_AUDIT_RETENTION_DAYS, billingAuditRetentionCutoff, isFinancialAuditType } from "@/auth/audit-retention";
 import { can, assertRole } from "@/auth/rbac";
 import { AuthDomainError } from "@/auth/errors";
 
@@ -32,6 +32,16 @@ describe("audit retention (FR-048)", () => {
     const now = new Date("2026-07-29T00:00:00.000Z");
     const cutoff = auditRetentionCutoff(now);
     expect(cutoff.toISOString()).toBe("2025-07-29T00:00:00.000Z");
+  });
+
+  it("keeps billing audit events for at least 6 years", () => {
+    expect(BILLING_AUDIT_RETENTION_DAYS).toBeGreaterThanOrEqual(6 * 365);
+    expect(isFinancialAuditType("billing.paid")).toBe(true);
+    expect(isFinancialAuditType("admin.billing.refund")).toBe(true);
+    expect(isFinancialAuditType("admin.settings.change")).toBe(false);
+    const now = new Date("2026-07-29T00:00:00.000Z");
+    const cutoff = billingAuditRetentionCutoff(now);
+    expect(cutoff.toISOString()).toBe("2020-07-30T00:00:00.000Z");
   });
 });
 

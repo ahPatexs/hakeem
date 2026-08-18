@@ -58,6 +58,9 @@ export async function DashboardGrid({ snapshot }: { snapshot: DashboardSnapshot 
               <p>
                 {t("net")}: <strong className="text-med-green">{formatSar(snapshot.revenueSummary.data.netCents, locale)}</strong>
               </p>
+              <p>
+                {t("stuckProcessing")}: <strong>{snapshot.revenueSummary.data.stuckCount}</strong>
+              </p>
               <Link href="/admin/revenue" className="text-sm font-medium text-med-green hover:underline">
                 {t("viewRevenue")}
               </Link>

@@ -22,9 +22,12 @@ const APPOINTMENT_TONES: Record<string, string> = {
 
 const PAYMENT_TONES: Record<string, string> = {
   PENDING: "bg-amber-100 text-amber-800 border-amber-200",
+  PROCESSING: "bg-blue-100 text-blue-800 border-blue-200",
   PAID: "bg-med-green/10 text-med-green border-med-green/20",
   FAILED: "bg-red-100 text-red-800 border-red-200",
+  CANCELLED: "bg-surface-container-highest text-on-surface-variant border-outline-variant/30",
   REFUNDED: "bg-surface-container-highest text-on-surface-variant border-outline-variant/30",
+  PARTIALLY_REFUNDED: "bg-blue-100 text-blue-800 border-blue-200",
 };
 
 const LAB_TONES: Record<string, string> = {

@@ -29,4 +29,5 @@ export const SETTING_KEYS = [
   "ai.patientEnabled",
   "ai.doctorDocumentationEnabled",
   "ai.doctorPrescriptionEnabled",
+  "billing.consultationFeeCents",
 ] as const;
