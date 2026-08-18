@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect } from "react";
 
@@ -10,15 +10,13 @@ const PREFAB_SELECTORS = [
   ".lk-chat-form",
 ];
 
-export function LiveKitPrefabGuard({ rootSelector = ".hakeem-video-shell" }: { rootSelector?: string }) {
+export function LiveKitPrefabGuard() {
   useEffect(() => {
-    const root = document.querySelector(rootSelector);
-    if (!root) return;
-
     const hidePrefabs = () => {
       for (const selector of PREFAB_SELECTORS) {
-        root.querySelectorAll(selector).forEach((node) => {
+        document.querySelectorAll(selector).forEach((node) => {
           if (!(node instanceof HTMLElement)) return;
+          if (node.closest(".hakeem-visit-chat")) return;
           node.style.setProperty("display", "none", "important");
           node.setAttribute("aria-hidden", "true");
           node.hidden = true;
@@ -28,9 +26,9 @@ export function LiveKitPrefabGuard({ rootSelector = ".hakeem-video-shell" }: { r
 
     hidePrefabs();
     const observer = new MutationObserver(hidePrefabs);
-    observer.observe(root, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true });
     return () => observer.disconnect();
-  }, [rootSelector]);
+  }, []);
 
   return null;
 }

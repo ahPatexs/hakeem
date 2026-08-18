@@ -16,7 +16,6 @@ import { VideoWaitingRoom } from "./waiting-room";
 import { ParticipantGrid } from "./participant-grid";
 import { CallControls } from "./call-controls";
 import { VisitChat } from "./visit-chat";
-import { LiveKitVisitChat } from "./livekit-visit-chat";
 import { LiveKitConferenceStage, LiveKitMediaSync, LiveKitScreenShareSync } from "./livekit-stage";
 import { LiveKitPrefabGuard } from "./livekit-prefab-guard";
 import type { MediaDeviceSelection } from "./device-selector";
@@ -147,12 +146,11 @@ export function VideoSessionShell({
     />
   );
 
-  const chat = chatOpen ? <VisitChat appointmentId={appointmentId} role={role} /> : null;
-  const liveChat = chatOpen ? (
-    <LiveKitVisitChat
+  const visitChatPanel = chatOpen ? (
+    <VisitChat
       appointmentId={appointmentId}
       role={role}
-      className="h-full min-h-0 w-full rounded-none border-0"
+      className="h-full min-h-0 w-full shrink-0 rounded-none border-0 lg:max-w-[24rem]"
     />
   ) : null;
 
@@ -186,6 +184,7 @@ export function VideoSessionShell({
   if (stubMode && creds) {
     return (
       <div className={cn("hakeem-video-shell space-y-4", className)}>
+        <LiveKitPrefabGuard />
         <p
           className="rounded-xl border border-outline-variant/30 bg-surface-container-high px-4 py-2 text-center text-sm font-medium text-primary"
           role="status"
@@ -211,7 +210,7 @@ export function VideoSessionShell({
             />
             {controls}
           </div>
-          {chat}
+          {visitChatPanel}
         </div>
       </div>
     );
@@ -221,21 +220,21 @@ export function VideoSessionShell({
 
   return (
     <div className={cn("hakeem-video-shell", className)}>
+      <LiveKitPrefabGuard />
       <div className="space-y-3">
-        <LiveKitRoom
-          token={creds.token}
-          serverUrl={creds.url}
-          connect
-          audio={audioEnabled}
-          video={videoEnabled}
-          onDisconnected={() => {
-            void platformRecordVideoReconnect({ appointmentId });
-          }}
-          className="overflow-hidden rounded-2xl border border-outline-variant/20 bg-[#071525]"
-        >
-          <LiveKitPrefabGuard />
-          <div className="flex h-[min(68vh,560px)] min-h-[320px] flex-col lg:flex-row">
-            <div className="relative min-h-[240px] min-w-0 flex-1" data-lk-theme="default">
+        <div className="flex h-[min(68vh,560px)] min-h-[320px] flex-col overflow-hidden rounded-2xl border border-outline-variant/20 lg:flex-row">
+          <LiveKitRoom
+            token={creds.token}
+            serverUrl={creds.url}
+            connect
+            audio={audioEnabled}
+            video={videoEnabled}
+            onDisconnected={() => {
+              void platformRecordVideoReconnect({ appointmentId });
+            }}
+            className="relative flex min-h-[240px] min-w-0 flex-1 flex-col bg-[#071525]"
+          >
+            <div className="relative min-h-[240px] flex-1" data-lk-theme="default">
               <LiveKitConferenceStage />
               <LiveKitMediaSync audioEnabled={audioEnabled} videoEnabled={videoEnabled} />
               <LiveKitScreenShareSync
@@ -243,9 +242,9 @@ export function VideoSessionShell({
                 onScreenSharingChange={setScreenSharing}
               />
             </div>
-            {liveChat}
-          </div>
-        </LiveKitRoom>
+          </LiveKitRoom>
+          {visitChatPanel}
+        </div>
         {controls}
       </div>
     </div>
