@@ -151,7 +151,7 @@ export function VideoSessionShell({
     <LiveKitVisitChat
       appointmentId={appointmentId}
       role={role}
-      className="h-full min-h-0 w-full rounded-none border-0 lg:w-[22rem]"
+      className="h-full min-h-0 w-full rounded-none border-0"
     />
   ) : null;
 

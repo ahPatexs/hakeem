@@ -44,7 +44,9 @@ export async function listPrescriptions(raw?: { page?: number; status?: "DRAFT" 
 
 /** Doctor prescription detail (own panel) via EMR facade (T127). */
 export async function getPrescription(raw: { prescriptionId: string }) {
-  const prescriptionId = cuidSchema.parse(raw.prescriptionId);
+  const idParsed = cuidSchema.safeParse(raw.prescriptionId);
+  if (!idParsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
+  const prescriptionId = idParsed.data;
   return withDoctor(async (ctx) => {
     const { getPrescriptionForDoctor } = await import("@/lib/emr/prescriptions");
     const result = await getPrescriptionForDoctor(
@@ -58,7 +60,9 @@ export async function getPrescription(raw: { prescriptionId: string }) {
 
 /** Read-only renewal lineage for the version history panel (T132). */
 export async function listPrescriptionVersions(raw: { prescriptionId: string }) {
-  const prescriptionId = cuidSchema.parse(raw.prescriptionId);
+  const idParsed = cuidSchema.safeParse(raw.prescriptionId);
+  if (!idParsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
+  const prescriptionId = idParsed.data;
   return withDoctor(async (ctx) => {
     const { listPrescriptionVersions: emrListVersions } = await import("@/lib/emr/prescriptions");
     const result = await emrListVersions(
@@ -72,7 +76,9 @@ export async function listPrescriptionVersions(raw: { prescriptionId: string }) 
 
 /** Create or update an unsigned draft via EMR facade (T059). */
 export async function savePrescriptionDraft(raw: z.input<typeof savePrescriptionDraftSchema>) {
-  const input = savePrescriptionDraftSchema.parse(raw);
+  const parsed = savePrescriptionDraftSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
+  const input = parsed.data;
   return withDoctor(async (ctx) => {
     const { savePrescriptionDraft: emrSave } = await import("@/lib/emr/prescriptions");
     const result = await emrSave(
@@ -95,7 +101,9 @@ export async function savePrescriptionDraft(raw: z.input<typeof savePrescription
 
 /** Sign & issue via EMR facade (password verified inside facade). */
 export async function signPrescription(raw: z.input<typeof signPrescriptionSchema>) {
-  const input = signPrescriptionSchema.parse(raw);
+  const parsed = signPrescriptionSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false as const, code: "VALIDATION_ERROR" };
+  const input = parsed.data;
   return withDoctor(async (ctx) => {
     const { signPrescription: emrSign } = await import("@/lib/emr/prescriptions");
     const result = await emrSign(

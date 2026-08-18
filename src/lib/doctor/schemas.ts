@@ -79,15 +79,32 @@ export const prescriptionLineSchema = z.object({
   instructions: z.string().trim().max(2_000).optional(),
 });
 
-export const savePrescriptionDraftSchema = z.object({
-  prescriptionId: cuidSchema.optional(),
-  patientUserId: cuidSchema,
-  appointmentId: cuidSchema.optional(),
-  expectedVersion: z.number().int().min(1).optional(),
-  instructions: z.string().trim().max(4_000).default(""),
-  aiAssisted: z.boolean().default(false),
-  lines: z.array(prescriptionLineSchema).min(1).max(20),
-});
+function normalizePrescriptionDraftInput(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object") return raw;
+  const value = { ...(raw as Record<string, unknown>) };
+  if (value.appointmentId === "" || value.appointmentId === null) {
+    delete value.appointmentId;
+  }
+  if (Array.isArray(value.lines)) {
+    value.lines = (value.lines as Array<{ medicationName?: unknown }>).filter(
+      (line) => typeof line?.medicationName === "string" && line.medicationName.trim().length > 0,
+    );
+  }
+  return value;
+}
+
+export const savePrescriptionDraftSchema = z.preprocess(
+  normalizePrescriptionDraftInput,
+  z.object({
+    prescriptionId: cuidSchema.optional(),
+    patientUserId: cuidSchema,
+    appointmentId: cuidSchema.optional(),
+    expectedVersion: z.number().int().min(1).optional(),
+    instructions: z.string().trim().max(4_000).default(""),
+    aiAssisted: z.boolean().default(false),
+    lines: z.array(prescriptionLineSchema).min(1).max(20),
+  }),
+);
 
 export const signPrescriptionSchema = z.object({
   prescriptionId: cuidSchema,

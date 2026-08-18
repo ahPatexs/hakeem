@@ -114,6 +114,41 @@
     isolation: isolate;
   }
 
+  .visit-chat-thread {
+    scroll-behavior: smooth;
+    background:
+      linear-gradient(to bottom, rgb(251 249 248) 0%, transparent 1.25rem),
+      linear-gradient(to top, rgb(251 249 248) 0%, transparent 2rem),
+      rgb(251 249 248);
+  }
+
+  .visit-chat-thread::before {
+    content: "";
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: block;
+    height: 0;
+    margin-bottom: -1px;
+    box-shadow: 0 1px 0 rgb(0 67 111 / 0.06);
+    pointer-events: none;
+  }
+
+  @keyframes visit-chat-bubble-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .visit-chat-bubble {
+    animation: visit-chat-bubble-in 0.22s ease-out both;
+  }
+
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-primary;
   }

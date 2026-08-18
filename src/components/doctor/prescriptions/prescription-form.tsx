@@ -74,6 +74,20 @@ export function PrescriptionForm({
 
   function save() {
     setError(null);
+    const payloadLines = lines
+      .map((l) => ({
+        medicationName: l.medicationName.trim(),
+        dose: l.dose.trim() || undefined,
+        frequency: l.frequency.trim() || undefined,
+        instructions: l.instructions.trim() || undefined,
+      }))
+      .filter((l) => l.medicationName.length > 0);
+
+    if (payloadLines.length === 0) {
+      setError(t("needMedication"));
+      return;
+    }
+
     startTransition(async () => {
       const payload = {
         prescriptionId: initial?.prescriptionId,
@@ -82,16 +96,14 @@ export function PrescriptionForm({
         appointmentId,
         instructions,
         aiAssisted: initial?.aiAssisted ?? false,
-        lines: lines.map((l) => ({
-          medicationName: l.medicationName.trim(),
-          dose: l.dose.trim() || undefined,
-          frequency: l.frequency.trim() || undefined,
-          instructions: l.instructions.trim() || undefined,
-        })),
+        lines: payloadLines,
       };
       const res = await savePrescriptionDraft(payload);
       if (!res.ok) {
-        setError(res.code === "CONFLICT" ? tc("conflict") : tc("loadError"));
+        if (res.code === "CONFLICT") setError(tc("conflict"));
+        else if (res.code === "VALIDATION_ERROR") setError(t("validationError"));
+        else if (res.code === "NOT_FOUND") setError(t("saveNotFound"));
+        else setError(tc("loadError"));
         return;
       }
       router.push(`/doctor/prescriptions/${res.data.prescriptionId}`);
