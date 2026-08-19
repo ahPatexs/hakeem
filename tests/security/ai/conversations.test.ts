@@ -26,6 +26,10 @@ vi.mock("@/domain/doctor/care-relationship", () => ({
   hasCareRelationship: vi.fn(async () => false),
 }));
 
+vi.mock("@/lib/ai/governance-gate", () => ({
+  requireFeatureAi: vi.fn(async () => ({ ok: true, data: true as const })),
+}));
+
 import { prisma } from "@/lib/prisma";
 import {
   assertConversationOwner,

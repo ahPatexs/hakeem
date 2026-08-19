@@ -48,6 +48,10 @@ vi.mock("@/lib/ai/rate-limit", () => ({
   checkAiRateLimit: vi.fn(() => ({ ok: true, data: { allowed: true } })),
 }));
 
+vi.mock("@/lib/ai/governance-gate", () => ({
+  requireFeatureAi: vi.fn(async () => ({ ok: true, data: true as const })),
+}));
+
 vi.mock("@/domain/doctor/care-relationship", () => ({
   hasCareRelationship: vi.fn(async () => true),
 }));
@@ -63,6 +67,7 @@ import {
   redFlagNoticeText,
   runChatTurn,
 } from "@/lib/ai/conversations";
+import { requireFeatureAi } from "@/lib/ai/governance-gate";
 
 const mockPrisma = prisma as unknown as {
   aiConversation: {
@@ -239,5 +244,25 @@ describe("AI chat turn composition (stub orchestration)", () => {
     expect(mockGuardrail).toHaveBeenCalledWith(
       expect.objectContaining({ trigger: "RED_FLAG" }),
     );
+  });
+
+  it("refuses the turn when admin disabled AI for the user or feature", async () => {
+    vi.mocked(requireFeatureAi).mockResolvedValueOnce({
+      ok: false,
+      code: "FORBIDDEN",
+      message: "AI assistance is disabled",
+    });
+
+    const result = await runChatTurn(patientActor, {
+      conversationId: "conv-1",
+      feature: "PATIENT_ASSISTANT",
+      message: "hello",
+      locale: "en",
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.code).toBe("FORBIDDEN");
+    expect(mockGenerate).not.toHaveBeenCalled();
   });
 });

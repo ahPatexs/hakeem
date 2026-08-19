@@ -47,6 +47,10 @@ vi.mock("@/lib/ai/rate-limit", () => ({
   checkAiRateLimit: vi.fn(() => ({ ok: true, data: { allowed: true } })),
 }));
 
+vi.mock("@/lib/ai/governance-gate", () => ({
+  requireFeatureAi: vi.fn(async () => ({ ok: true, data: true as const })),
+}));
+
 import { hasCareRelationship } from "@/domain/doctor/care-relationship";
 import { prisma } from "@/lib/prisma";
 import { generate } from "@/lib/ai/orchestration";
