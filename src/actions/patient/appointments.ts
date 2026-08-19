@@ -75,7 +75,10 @@ async function patientLocaleFor(userId: string): Promise<"en" | "ar"> {
 
 const holdSchema = z.object({
   doctorId: z.string().min(1),
-  slug: z.string().min(1).optional(),
+  slug: z.preprocess(
+    (value) => (typeof value === "string" && value.trim() ? value.trim() : undefined),
+    z.string().min(1).optional(),
+  ),
   mode: z.enum(["IN_PERSON", "VIDEO"]),
   startAt: z.unknown(),
   endAt: z.unknown(),
@@ -130,11 +133,11 @@ export async function holdAppointmentSlot(input: unknown) {
   }
 
   return withPatient(async (userId) => {
-    const { doctorId, slug, mode, reason } = parsed.data;
+    const { doctorId, mode, reason } = parsed.data;
+    const slug = parsed.data.slug?.trim() || undefined;
     if (start.getTime() <= Date.now()) {
-      throw new AuthDomainError("VALIDATION_ERROR", "Slot must be in the future");
+      throw new CareLoopError("SLOT_HORIZON");
     }
-
     const doctor =
       (slug
         ? await prisma.doctor.findFirst({
@@ -146,7 +149,22 @@ export async function holdAppointmentSlot(input: unknown) {
       }));
     if (!doctor) throw new AuthDomainError("FORBIDDEN", "Doctor not available");
 
-    await assertSlotIsOfferable({ doctorId: doctor.id, startAt: start, endAt: end });
+    const ownHold = await prisma.appointment.findFirst({
+      where: {
+        doctorId: doctor.id,
+        patientUserId: userId,
+        status: "HELD",
+        startAt: { lt: end },
+        endAt: { gt: start },
+      },
+      select: { id: true },
+    });
+    await assertSlotIsOfferable({
+      doctorId: doctor.id,
+      startAt: start,
+      endAt: end,
+      ignoreAppointmentIds: ownHold ? [ownHold.id] : undefined,
+    });
 
     const appointment = await prisma.$transaction(async (tx) => {
       const conflict = await tx.appointment.findFirst({
@@ -220,7 +238,6 @@ export async function confirmAppointment(input: unknown) {
       });
     } catch (error) {
       console.error("[confirmAppointment] obligation", error);
-      throw error;
     }
 
     const locale = await patientLocaleFor(userId);
@@ -262,9 +279,126 @@ export async function confirmAppointment(input: unknown) {
 }
 
 export async function bookDoctorSlot(input: unknown) {
-  const held = await holdAppointmentSlot(input);
-  if (!held.ok) return held;
-  return confirmAppointment({ id: held.data.id });
+  const parsed = holdSchema.safeParse(input);
+  const start = parseInstant(parsed.success ? parsed.data.startAt : undefined);
+  const end = parseInstant(parsed.success ? parsed.data.endAt : undefined);
+  if (!parsed.success || !start || !end) {
+    console.error("[bookDoctorSlot] validation", {
+      success: parsed.success,
+      issues: parsed.success ? undefined : parsed.error.flatten(),
+      startAtType: typeof (input as { startAt?: unknown } | null)?.startAt,
+      endAtType: typeof (input as { endAt?: unknown } | null)?.endAt,
+    });
+    return { ok: false as const, code: "VALIDATION_ERROR" };
+  }
+
+  return withPatient(async (userId) => {
+    if (start.getTime() <= Date.now()) {
+      throw new CareLoopError("SLOT_HORIZON");
+    }
+
+    const { doctorId, mode, reason } = parsed.data;
+    const slug = parsed.data.slug?.trim() || undefined;
+    const doctor =
+      (slug
+        ? await prisma.doctor.findFirst({
+            where: { slug, status: "PUBLISHED", isAvailable: true },
+          })
+        : null) ??
+      (await prisma.doctor.findFirst({
+        where: { id: doctorId, status: "PUBLISHED", isAvailable: true },
+      }));
+    if (!doctor) throw new AuthDomainError("FORBIDDEN", "Doctor not available");
+
+    const own = await prisma.appointment.findFirst({
+      where: {
+        doctorId: doctor.id,
+        patientUserId: userId,
+        status: { in: ["HELD", "CONFIRMED", "CHECKED_IN", "IN_PROGRESS"] },
+        startAt: { lt: end },
+        endAt: { gt: start },
+      },
+      include: { doctor: { select: doctorPreviewSelect } },
+    });
+    if (own && own.status !== "HELD") {
+      return toBookingDto(own);
+    }
+
+    await assertSlotIsOfferable({
+      doctorId: doctor.id,
+      startAt: start,
+      endAt: end,
+      ignoreAppointmentIds: own ? [own.id] : undefined,
+    });
+
+    const row = own
+      ? await prisma.appointment.update({
+          where: { id: own.id },
+          data: { status: "CONFIRMED", holdExpiresAt: null, mode },
+          include: { doctor: { select: doctorPreviewSelect } },
+        })
+      : await prisma.appointment.create({
+          data: {
+            patientUserId: userId,
+            doctorId: doctor.id,
+            mode,
+            status: "CONFIRMED",
+            startAt: start,
+            endAt: end,
+            holdExpiresAt: null,
+            reason: reason ?? null,
+          },
+          include: { doctor: { select: doctorPreviewSelect } },
+        });
+
+    try {
+      const { ensurePayableObligation } = await import("@/lib/platform/payments");
+      const { getConsultationFeeCents } = await import("@/lib/admin/maintenance");
+      await ensurePayableObligation({
+        appointmentId: row.id,
+        patientUserId: userId,
+        amountCents: await getConsultationFeeCents(),
+        description: `Consultation — ${row.doctor.nameEn}`,
+      });
+    } catch (error) {
+      console.error("[bookDoctorSlot] obligation", error);
+    }
+
+    const locale = await patientLocaleFor(userId);
+    try {
+      await createNotification({
+        recipientUserId: userId,
+        category: "APPOINTMENT",
+        title: "Appointment confirmed",
+        body: `Your appointment on ${formatApptWhen(row.startAt, locale)} is confirmed.`,
+        href: `/patient/appointments/${row.id}`,
+      });
+    } catch (error) {
+      console.error("[bookDoctorSlot] notify patient", error);
+    }
+
+    try {
+      const doctorUser = await prisma.user.findFirst({
+        where: { doctorProfileId: row.doctorId, role: "DOCTOR" },
+        select: { id: true },
+      });
+      if (doctorUser) {
+        const patient = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { name: true, email: true },
+        });
+        await notifyDoctorAppointmentConfirmed(
+          doctorUser.id,
+          row.id,
+          patient?.name ?? patient?.email ?? "Patient",
+        );
+      }
+    } catch (error) {
+      console.error("[bookDoctorSlot] notify doctor", error);
+    }
+
+    return toBookingDto(row);
+  });
 }
 
 export async function cancelAppointment(input: unknown) {

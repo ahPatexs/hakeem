@@ -94,35 +94,44 @@ export function DoctorProfileView({
     if (!selected || !isSlotOfferable(selected)) return;
     setError(null);
     startTransition(async () => {
-      const booked = await bookDoctorSlot({
-        doctorId: doctor.id,
-        slug: doctor.slug,
-        mode,
-        startAt: new Date(selected.startAt).toISOString(),
-        endAt: new Date(selected.endAt).toISOString(),
-      });
-      if (!booked.ok) {
-        console.error("bookDoctorSlot failed", booked);
-        const message =
-          booked.code === "SLOT_UNAVAILABLE" || booked.code === "SLOT_OUTSIDE_HOURS"
-            ? t("bookError")
-            : booked.code === "SLOT_HORIZON"
-              ? t("bookErrorHorizon")
-              : booked.code === "SCHEDULE_MISSING"
-                ? t("bookErrorSchedule")
-                : t("bookErrorRetry");
-        setError(message);
-        return;
-      }
-
-      if (symptomSessionId) {
-        await aiAttachSessionToBooking({
-          sessionId: symptomSessionId,
-          appointmentId: booked.data.id,
+      try {
+        const booked = await bookDoctorSlot({
+          doctorId: doctor.id,
+          slug: doctor.slug || undefined,
+          mode,
+          startAt: new Date(selected.startAt).toISOString(),
+          endAt: new Date(selected.endAt).toISOString(),
         });
-      }
+        if (!booked.ok) {
+          console.error("bookDoctorSlot failed", booked);
+          if (booked.code === "SESSION_EXPIRED" || booked.code === "UNAUTHENTICATED") {
+            router.push("/login");
+            return;
+          }
+          const message =
+            booked.code === "SLOT_UNAVAILABLE" || booked.code === "SLOT_OUTSIDE_HOURS"
+              ? t("bookError")
+              : booked.code === "SLOT_HORIZON"
+                ? t("bookErrorHorizon")
+                : booked.code === "SCHEDULE_MISSING"
+                  ? t("bookErrorSchedule")
+                  : t("bookErrorRetry");
+          setError(message);
+          return;
+        }
 
-      router.push(`/patient/appointments/${booked.data.id}`);
+        if (symptomSessionId) {
+          await aiAttachSessionToBooking({
+            sessionId: symptomSessionId,
+            appointmentId: booked.data.id,
+          });
+        }
+
+        router.push(`/patient/appointments/${booked.data.id}`);
+      } catch (error) {
+        console.error("bookDoctorSlot threw", error);
+        setError(t("bookErrorRetry"));
+      }
     });
   }
 
