@@ -4,6 +4,8 @@ import { z } from "zod";
 import { requireRole } from "@/auth/guards";
 import { isAuthDomainError } from "@/auth/errors";
 import { canJoinVideo } from "@/domain/patient/video";
+import { assertCanJoinAppointment } from "@/domain/billing/eligibility";
+import { PaymentDomainError } from "@/domain/billing/errors";
 import { prisma } from "@/lib/prisma";
 
 const joinSchema = z.object({ appointmentId: z.string().min(1) });
@@ -27,9 +29,20 @@ export async function joinPatientVideo(input: unknown): Promise<JoinPatientVideo
         startAt: true,
         endAt: true,
         videoRoomId: true,
+        paymentObligations: { select: { amountCents: true, status: true }, take: 1 },
       },
     });
     if (!appointment) return { ok: false, code: "NOT_FOUND" };
+    const obligation = appointment.paymentObligations[0];
+    try {
+      assertCanJoinAppointment({
+        amountCents: obligation?.amountCents ?? 0,
+        status: obligation?.status ?? null,
+      });
+    } catch (error) {
+      if (error instanceof PaymentDomainError) return { ok: false, code: "UNPAID_APPOINTMENT" };
+      throw error;
+    }
     if (!canJoinVideo(appointment)) return { ok: false, code: "JOIN_WINDOW_CLOSED" };
 
     const { getJoinCredentials } = await import("@/lib/platform/video");

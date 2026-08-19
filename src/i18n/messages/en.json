@@ -467,6 +467,8 @@
         "VIDEO": "Video"
       },
       "joinVideo": "Join video visit",
+      "payToJoin": "Pay consultation fee",
+      "payToJoinHint": "Pay this visit before joining the video call.",
       "cancel": "Cancel appointment",
       "cancelTitle": "Cancel appointment?",
       "cancelDescription": "You won’t be able to undo this.",
@@ -520,7 +522,9 @@
       "joinStub": "Join call",
       "joinCall": "Join call",
       "windowClosed": "You can’t join this video yet, or the time has passed.",
-      "loadError": "Couldn’t open the visit"
+      "loadError": "Couldn’t open the visit",
+      "unpaid": "Pay this visit before joining.",
+      "payToJoin": "Pay consultation fee"
     },
     "records": {
       "title": "Health records",

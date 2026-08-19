@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assertCanJoinAppointment } from "@/domain/billing/eligibility";
+import { assertCanJoinAppointment, isPaymentSatisfiedForJoin } from "@/domain/billing/eligibility";
 import { PaymentDomainError } from "@/domain/billing/errors";
 
 describe("appointment payment gate", () => {
@@ -14,5 +14,11 @@ describe("appointment payment gate", () => {
     expect(() => assertCanJoinAppointment({ amountCents: 15000, status: "PARTIALLY_REFUNDED" })).not.toThrow();
     expect(() => assertCanJoinAppointment({ amountCents: 0, status: "PENDING" })).not.toThrow();
     expect(() => assertCanJoinAppointment({ amountCents: 15000, status: null })).not.toThrow();
+  });
+
+  it("reports unpaid join as unsatisfied", () => {
+    expect(isPaymentSatisfiedForJoin({ amountCents: 15000, status: "PENDING" })).toBe(false);
+    expect(isPaymentSatisfiedForJoin({ amountCents: 15000, status: "PAID" })).toBe(true);
+    expect(isPaymentSatisfiedForJoin({ amountCents: 0, status: "PENDING" })).toBe(true);
   });
 });

@@ -8,6 +8,7 @@ import { Pagination } from "@/components/patient/shared/pagination";
 import { EmptyState } from "@/components/patient/shared/empty-state";
 import { PersonAvatar } from "@/components/portal/person-avatar";
 import { canJoinVideo } from "@/domain/patient/video";
+import { isPaymentSatisfiedForJoin } from "@/domain/billing/eligibility";
 import { formatApptWhen } from "@/lib/datetime";
 import { cn, localizedText } from "@/lib/utils";
 import type { Appointment, Doctor } from "@prisma/client";
@@ -15,6 +16,11 @@ import type { Appointment, Doctor } from "@prisma/client";
 type ApptRow = Appointment & {
   doctor: Pick<Doctor, "id" | "slug" | "nameEn" | "nameAr" | "photoUrl">;
   rating?: { id: string; score: number } | null;
+  paymentObligations?: Array<{
+    id: string;
+    amountCents: number;
+    status: string;
+  }>;
 };
 
 export function AppointmentList({
@@ -54,12 +60,25 @@ export function AppointmentList({
       <ul className="space-y-3">
         {items.map((appt) => {
           const name = localizedText(locale, appt.doctor.nameEn, appt.doctor.nameAr);
-          const joinable = canJoinVideo({
-            mode: appt.mode,
-            status: appt.status,
-            startAt: new Date(appt.startAt),
-            endAt: new Date(appt.endAt),
-          });
+          const fee = appt.paymentObligations?.[0];
+          const joinable =
+            canJoinVideo({
+              mode: appt.mode,
+              status: appt.status,
+              startAt: new Date(appt.startAt),
+              endAt: new Date(appt.endAt),
+            }) &&
+            isPaymentSatisfiedForJoin({
+              amountCents: fee?.amountCents ?? 0,
+              status: fee?.status ?? null,
+            });
+          const needsPayment =
+            appt.mode === "VIDEO" &&
+            Boolean(fee) &&
+            !isPaymentSatisfiedForJoin({
+              amountCents: fee?.amountCents ?? 0,
+              status: fee?.status ?? null,
+            });
           const live = appt.status === "IN_PROGRESS" || appt.status === "CHECKED_IN";
           return (
             <li key={appt.id}>
@@ -110,6 +129,13 @@ export function AppointmentList({
                     className="inline-flex shrink-0 items-center rounded-full bg-med-green px-4 py-2 text-sm font-semibold text-white hover:bg-med-green/90"
                   >
                     {t("joinVideo")}
+                  </Link>
+                ) : needsPayment && fee ? (
+                  <Link
+                    href={`/patient/payments/${fee.id}`}
+                    className="inline-flex shrink-0 items-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90"
+                  >
+                    {t("payToJoin")}
                   </Link>
                 ) : null}
               </div>

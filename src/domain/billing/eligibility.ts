@@ -38,12 +38,21 @@ export function assertFailedRetryAllowed(failedCountInWindow: number): void {
   }
 }
 
+const JOIN_PAID_STATUSES = new Set<PaymentStatus>(["PAID", "PARTIALLY_REFUNDED", "REFUNDED"]);
+
+export function isPaymentSatisfiedForJoin(input: {
+  amountCents: number;
+  status: PaymentStatus | string | null;
+}): boolean {
+  if (input.amountCents <= 0 || !input.status) return true;
+  return JOIN_PAID_STATUSES.has(input.status as PaymentStatus);
+}
+
 export function assertCanJoinAppointment(input: {
   amountCents: number;
   status: PaymentStatus | null;
 }): void {
-  if (input.amountCents <= 0 || !input.status) return;
-  if (input.status !== "PAID" && input.status !== "PARTIALLY_REFUNDED" && input.status !== "REFUNDED") {
+  if (!isPaymentSatisfiedForJoin(input)) {
     throw new PaymentDomainError("PAYMENT_CONFLICT", "UNPAID_APPOINTMENT");
   }
 }

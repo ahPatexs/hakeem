@@ -532,6 +532,10 @@ export async function listUpcoming(input?: unknown) {
           doctor: {
             select: { id: true, slug: true, nameEn: true, nameAr: true, photoUrl: true },
           },
+          paymentObligations: {
+            select: { id: true, amountCents: true, status: true },
+            take: 1,
+          },
         },
         orderBy: { startAt: "asc" },
         skip: (parsed.data.page - 1) * PAGE_SIZE,

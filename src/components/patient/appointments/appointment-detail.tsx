@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter, Link } from "@/i18n/routing";
-import { ArrowLeft, CalendarClock, MapPin, Video } from "lucide-react";
+import { ArrowLeft, CalendarClock, CreditCard, MapPin, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/patient/shared/status-badge";
 import { ConfirmDialog } from "@/components/patient/shared/confirm-dialog";
@@ -14,6 +14,7 @@ import {
   rescheduleAppointment,
 } from "@/actions/patient/appointments";
 import { canCancel, canReschedule } from "@/domain/patient/appointments";
+import { isPaymentSatisfiedForJoin } from "@/domain/billing/eligibility";
 import { formatApptDay, formatApptTime, formatApptWhen } from "@/lib/datetime";
 import { localizedText } from "@/lib/utils";
 import type { Appointment, Doctor } from "@prisma/client";
@@ -49,8 +50,21 @@ export function AppointmentDetailView({
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
   const doctorName = localizedText(locale, appointment.doctor.nameEn, appointment.doctor.nameAr);
+  const fee = appointment.paymentObligations?.[0];
+  const feePaid = isPaymentSatisfiedForJoin({
+    amountCents: fee?.amountCents ?? 0,
+    status: fee?.status ?? null,
+  });
   const canJoinVideo =
     appointment.mode === "VIDEO" &&
+    feePaid &&
+    (appointment.status === "CONFIRMED" ||
+      appointment.status === "CHECKED_IN" ||
+      appointment.status === "IN_PROGRESS");
+  const needsPayment =
+    appointment.mode === "VIDEO" &&
+    Boolean(fee) &&
+    !feePaid &&
     (appointment.status === "CONFIRMED" ||
       appointment.status === "CHECKED_IN" ||
       appointment.status === "IN_PROGRESS");
@@ -150,6 +164,17 @@ export function AppointmentDetailView({
               {t("joinVideo")}
             </Link>
           </Button>
+        ) : null}
+        {needsPayment && fee ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <Button asChild className="rounded-full">
+              <Link href={`/patient/payments/${fee.id}`}>
+                <CreditCard className="h-4 w-4" aria-hidden />
+                {t("payToJoin")}
+              </Link>
+            </Button>
+            <p className="text-sm text-on-surface-variant">{t("payToJoinHint")}</p>
+          </div>
         ) : null}
         {canReschedule(appointment) ? (
           <Button variant="outline" className="rounded-full" onClick={() => setRescheduleOpen(true)}>
