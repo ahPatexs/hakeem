@@ -75,6 +75,7 @@ async function patientLocaleFor(userId: string): Promise<"en" | "ar"> {
 
 const holdSchema = z.object({
   doctorId: z.string().min(1),
+  slug: z.string().min(1).optional(),
   mode: z.enum(["IN_PERSON", "VIDEO"]),
   startAt: z.unknown(),
   endAt: z.unknown(),
@@ -129,22 +130,28 @@ export async function holdAppointmentSlot(input: unknown) {
   }
 
   return withPatient(async (userId) => {
-    const { doctorId, mode, reason } = parsed.data;
+    const { doctorId, slug, mode, reason } = parsed.data;
     if (start.getTime() <= Date.now()) {
       throw new AuthDomainError("VALIDATION_ERROR", "Slot must be in the future");
     }
 
-    const doctor = await prisma.doctor.findFirst({
-      where: { id: doctorId, status: "PUBLISHED", isAvailable: true },
-    });
+    const doctor =
+      (slug
+        ? await prisma.doctor.findFirst({
+            where: { slug, status: "PUBLISHED", isAvailable: true },
+          })
+        : null) ??
+      (await prisma.doctor.findFirst({
+        where: { id: doctorId, status: "PUBLISHED", isAvailable: true },
+      }));
     if (!doctor) throw new AuthDomainError("FORBIDDEN", "Doctor not available");
 
-    await assertSlotIsOfferable({ doctorId, startAt: start, endAt: end });
+    await assertSlotIsOfferable({ doctorId: doctor.id, startAt: start, endAt: end });
 
     const appointment = await prisma.$transaction(async (tx) => {
       const conflict = await tx.appointment.findFirst({
         where: {
-          doctorId,
+          doctorId: doctor.id,
           status: { in: ["HELD", "CONFIRMED", "CHECKED_IN", "IN_PROGRESS"] },
           startAt: { lt: end },
           endAt: { gt: start },
@@ -170,7 +177,7 @@ export async function holdAppointmentSlot(input: unknown) {
       return tx.appointment.create({
         data: {
           patientUserId: userId,
-          doctorId,
+          doctorId: doctor.id,
           mode,
           status: "HELD",
           startAt: start,

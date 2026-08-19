@@ -5,7 +5,7 @@ import { useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
 import { formatApptDay, formatApptTime, groupByZonedDay } from "@/lib/datetime";
 import { segmentedOptionClass, segmentedTrackClass } from "@/components/portal/chrome";
-import type { AvailabilitySlot } from "@/lib/patient/availability";
+import { isSlotOfferable, type AvailabilitySlot } from "@/lib/patient/availability";
 
 export function VisitModeToggle({
   value,
@@ -51,12 +51,16 @@ export function SlotPicker({
   onSelect,
   emptyLabel,
   timeZone,
+  bookedLabel,
+  pastLabel,
 }: {
   slots: AvailabilitySlot[];
   selectedStartAt?: string | null;
   onSelect: (slot: AvailabilitySlot) => void;
   emptyLabel: string;
   timeZone?: string;
+  bookedLabel?: string;
+  pastLabel?: string;
 }) {
   const locale = useLocale();
   const groups = groupByZonedDay(slots, timeZone);
@@ -72,19 +76,31 @@ export function SlotPicker({
           <p className="text-sm font-semibold text-primary">{formatApptDay(group.items[0].startAt, locale)}</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {group.items.map((slot) => {
-              const active = selectedStartAt === slot.startAt;
+              const offerable = isSlotOfferable(slot);
+              const active = offerable && selectedStartAt === slot.startAt;
               return (
                 <button
                   key={slot.startAt}
                   type="button"
+                  disabled={!offerable}
                   onClick={() => onSelect(slot)}
                   className={cn(
                     "rounded-full px-3.5 py-2 text-sm font-semibold tabular-nums transition",
-                    active
-                      ? "bg-primary text-white shadow-sm"
-                      : "border border-outline-variant/30 bg-surface-container-lowest text-primary hover:border-med-green/40 hover:bg-med-green/5",
+                    !offerable
+                      ? "cursor-not-allowed border border-outline-variant/20 bg-surface-container-low text-on-surface-variant/45 line-through"
+                      : active
+                        ? "bg-primary text-white shadow-sm"
+                        : "border border-outline-variant/30 bg-surface-container-lowest text-primary hover:border-med-green/40 hover:bg-med-green/5",
                   )}
                   aria-pressed={active}
+                  aria-disabled={!offerable}
+                  title={
+                    slot.unavailableReason === "BOOKED"
+                      ? bookedLabel
+                      : slot.unavailableReason === "PAST"
+                        ? pastLabel
+                        : undefined
+                  }
                 >
                   {formatApptTime(slot.startAt, locale)}
                 </button>

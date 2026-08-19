@@ -11,7 +11,13 @@ import { CareLoopError, type CareLoopErrorCode } from "@/domain/care-loop/errors
 export type AvailabilitySlot = {
   startAt: string;
   endAt: string;
+  available?: boolean;
+  unavailableReason?: "PAST" | "BOOKED";
 };
+
+export function isSlotOfferable(slot: Pick<AvailabilitySlot, "available">): boolean {
+  return slot.available !== false;
+}
 
 export type UnavailableReason = "NO_HOURS" | "NOT_BOOKABLE";
 
@@ -181,11 +187,15 @@ export function generateDoctorAvailability(input: {
       const hour = Math.floor(startMinutes / 60);
       const minute = startMinutes % 60;
       const startAt = zonedWallTimeToUtc(timezone, year, month, day, hour, minute);
-      if (startAt.getTime() <= now.getTime()) continue;
       const endAt = new Date(startAt.getTime() + SLOT_MS);
       const occupied = blockers.some((row) => intervalsOverlap(startAt, endAt, row.startAt, row.endAt));
-      if (occupied) continue;
-      slots.push({ startAt: startAt.toISOString(), endAt: endAt.toISOString() });
+      const past = startAt.getTime() <= now.getTime();
+      slots.push({
+        startAt: startAt.toISOString(),
+        endAt: endAt.toISOString(),
+        available: !past && !occupied,
+        unavailableReason: past ? "PAST" : occupied ? "BOOKED" : undefined,
+      });
     }
   }
 
@@ -253,7 +263,7 @@ export async function loadDoctorScheduleContext(doctorId: string): Promise<{
     }),
     prisma.doctorUnavailableDay.findMany({ where: { doctorId } }),
     prisma.user.findFirst({
-      where: { doctorProfileId: doctorId },
+      where: { doctorProfileId: doctorId, role: "DOCTOR" },
       select: {
         status: true,
         doctorApproval: true,
@@ -276,8 +286,10 @@ export async function loadDoctorScheduleContext(doctorId: string): Promise<{
   const bookable =
     doctor?.status === "PUBLISHED" &&
     doctor.isAvailable === true &&
-    extrasUser?.status === "ACTIVE" &&
-    extrasUser?.doctorApproval === "APPROVED";
+    week.length > 0 &&
+    (extrasUser
+      ? extrasUser.status === "ACTIVE" && extrasUser.doctorApproval === "APPROVED"
+      : true);
 
   return {
     timezone,
@@ -347,20 +359,14 @@ export async function assertSlotIsOfferable(input: {
     ? await loadBlockingAppointments(input.doctorId, input.ignoreAppointmentIds)
     : ctx.appointments;
 
-  let code: CareLoopErrorCode | null;
-  try {
-    code = classifyRequestedSlot({
-      startAt: input.startAt,
-      endAt: input.endAt,
-      week: ctx.week,
-      unavailableDates: ctx.unavailableDates,
-      appointments: blocking,
-      timezone: ctx.timezone,
-      now: input.now,
-    });
-  } catch (error) {
-    console.error("[assertSlotIsOfferable]", error);
-    throw new CareLoopError("SCHEDULE_MISSING");
-  }
+  const code = classifyRequestedSlot({
+    startAt: input.startAt,
+    endAt: input.endAt,
+    week: ctx.week,
+    unavailableDates: ctx.unavailableDates,
+    appointments: blocking,
+    timezone: ctx.timezone,
+    now: input.now,
+  });
   if (code) throw new CareLoopError(code);
 }

@@ -60,8 +60,8 @@ describe("slot generation", () => {
     expect(result.unavailableReason).toBe("NO_HOURS");
   });
 
-  it("splits hours into 30-minute slots and skips past starts", () => {
-    const now = new Date("2026-08-13T05:00:00.000Z");
+  it("marks past starts as unavailable and keeps later slots offerable", () => {
+    const now = new Date("2026-08-13T07:00:00.000Z");
     const result = generateDoctorAvailability({
       week: [{ weekday: 4, startMinutes: 9 * 60, endMinutes: 11 * 60 }],
       unavailableDates: [],
@@ -70,12 +70,12 @@ describe("slot generation", () => {
       now,
     });
     const thursday = result.slots.filter((slot) => slot.startAt.startsWith("2026-08-13"));
-    expect(thursday.map((slot) => slot.startAt)).toEqual([
-      "2026-08-13T06:00:00.000Z",
-      "2026-08-13T06:30:00.000Z",
-      "2026-08-13T07:00:00.000Z",
+    expect(thursday.filter((slot) => slot.available !== false).map((slot) => slot.startAt)).toEqual([
       "2026-08-13T07:30:00.000Z",
     ]);
+    expect(thursday.find((slot) => slot.startAt === "2026-08-13T07:00:00.000Z")?.unavailableReason).toBe(
+      "PAST",
+    );
   });
 
   it("skips unavailable days and overlapping blocking appointments", () => {
@@ -95,8 +95,8 @@ describe("slot generation", () => {
       now,
     });
     expect(result.slots.some((slot) => slot.startAt.startsWith("2026-08-13"))).toBe(false);
-    expect(result.slots.some((slot) => slot.startAt === "2026-08-20T06:00:00.000Z")).toBe(false);
-    expect(result.slots.some((slot) => slot.startAt === "2026-08-20T06:30:00.000Z")).toBe(true);
+    expect(result.slots.find((slot) => slot.startAt === "2026-08-20T06:00:00.000Z")?.available).toBe(false);
+    expect(result.slots.find((slot) => slot.startAt === "2026-08-20T06:30:00.000Z")?.available).not.toBe(false);
   });
 
   it("does not treat expired holds as blocking", () => {
@@ -115,7 +115,9 @@ describe("slot generation", () => {
       timezone: TZ,
       now,
     });
-    expect(result.slots.some((slot) => slot.startAt === "2026-08-13T06:00:00.000Z")).toBe(true);
+    expect(result.slots.find((slot) => slot.startAt === "2026-08-13T06:00:00.000Z")?.available).not.toBe(
+      false,
+    );
   });
 
   it("does not offer slots beyond 14 calendar days", () => {

@@ -16,7 +16,7 @@ import { localizedText, cn } from "@/lib/utils";
 import { DoctorRatingStars } from "@/components/portal/doctor-rating";
 import { EmptyState } from "@/components/patient/shared/empty-state";
 import { portalCardClass } from "@/components/portal/chrome";
-import type { AvailabilitySlot, UnavailableReason } from "@/lib/patient/availability";
+import { isSlotOfferable, type AvailabilitySlot, type UnavailableReason } from "@/lib/patient/availability";
 import type { Doctor, Specialty } from "@prisma/client";
 
 type DoctorDetail = Doctor & { specialty: Specialty };
@@ -85,27 +85,33 @@ export function DoctorProfileView({
     : doctor.credentialsEn.length
       ? doctor.credentialsEn
       : doctor.credentialsAr;
-  const noTimes = emptyReason === "NO_HOURS" || emptyReason === "NOT_BOOKABLE" || slots.length === 0;
+  const noTimes =
+    emptyReason === "NO_HOURS" || emptyReason === "NOT_BOOKABLE" || !slots.some(isSlotOfferable);
   const hoursByDay = new Map(hours.map((row) => [row.weekday, row]));
   const breakdownMax = Math.max(1, ...[1, 2, 3, 4, 5].map((n) => ratingBreakdown[n as 1 | 2 | 3 | 4 | 5]));
 
   function handleBook() {
-    if (!selected) return;
+    if (!selected || !isSlotOfferable(selected)) return;
     setError(null);
     startTransition(async () => {
       const booked = await bookDoctorSlot({
         doctorId: doctor.id,
+        slug: doctor.slug,
         mode,
         startAt: new Date(selected.startAt).toISOString(),
         endAt: new Date(selected.endAt).toISOString(),
       });
       if (!booked.ok) {
         console.error("bookDoctorSlot failed", booked);
-        setError(
-          booked.code === "SLOT_UNAVAILABLE"
+        const message =
+          booked.code === "SLOT_UNAVAILABLE" || booked.code === "SLOT_OUTSIDE_HOURS"
             ? t("bookError")
-            : `${t("bookErrorRetry")} (${booked.code})`,
-        );
+            : booked.code === "SLOT_HORIZON"
+              ? t("bookErrorHorizon")
+              : booked.code === "SCHEDULE_MISSING"
+                ? t("bookErrorSchedule")
+                : t("bookErrorRetry");
+        setError(message);
         return;
       }
 
@@ -313,11 +319,17 @@ export function DoctorProfileView({
               <SlotPicker
                 slots={slots}
                 selectedStartAt={selected?.startAt}
-                onSelect={setSelected}
+                onSelect={(slot) => {
+                  if (!isSlotOfferable(slot)) return;
+                  setSelected(slot);
+                  setError(null);
+                }}
                 emptyLabel={t("noSlots")}
                 timeZone={availability.timezone}
+                bookedLabel={t("slotBooked")}
+                pastLabel={t("slotPast")}
               />
-              {selected ? (
+              {selected && isSlotOfferable(selected) ? (
                 <p className="rounded-2xl bg-primary/5 px-4 py-3 text-sm font-medium text-primary">
                   {t("selectedSummary", {
                     when: formatApptWhen(selected.startAt, locale),
@@ -333,7 +345,7 @@ export function DoctorProfileView({
               <Button
                 type="button"
                 className="w-full rounded-full"
-                disabled={!selected || pending}
+                disabled={!selected || !isSlotOfferable(selected) || pending}
                 onClick={handleBook}
               >
                 {pending ? t("booking") : t("bookSlot")}

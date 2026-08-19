@@ -27,7 +27,7 @@ export async function getDoctorHoursRecord(doctorId: string) {
       orderBy: { date: "asc" },
     }),
     prisma.user.findFirst({
-      where: { doctorProfileId: doctorId },
+      where: { doctorProfileId: doctorId, role: "DOCTOR" },
       select: { doctorProfileExtras: { select: { timezone: true } } },
     }),
   ]);

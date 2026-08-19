@@ -38,7 +38,7 @@ export async function refreshDoctorProjection(doctorId: string): Promise<void> {
   }
 
   const linkedUser = await prisma.user.findFirst({
-    where: { doctorProfileId: doctorId },
+    where: { doctorProfileId: doctorId, role: "DOCTOR" },
     select: { doctorApproval: true, status: true },
   });
 
