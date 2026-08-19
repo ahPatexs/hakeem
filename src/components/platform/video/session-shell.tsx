@@ -184,7 +184,7 @@ export function VideoSessionShell({
 
   if (stubMode && creds) {
     return (
-      <div className={cn("hakeem-video-shell space-y-4", className)}>
+      <div className={cn("hakeem-video-shell space-y-4 [overflow-anchor:none]", className)}>
         <LiveKitPrefabGuard />
         <p
           className="rounded-xl border border-outline-variant/30 bg-surface-container-high px-4 py-2 text-center text-sm font-medium text-primary"
@@ -220,7 +220,7 @@ export function VideoSessionShell({
   if (!creds) return null;
 
   return (
-    <div className={cn("hakeem-video-shell", className)}>
+    <div className={cn("hakeem-video-shell [overflow-anchor:none]", className)}>
       <LiveKitPrefabGuard />
       <div className="space-y-3">
         <div className="flex h-[min(68vh,560px)] min-h-[320px] flex-col overflow-hidden rounded-2xl border border-outline-variant/20 lg:flex-row">

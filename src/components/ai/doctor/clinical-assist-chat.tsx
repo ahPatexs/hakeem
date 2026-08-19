@@ -48,7 +48,7 @@ export function ClinicalAssistChat({
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [localMessages, setLocalMessages] = useState<MessageDto[]>([]);
   const [input, setInput] = useState("");
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const threadRef = useRef<HTMLDivElement>(null);
   const streamSnapshot = useRef("");
   const prevPending = useRef(false);
 
@@ -62,7 +62,12 @@ export function ClinicalAssistChat({
   });
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const thread = threadRef.current;
+    if (!thread) return;
+    const distance = thread.scrollHeight - thread.scrollTop - thread.clientHeight;
+    if (distance < 96) {
+      thread.scrollTop = thread.scrollHeight;
+    }
   }, [localMessages, chat.streamingText]);
 
   useEffect(() => {
@@ -110,8 +115,9 @@ export function ClinicalAssistChat({
   return (
     <div className={cn("flex flex-col gap-3", className)}>
       <div
+        ref={threadRef}
         className={cn(
-          "flex-1 space-y-3 overflow-y-auto rounded-xl border border-outline-variant/20 bg-surface-container-low p-3",
+          "flex-1 space-y-3 overflow-y-auto rounded-xl border border-outline-variant/20 bg-surface-container-low p-3 [overflow-anchor:none]",
           compact ? "max-h-72" : "min-h-64",
         )}
         aria-live="polite"
@@ -162,7 +168,7 @@ export function ClinicalAssistChat({
         {chat.pending && !chat.streamingText ? (
           <p className="text-xs text-on-surface-variant">{tRoot("loading")}</p>
         ) : null}
-        <div ref={bottomRef} />
+        <div aria-hidden />
       </div>
 
       {err ? (

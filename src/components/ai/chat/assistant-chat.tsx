@@ -52,7 +52,7 @@ export function AssistantChat({
   );
   const [localMessages, setLocalMessages] = useState<MessageDto[]>(initialMessages);
   const [input, setInput] = useState("");
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const threadRef = useRef<HTMLDivElement>(null);
 
   const listQuery = useAiConversations();
   const detailQuery = useAiConversation({ conversationId });
@@ -82,7 +82,12 @@ export function AssistantChat({
   }, [detailQuery.data?.messages]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const thread = threadRef.current;
+    if (!thread) return;
+    const distance = thread.scrollHeight - thread.scrollTop - thread.clientHeight;
+    if (distance < 96) {
+      thread.scrollTop = thread.scrollHeight;
+    }
   }, [localMessages, chat.streamingText, chat.notice]);
 
   async function send(text: string) {
@@ -164,7 +169,8 @@ export function AssistantChat({
         </div>
 
         <div
-          className="flex-1 space-y-3 overflow-y-auto rounded-xl border border-outline-variant/20 bg-surface-container-low p-4"
+          ref={threadRef}
+          className="flex-1 space-y-3 overflow-y-auto rounded-xl border border-outline-variant/20 bg-surface-container-low p-4 [overflow-anchor:none]"
           aria-live="polite"
           aria-relevant="additions"
         >
@@ -181,7 +187,6 @@ export function AssistantChat({
           {chat.pending && !chat.streamingText && !chat.notice ? (
             <p className="text-sm text-on-surface-variant">{tRoot("loading")}</p>
           ) : null}
-          <div ref={bottomRef} />
         </div>
 
         {err ? (

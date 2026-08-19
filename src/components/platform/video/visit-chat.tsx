@@ -20,8 +20,29 @@ export type ChatMessage = {
 
 type ListResult = Awaited<ReturnType<typeof platformListVisitChat>>;
 
+const THREAD_NEAR_BOTTOM_PX = 96;
+
 function isOkList(result: ListResult): result is Extract<ListResult, { ok: true }> {
   return result.ok;
+}
+
+function sameMessageList(a: ChatMessage[], b: ChatMessage[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const left = a[i]!;
+    const right = b[i]!;
+    if (left.id !== right.id || left.body !== right.body) return false;
+  }
+  return true;
+}
+
+function scrollChatThread(sentinel: HTMLElement | null, force: boolean) {
+  const thread = sentinel?.closest("[data-visit-chat-thread]") as HTMLElement | null;
+  if (!thread) return;
+  const distance = thread.scrollHeight - thread.scrollTop - thread.clientHeight;
+  if (force || distance < THREAD_NEAR_BOTTOM_PX) {
+    thread.scrollTop = thread.scrollHeight;
+  }
 }
 
 function formatChatTime(iso: string, locale: string) {
@@ -49,7 +70,7 @@ export function VisitChatFrame({
     <section
       data-hakeem-visit-chat="v2"
       className={cn(
-        "hakeem-visit-chat flex h-full min-h-[320px] w-full shrink-0 flex-col overflow-hidden rounded-none border-outline-variant/15 bg-[#fbf9f8] lg:max-w-[24rem] lg:border-s lg:shadow-[-12px_0_32px_rgba(0,67,111,0.12)]",
+        "hakeem-visit-chat flex h-full min-h-[320px] w-full shrink-0 flex-col overflow-hidden rounded-none border-outline-variant/15 bg-[#fbf9f8] [overflow-anchor:none] lg:max-w-[24rem] lg:border-s lg:shadow-[-12px_0_32px_rgba(0,67,111,0.12)]",
         className,
       )}
       aria-label={t("chatTitle")}
@@ -76,7 +97,11 @@ export function VisitChatFrame({
           </div>
         </div>
       </header>
-      <div className="visit-chat-thread min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-4" aria-live="polite">
+      <div
+        data-visit-chat-thread
+        className="visit-chat-thread min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-4"
+        aria-live="polite"
+      >
         {children}
       </div>
       <div className="border-t border-outline-variant/10 bg-white/90 p-3 backdrop-blur-sm">
@@ -91,9 +116,14 @@ export function VisitChatBubbles({ messages, empty }: { messages: ChatMessage[];
   const t = useTranslations("platform.video");
   const locale = useLocale();
   const bottomRef = useRef<HTMLDivElement>(null);
+  const previousCountRef = useRef(0);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
+    const grew = messages.length > previousCountRef.current;
+    const sentByMe = messages.at(-1)?.mine === true;
+    previousCountRef.current = messages.length;
+    // Never use scrollIntoView — it scrolls the window and yanks the consultation page to the top.
+    scrollChatThread(bottomRef.current, grew && sentByMe);
   }, [messages]);
 
   if (messages.length === 0) {
@@ -267,7 +297,10 @@ export function VisitChat({
       return;
     }
     setError(null);
-    setMessages((previous) => mergeMessages(result.data.messages, previous));
+    setMessages((previous) => {
+      const next = mergeMessages(result.data.messages, previous);
+      return sameMessageList(previous, next) ? previous : next;
+    });
   }, [appointmentId, t]);
 
   useEffect(() => {
