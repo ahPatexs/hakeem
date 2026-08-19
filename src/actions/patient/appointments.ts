@@ -2,6 +2,9 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { AuthDomainError, isAuthDomainError } from "@/auth/errors";
+import { CareLoopError, isCareLoopError } from "@/domain/care-loop/errors";
+import { requireRole } from "@/auth/guards";
 import { withPatient, withPatientMutation } from "@/actions/patient/_helpers";
 import {
   canCancel,
@@ -13,8 +16,6 @@ import {
 } from "@/domain/patient/appointments";
 import { createNotification } from "@/lib/patient/notifications";
 import { auditPhiAccess } from "@/lib/patient/phi-audit";
-import { AuthDomainError } from "@/auth/errors";
-import { CareLoopError } from "@/domain/care-loop/errors";
 import { assertSlotIsOfferable } from "@/lib/patient/availability";
 import { notifyDoctorAppointmentConfirmed } from "@/lib/doctor/notification-triggers";
 import { patientHistoryWhere, patientUpcomingWhere } from "@/lib/patient/appointment-queries";
@@ -42,15 +43,15 @@ type BookingDoctor = {
 function toBookingDto(row: {
   id: string;
   status: string;
-  startAt: Date;
-  endAt: Date;
+  startAt: Date | string;
+  endAt: Date | string;
   doctor: BookingDoctor;
 }) {
   return {
     id: row.id,
     status: row.status,
-    startAt: row.startAt.toISOString(),
-    endAt: row.endAt.toISOString(),
+    startAt: new Date(row.startAt).toISOString(),
+    endAt: new Date(row.endAt).toISOString(),
     doctor: {
       id: row.doctor.id,
       slug: row.doctor.slug,
@@ -292,7 +293,8 @@ export async function bookDoctorSlot(input: unknown) {
     return { ok: false as const, code: "VALIDATION_ERROR" };
   }
 
-  return withPatient(async (userId) => {
+  try {
+    const { id: userId } = await requireRole("PATIENT");
     if (start.getTime() <= Date.now()) {
       throw new CareLoopError("SLOT_HORIZON");
     }
@@ -321,7 +323,7 @@ export async function bookDoctorSlot(input: unknown) {
       include: { doctor: { select: doctorPreviewSelect } },
     });
     if (own && own.status !== "HELD") {
-      return toBookingDto(own);
+      return { ok: true as const, data: toBookingDto(own) };
     }
 
     await assertSlotIsOfferable({
@@ -345,11 +347,12 @@ export async function bookDoctorSlot(input: unknown) {
             status: "CONFIRMED",
             startAt: start,
             endAt: end,
-            holdExpiresAt: null,
             reason: reason ?? null,
           },
           include: { doctor: { select: doctorPreviewSelect } },
         });
+
+    const booked = toBookingDto(row);
 
     try {
       const { ensurePayableObligation } = await import("@/lib/platform/payments");
@@ -364,8 +367,8 @@ export async function bookDoctorSlot(input: unknown) {
       console.error("[bookDoctorSlot] obligation", error);
     }
 
-    const locale = await patientLocaleFor(userId);
     try {
+      const locale = await patientLocaleFor(userId);
       await createNotification({
         recipientUserId: userId,
         category: "APPOINTMENT",
@@ -397,8 +400,14 @@ export async function bookDoctorSlot(input: unknown) {
       console.error("[bookDoctorSlot] notify doctor", error);
     }
 
-    return toBookingDto(row);
-  });
+    return { ok: true as const, data: booked };
+  } catch (error) {
+    if (isAuthDomainError(error)) return { ok: false as const, code: error.code };
+    if (isCareLoopError(error)) return { ok: false as const, code: error.code };
+    const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    console.error("[bookDoctorSlot]", error);
+    return { ok: false as const, code: "UNKNOWN", detail };
+  }
 }
 
 export async function cancelAppointment(input: unknown) {

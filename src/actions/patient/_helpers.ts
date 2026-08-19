@@ -15,12 +15,18 @@ function unwrapPatientError(error: unknown): unknown {
   return error;
 }
 
-function toPatientFailure(error: unknown): { ok: false; code: string } {
+function errorDetail(error: unknown): string {
+  if (!error || typeof error !== "object") return String(error);
+  const record = error as { name?: unknown; code?: unknown; message?: unknown };
+  return [record.name, record.code, record.message].filter((part) => typeof part === "string" && part).join(" ");
+}
+
+function toPatientFailure(error: unknown): { ok: false; code: string; detail?: string } {
   const unwrapped = unwrapPatientError(error);
   if (isAuthDomainError(unwrapped)) return { ok: false, code: unwrapped.code };
   if (isCareLoopError(unwrapped)) return { ok: false, code: unwrapped.code };
   console.error("[patient action]", error);
-  return { ok: false, code: "UNKNOWN" };
+  return { ok: false, code: "UNKNOWN", detail: errorDetail(error) };
 }
 
 export async function withPatient<T>(

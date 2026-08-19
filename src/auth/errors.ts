@@ -29,5 +29,9 @@ export class AuthDomainError extends Error {
 }
 
 export function isAuthDomainError(error: unknown): error is AuthDomainError {
-  return error instanceof AuthDomainError;
+  if (error instanceof AuthDomainError) return true;
+  if (!error || typeof error !== "object") return false;
+  const name = "name" in error ? error.name : null;
+  const code = "code" in error ? error.code : null;
+  return name === "AuthDomainError" && typeof code === "string";
 }
