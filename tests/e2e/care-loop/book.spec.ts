@@ -61,7 +61,7 @@ test.describe("care loop booking", () => {
     const openSlot = page
       .locator("aside button:not([disabled])")
       .filter({ hasNotText: /book this time|video|in[- ]person/i })
-      .last();
+      .first();
     await expect(openSlot).toBeVisible({ timeout: 30_000 });
     await openSlot.click();
 

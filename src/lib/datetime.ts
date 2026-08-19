@@ -83,9 +83,9 @@ export function weekDayKeys(dateKey: string): string[] {
   });
 }
 
-export function zonedDayKey(value: Date | string, timeZone = ASIA_RIYADH) {
+export function zonedDayKey(value: Date | string, tz = ASIA_RIYADH) {
   const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone,
+    timeZone: tz,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",

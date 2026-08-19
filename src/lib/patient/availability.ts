@@ -80,9 +80,9 @@ function wallToMs(wall: string): number {
   return Date.UTC(year, month - 1, day, hour, minute, second ?? 0);
 }
 
-function formatWallInTz(date: Date, timeZone: string): string {
+function formatWallInTz(date: Date, tz: string): string {
   const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone,
+    timeZone: tz,
     hour12: false,
     year: "numeric",
     month: "2-digit",
@@ -97,12 +97,12 @@ function formatWallInTz(date: Date, timeZone: string): string {
   return `${get("year")}-${get("month")}-${get("day")}T${hour}:${get("minute")}:${get("second")}`;
 }
 
-export function formatYmdInTz(date: Date, timeZone: string): string {
-  return formatWallInTz(date, timeZone).slice(0, 10);
+export function formatYmdInTz(date: Date, tz: string): string {
+  return formatWallInTz(date, tz).slice(0, 10);
 }
 
-export function weekdayInTz(date: Date, timeZone: string): number {
-  const weekday = new Intl.DateTimeFormat("en-US", { timeZone, weekday: "short" }).format(date);
+export function weekdayInTz(date: Date, tz: string): number {
+  const weekday = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "short" }).format(date);
   return WEEKDAY_SHORT[weekday] ?? 0;
 }
 
@@ -113,7 +113,7 @@ export function addCalendarDays(ymd: string, days: number): string {
 }
 
 export function zonedWallTimeToUtc(
-  timeZone: string,
+  tz: string,
   year: number,
   month: number,
   day: number,
@@ -123,7 +123,7 @@ export function zonedWallTimeToUtc(
   const desired = `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:00`;
   let utc = new Date(`${desired}Z`);
   for (let i = 0; i < 4; i += 1) {
-    const local = formatWallInTz(utc, timeZone);
+    const local = formatWallInTz(utc, tz);
     const diff = wallToMs(desired) - wallToMs(local);
     if (diff === 0) break;
     utc = new Date(utc.getTime() + diff);
@@ -136,8 +136,8 @@ function ymdToParts(ymd: string): { year: number; month: number; day: number } {
   return { year, month, day };
 }
 
-function localMinutes(date: Date, timeZone: string): number {
-  const wall = formatWallInTz(date, timeZone);
+function localMinutes(date: Date, tz: string): number {
+  const wall = formatWallInTz(date, tz);
   const time = wall.slice(11);
   const [hour, minute] = time.split(":").map(Number);
   return hour * 60 + minute;
