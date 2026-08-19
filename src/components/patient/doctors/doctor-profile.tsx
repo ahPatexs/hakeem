@@ -116,7 +116,7 @@ export function DoctorProfileView({
                 : booked.code === "SCHEDULE_MISSING"
                   ? t("bookErrorSchedule")
                   : t("bookErrorRetry");
-          setError(booked.detail ? `${message} (${booked.code}: ${booked.detail})` : `${message} (${booked.code})`);
+          setError(message);
           return;
         }
 

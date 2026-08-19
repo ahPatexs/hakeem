@@ -58,13 +58,12 @@ test.describe("care loop booking", () => {
     await page.goto("/en/patient/doctors/alaa-helal");
     await expect(page.getByRole("heading", { name: /alaa helal/i })).toBeVisible({ timeout: 30_000 });
 
-    const openSlot = page
-      .locator("aside button:not([disabled])")
-      .filter({ hasNotText: /book this time|video|in[- ]person/i })
-      .first();
+    const openSlot = page.locator("aside button:not([disabled])").filter({ hasText: /^11:00$/ }).first();
     await expect(openSlot).toBeVisible({ timeout: 30_000 });
     await openSlot.click();
+    await expect(page.getByText(/11:00 · Video/i)).toBeVisible();
 
+    await expect(page.getByRole("button", { name: /book this time/i })).toBeEnabled();
     await page.getByRole("button", { name: /book this time/i }).click();
     try {
       await expect(page).toHaveURL(/\/patient\/appointments\/[^/]+/i, { timeout: 60_000 });
