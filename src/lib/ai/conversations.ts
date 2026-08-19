@@ -21,6 +21,7 @@ import type { AssembledEvidence } from "./context";
 import { recordGuardrailEventAsync } from "./guardrail-events";
 import { recordUsage } from "./metering";
 import { generate, streamGenerate } from "./orchestration";
+import { requireFeatureAi } from "./governance-gate";
 import { checkAiRateLimit } from "./rate-limit";
 
 export const MESSAGE_WINDOW_SIZE = 12;
@@ -504,6 +505,9 @@ export async function runChatTurn(
     return platformFail("VALIDATION_ERROR", "Message must be 1–4000 characters");
   }
 
+  const allowed = await requireFeatureAi(actor.userId, input.feature);
+  if (!allowed.ok) return allowed;
+
   const rate = checkAiRateLimit(actor.userId, input.feature);
   if (!rate.ok) return rate;
 
@@ -669,6 +673,12 @@ export async function* streamChatTurn(
   const message = input.message.trim();
   if (!message || message.length > 4000) {
     yield { event: "error", data: { code: "VALIDATION_ERROR" } };
+    return;
+  }
+
+  const allowed = await requireFeatureAi(actor.userId, input.feature);
+  if (!allowed.ok) {
+    yield { event: "error", data: { code: allowed.code } };
     return;
   }
 

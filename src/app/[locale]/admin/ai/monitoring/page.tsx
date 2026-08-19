@@ -3,6 +3,7 @@ import { Link } from "@/i18n/routing";
 import { aiAdminGetGuardrailEvents } from "@/actions/ai/admin";
 import { AiAdminSubnav } from "@/components/ai/admin/ai-admin-subnav";
 import { GuardrailLog } from "@/components/ai/admin/guardrail-log";
+import { USAGE_PAGE_SIZE } from "@/lib/ai/ops";
 import type { AiGuardrailTrigger } from "@prisma/client";
 
 function defaultPeriod(days = 30) {
@@ -57,7 +58,29 @@ export default async function AdminAiMonitoringPage({
       {!result.ok ? (
         <p className="text-warm-coral">{result.code}</p>
       ) : (
-        <GuardrailLog items={result.data.items} total={result.data.total} />
+        <>
+          <GuardrailLog items={result.data.items} total={result.data.total} />
+          {result.data.total > USAGE_PAGE_SIZE ? (
+            <div className="flex gap-3 text-sm">
+              {page > 1 ? (
+                <Link
+                  href={`/admin/ai/monitoring?period=${sp.period ?? "30d"}&page=${page - 1}${sp.trigger ? `&trigger=${sp.trigger}` : ""}`}
+                  className="text-med-green underline"
+                >
+                  {t("prevPage")}
+                </Link>
+              ) : null}
+              {page * USAGE_PAGE_SIZE < result.data.total ? (
+                <Link
+                  href={`/admin/ai/monitoring?period=${sp.period ?? "30d"}&page=${page + 1}${sp.trigger ? `&trigger=${sp.trigger}` : ""}`}
+                  className="text-med-green underline"
+                >
+                  {t("nextPage")}
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
+        </>
       )}
     </div>
   );

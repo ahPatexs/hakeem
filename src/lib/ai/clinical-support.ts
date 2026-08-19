@@ -10,6 +10,7 @@ import { runSafetyCheck } from "@/lib/platform/safety";
 import { prisma } from "@/lib/prisma";
 import { aiAudit } from "./audit";
 import { checkBudget } from "./budgets";
+import { requireFeatureAi } from "./governance-gate";
 import type { DraftEvidence } from "./drafts";
 import { recordUsage } from "./metering";
 import { generate } from "./orchestration";
@@ -411,6 +412,9 @@ export async function suggestPrescription(
   const rate = checkAiRateLimit(actor.userId, "RX_ASSIST");
   if (!rate.ok) return rate;
 
+  const allowed = await requireFeatureAi(actor.userId, "RX_ASSIST");
+  if (!allowed.ok) return allowed;
+
   const budget = await checkBudget("RX_ASSIST");
   if (!budget.ok) {
     recordUsage({
@@ -658,6 +662,9 @@ export async function listCdsInsights(
 ): Promise<PlatformResult<{ items: CdsInsightDto[] }>> {
   const access = await assertDoctorFeatureAccess(actor, input.patientUserId, "CDS");
   if (!access.ok) return access;
+
+  const allowed = await requireFeatureAi(actor.userId, "CDS");
+  if (!allowed.ok) return allowed;
 
   const rate = checkAiRateLimit(actor.userId, "CDS");
   if (!rate.ok) return rate;

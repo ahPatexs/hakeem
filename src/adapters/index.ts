@@ -23,6 +23,7 @@ import type { SafetyCheckPort } from "@/ports/safety-check";
 import type { SmsPort } from "@/ports/sms";
 import type { StoragePort } from "@/ports/storage";
 import type { TelemedicinePort } from "@/ports/telemedicine";
+import type { AiProviderKind } from "@prisma/client";
 import { isAiProviderAllowed } from "@/lib/platform/ai-gate";
 
 function provider(name: string | undefined, fallback = "stub"): string {
@@ -81,6 +82,12 @@ export function getAiAdapter(): AiAssistantPort {
     default:
       return stubAiAssistantAdapter;
   }
+}
+
+/** Honor per-feature admin model config. STUB is explicit; OPENAI means the live env adapter. */
+export function getAiAdapterForKind(kind: AiProviderKind): AiAssistantPort {
+  if (kind === "STUB") return stubAiAssistantAdapter;
+  return getAiAdapter();
 }
 
 export function getEmbeddingsAdapter(): AiEmbeddingsPort {

@@ -8,6 +8,7 @@ import { resolveLocaleForUser } from "@/lib/platform/localization";
 import { prisma } from "@/lib/prisma";
 import { aiAudit } from "./audit";
 import { checkBudget } from "./budgets";
+import { requireFeatureAi } from "./governance-gate";
 import { acceptRxDraft, type RxFields } from "./clinical-support";
 import { recordUsage } from "./metering";
 import { generate } from "./orchestration";
@@ -226,6 +227,9 @@ export async function generateSoapDraft(
   const rate = checkAiRateLimit(actor.userId, "DOCTOR_SOAP");
   if (!rate.ok) return rate;
 
+  const allowed = await requireFeatureAi(actor.userId, "DOCTOR_SOAP");
+  if (!allowed.ok) return allowed;
+
   const budget = await checkBudget("DOCTOR_SOAP");
   if (!budget.ok) {
     recordUsage({
@@ -345,6 +349,9 @@ export async function generateConsultationSummary(
 
   const rate = checkAiRateLimit(actor.userId, "DOCTOR_SUMMARY");
   if (!rate.ok) return rate;
+
+  const allowed = await requireFeatureAi(actor.userId, "DOCTOR_SUMMARY");
+  if (!allowed.ok) return allowed;
 
   // Prefer patient localePreference / portalSettings over doctor UI locale
   const locale = await resolveLocaleForUser(input.patientUserId);

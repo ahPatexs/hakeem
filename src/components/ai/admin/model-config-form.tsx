@@ -136,8 +136,8 @@ export function ModelConfigForm({ configs }: { configs: ModelConfigDto[] }) {
             value={provider}
             onChange={(e) => setProvider(e.target.value as "OPENAI" | "STUB")}
           >
-            <option value="STUB">STUB</option>
-            <option value="OPENAI">OPENAI</option>
+            <option value="STUB">{t("providerStub")}</option>
+            <option value="OPENAI">{t("providerLive")}</option>
           </select>
         </div>
 

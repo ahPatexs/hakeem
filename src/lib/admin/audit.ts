@@ -32,6 +32,7 @@ export const ADMIN_AUDIT_TYPES = {
   settingsChange: "admin.settings.change",
   aiToggle: "admin.ai.toggle",
   aiUserDisable: "admin.ai.user_disable",
+  aiUserEnable: "admin.ai.user_enable",
   aiFlagReview: "admin.ai.flag_review",
   announcementPublish: "admin.announcement.publish",
   exportAudit: "admin.export.audit",

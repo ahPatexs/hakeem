@@ -1,8 +1,8 @@
 /**
  * Hand-rolled prompt/context/model composition (research R2 — LangChain optional, not used).
  */
-import type { AiFeatureKey } from "@prisma/client";
-import { getAiAdapter } from "@/adapters";
+import type { AiFeatureKey, AiProviderKind } from "@prisma/client";
+import { getAiAdapterForKind } from "@/adapters";
 import { stubAiAssistantAdapter } from "@/adapters/stub-ai";
 import { isPatientFacingFeature } from "@/domain/ai/access";
 import type { AiFeatureKey as DomainAiFeatureKey } from "@/domain/ai/access";
@@ -64,9 +64,16 @@ async function callWithOptionalFallback(
     messages: AiMessage[];
     locale: "en" | "ar";
   },
-  primary: { modelConfigId: string; modelName: string; temperature: number; maxOutputTokens: number; fallbackModel: string | null },
+  primary: {
+    modelConfigId: string;
+    modelName: string;
+    temperature: number;
+    maxOutputTokens: number;
+    fallbackModel: string | null;
+    provider: AiProviderKind;
+  },
 ): Promise<{ result: AiChatResult; modelName: string; usedFallback: boolean }> {
-  const adapter = getAiAdapter();
+  const adapter = getAiAdapterForKind(primary.provider);
   const chatInput = {
     ...base,
     model: {
@@ -162,6 +169,7 @@ export async function generate(
         temperature: model.data.temperature,
         maxOutputTokens: model.data.maxOutputTokens,
         fallbackModel: model.data.fallbackModel,
+        provider: model.data.provider,
       },
     );
   } catch (err) {
@@ -266,7 +274,7 @@ export async function streamGenerate(
   }
 
   const messages = buildMessages(systemPrompt, ctxData.groundingText, input.messages);
-  const adapter = getAiAdapter();
+  const adapter = getAiAdapterForKind(modelConfig.provider);
   const chatInput = {
     conversationId: input.conversationId,
     messages,

@@ -7,7 +7,7 @@ import { listAdminVideoBoard, listVideoCallEvents } from "@/lib/platform/video";
 export async function listAdminVideoSessions() {
   return withAdmin(async () => {
     const result = await listAdminVideoBoard();
-    if (!result.ok) return { live: [], recent: [] };
+    if (!result.ok) throw new Error(result.code);
     return result.data;
   });
 }

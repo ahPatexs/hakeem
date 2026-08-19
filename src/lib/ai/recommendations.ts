@@ -8,6 +8,7 @@ import type { AiChartContext } from "@/lib/emr/ai-context";
 import { prisma } from "@/lib/prisma";
 import { aiAudit } from "./audit";
 import { checkBudget } from "./budgets";
+import { requireFeatureAi } from "./governance-gate";
 import { assembleContext } from "./context";
 import { recordUsage } from "./metering";
 import { checkAiRateLimit } from "./rate-limit";
@@ -353,6 +354,9 @@ export async function listRecommendations(
     // Already generated today; all dismissed — do not regenerate until next day
     return platformOk({ items: [] });
   }
+
+  const allowed = await requireFeatureAi(actor.userId, "RECOMMENDATIONS");
+  if (!allowed.ok) return allowed;
 
   const generated = await generateRecommendations(actor, locale);
   if (!generated.ok) return generated;

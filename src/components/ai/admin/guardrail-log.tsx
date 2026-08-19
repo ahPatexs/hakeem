@@ -3,6 +3,11 @@
 import { useTranslations } from "next-intl";
 import type { GuardrailEventDto } from "@/lib/ai/ops";
 
+function formatWhen(value: Date | string) {
+  const iso = typeof value === "string" ? value : value.toISOString();
+  return iso.slice(0, 19).replace("T", " ");
+}
+
 export function GuardrailLog({
   items,
   total,
@@ -45,7 +50,7 @@ export function GuardrailLog({
                   <td className="px-3 py-2">{row.role}</td>
                   <td className="px-3 py-2">{row.category ?? "—"}</td>
                   <td className="px-3 py-2 whitespace-nowrap">
-                    {row.createdAt.toISOString().slice(0, 19)}
+                    {formatWhen(row.createdAt)}
                   </td>
                 </tr>
               ))}

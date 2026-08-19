@@ -55,7 +55,7 @@ export default async function AdminAnalyticsPage({
         <Link href="/admin/analytics/ai" className="text-med-green hover:underline">
           {t("aiView")}
         </Link>
-        <a href="/api/admin/exports/analytics?period=30d" className="text-med-green hover:underline">
+        <a href={`/api/admin/exports/analytics?period=${period}`} className="text-med-green hover:underline">
           {t("exportCsv")}
         </a>
       </div>

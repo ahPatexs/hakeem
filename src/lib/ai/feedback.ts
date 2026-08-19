@@ -74,6 +74,22 @@ export async function submitFeedback(
     select: { id: true },
   });
 
+  if (input.rating === "FLAGGED") {
+    const open = await prisma.aiFlaggedConversation.findFirst({
+      where: { conversationId: message.conversationId, reviewedAt: null },
+      select: { id: true },
+    });
+    if (!open) {
+      await prisma.aiFlaggedConversation.create({
+        data: {
+          source: actor.role,
+          conversationId: message.conversationId,
+          reason: input.category?.slice(0, 500) || "User flagged assistant response",
+        },
+      });
+    }
+  }
+
   return platformOk({ id: row.id });
 }
 

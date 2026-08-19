@@ -6,7 +6,7 @@ import type {
 } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
-const PAGE_SIZE = 50;
+export const USAGE_PAGE_SIZE = 50;
 
 export type OpsPeriod = { from: Date; to: Date };
 
@@ -67,7 +67,7 @@ export type UsageRowDto = {
   latencyMs: number;
   outcome: AiUsageOutcome;
   estimatedCostUsd: number;
-  createdAt: Date;
+  createdAt: string;
 };
 
 export type GuardrailEventDto = {
@@ -76,7 +76,7 @@ export type GuardrailEventDto = {
   feature: AiFeatureKey;
   role: string;
   category: string | null;
-  createdAt: Date;
+  createdAt: string;
 };
 
 function periodWhere(period: OpsPeriod) {
@@ -269,7 +269,14 @@ export async function listUsage(input: {
   role?: string;
   locale?: LocaleCode;
   page?: number;
-}): Promise<{ items: UsageRowDto[]; total: number; totalCostUsd: number }> {
+}): Promise<{
+  items: UsageRowDto[];
+  total: number;
+  totalCostUsd: number;
+  byFeature: UsageBucket[];
+  byRole: UsageBucket[];
+  byLocale: UsageBucket[];
+}> {
   const page = Math.max(1, input.page ?? 1);
   const where = {
     createdAt: { gte: input.from, lte: input.to },
@@ -278,12 +285,12 @@ export async function listUsage(input: {
     ...(input.locale ? { locale: input.locale } : {}),
   };
 
-  const [rows, total, costAgg] = await Promise.all([
+  const [rows, total, costAgg, byFeature, byRole, byLocale] = await Promise.all([
     prisma.aiUsageEvent.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
+      skip: (page - 1) * USAGE_PAGE_SIZE,
+      take: USAGE_PAGE_SIZE,
       select: {
         id: true,
         feature: true,
@@ -302,6 +309,21 @@ export async function listUsage(input: {
       where,
       _sum: { estimatedCostUsd: true },
     }),
+    prisma.aiUsageEvent.groupBy({
+      by: ["feature"],
+      where,
+      _count: { _all: true },
+    }),
+    prisma.aiUsageEvent.groupBy({
+      by: ["role"],
+      where,
+      _count: { _all: true },
+    }),
+    prisma.aiUsageEvent.groupBy({
+      by: ["locale"],
+      where,
+      _count: { _all: true },
+    }),
   ]);
 
   return {
@@ -315,10 +337,13 @@ export async function listUsage(input: {
       latencyMs: r.latencyMs,
       outcome: r.outcome,
       estimatedCostUsd: Number(r.estimatedCostUsd),
-      createdAt: r.createdAt,
+      createdAt: r.createdAt.toISOString(),
     })),
     total,
     totalCostUsd: Number(costAgg._sum.estimatedCostUsd ?? 0),
+    byFeature: byFeature.map((r) => ({ key: r.feature, count: r._count._all })),
+    byRole: byRole.map((r) => ({ key: r.role, count: r._count._all })),
+    byLocale: byLocale.map((r) => ({ key: r.locale, count: r._count._all })),
   };
 }
 
@@ -338,8 +363,8 @@ export async function listGuardrailEvents(input: {
     prisma.aiGuardrailEvent.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
+      skip: (page - 1) * USAGE_PAGE_SIZE,
+      take: USAGE_PAGE_SIZE,
       select: {
         id: true,
         trigger: true,
@@ -359,7 +384,7 @@ export async function listGuardrailEvents(input: {
       feature: r.feature,
       role: r.role,
       category: r.category,
-      createdAt: r.createdAt,
+      createdAt: r.createdAt.toISOString(),
     })),
     total,
   };

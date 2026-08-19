@@ -12,12 +12,14 @@ export function FlaggedReviewActions({ flagId }: { flagId: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <>
       <Button size="sm" variant="outline" disabled={pending} onClick={() => setOpen(true)}>
         {t("reviewFlag")}
       </Button>
+      {error ? <p className="text-xs text-warm-coral">{error}</p> : null}
       <ConfirmReasonDialog
         open={open}
         onOpenChange={setOpen}
@@ -27,7 +29,12 @@ export function FlaggedReviewActions({ flagId }: { flagId: string }) {
         pending={pending}
         onConfirm={(note) =>
           startTransition(async () => {
-            await reviewFlaggedConversation({ id: flagId, note });
+            setError(null);
+            const res = await reviewFlaggedConversation({ id: flagId, note });
+            if (!res.ok) {
+              setError(t("actionError"));
+              return;
+            }
             setOpen(false);
             router.refresh();
           })

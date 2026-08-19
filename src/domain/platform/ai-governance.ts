@@ -1,5 +1,6 @@
 export {
   assertAiAllowed,
+  assertFeatureAiAllowed,
   aiFailClosed,
   isGlobalAiEnabled,
   isUserAiDisabled,

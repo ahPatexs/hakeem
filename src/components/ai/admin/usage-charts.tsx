@@ -4,6 +4,11 @@ import { useTranslations } from "next-intl";
 import type { UsageBucket } from "@/lib/ai/ops";
 import type { UsageRowDto } from "@/lib/ai/ops";
 
+function formatWhen(value: Date | string) {
+  const iso = typeof value === "string" ? value : value.toISOString();
+  return iso.slice(0, 19).replace("T", " ");
+}
+
 function BucketList({
   title,
   items,
@@ -156,7 +161,7 @@ export function UsageTable({
                   </td>
                   <td className="px-3 py-2">${row.estimatedCostUsd.toFixed(6)}</td>
                   <td className="px-3 py-2 whitespace-nowrap">
-                    {row.createdAt.toISOString().slice(0, 19)}
+                    {formatWhen(row.createdAt)}
                   </td>
                 </tr>
               ))}

@@ -403,11 +403,10 @@ export async function revenueSummary(input?: unknown): Promise<
       .safeParse(input ?? {});
     if (!parsed.success) throw new Error("VALIDATION_ERROR");
     const createdAt = revenuePeriodStart(parsed.data.period, parsed.data.from, parsed.data.to);
-    const [rows, failedCount, stuckCount] = await Promise.all([
-      prisma.paymentObligation.findMany({
+    const [paid, failedCount, stuckCount] = await Promise.all([
+      prisma.paymentObligation.aggregate({
         where: { createdAt, status: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED", "DISPUTED"] } },
-        select: { amountCents: true, refundedAmountCents: true },
-        take: 5000,
+        _sum: { amountCents: true, refundedAmountCents: true },
       }),
       prisma.paymentObligation.count({ where: { createdAt, status: "FAILED" } }),
       prisma.paymentObligation.count({
@@ -417,8 +416,8 @@ export async function revenueSummary(input?: unknown): Promise<
         },
       }),
     ]);
-    const grossCents = rows.reduce((s, r) => s + r.amountCents, 0);
-    const refundCents = rows.reduce((s, r) => s + r.refundedAmountCents, 0);
+    const grossCents = paid._sum.amountCents ?? 0;
+    const refundCents = paid._sum.refundedAmountCents ?? 0;
     return { grossCents, refundCents, netCents: grossCents - refundCents, failedCount, stuckCount };
   });
 }

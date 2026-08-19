@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ConfirmReasonDialog } from "@/components/admin/shared/confirm-reason-dialog";
-import { disableUserAi } from "@/actions/admin/ai-ops";
+import { disableUserAi, enableUserAi } from "@/actions/admin/ai-ops";
 
 export function DisableUserAiForm() {
   const t = useTranslations("admin.ai");
@@ -15,10 +15,13 @@ export function DisableUserAiForm() {
   const [pending, startTransition] = useTransition();
   const [userId, setUserId] = useState("");
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
 
   return (
     <section className="rounded-2xl border border-outline-variant/20 p-6">
       <h2 className="mb-4 font-headline text-lg text-primary">{t("disableUserTitle")}</h2>
+      <p className="mb-4 text-sm text-on-surface-variant">{t("disableUserHint")}</p>
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-2">
           <Label htmlFor="disable-ai-userId">{t("userId")}</Label>
@@ -33,7 +36,28 @@ export function DisableUserAiForm() {
         <Button type="button" variant="outline" disabled={!userId.trim() || pending} onClick={() => setOpen(true)}>
           {t("disableUserSubmit")}
         </Button>
+        <Button
+          type="button"
+          disabled={!userId.trim() || pending}
+          onClick={() =>
+            startTransition(async () => {
+              setError(null);
+              setMessage(null);
+              const res = await enableUserAi({ userId: userId.trim() });
+              if (!res.ok) {
+                setError(t("actionError"));
+                return;
+              }
+              setMessage(t("enableUserSuccess"));
+              router.refresh();
+            })
+          }
+        >
+          {t("enableUserSubmit")}
+        </Button>
       </div>
+      {error ? <p className="mt-3 text-sm text-warm-coral">{error}</p> : null}
+      {message ? <p className="mt-3 text-sm text-med-green">{message}</p> : null}
       <ConfirmReasonDialog
         open={open}
         onOpenChange={setOpen}
@@ -43,9 +67,16 @@ export function DisableUserAiForm() {
         pending={pending}
         onConfirm={(reason) =>
           startTransition(async () => {
-            await disableUserAi({ userId: userId.trim(), reason });
+            setError(null);
+            setMessage(null);
+            const res = await disableUserAi({ userId: userId.trim(), reason });
+            if (!res.ok) {
+              setError(t("actionError"));
+              return;
+            }
             setOpen(false);
             setUserId("");
+            setMessage(t("disableUserSuccess"));
             router.refresh();
           })
         }

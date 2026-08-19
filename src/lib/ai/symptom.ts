@@ -13,6 +13,7 @@ import { platformFail, platformOk, type PlatformResult } from "@/domain/platform
 import { prisma } from "@/lib/prisma";
 import { aiAudit } from "./audit";
 import { checkBudget } from "./budgets";
+import { requireFeatureAi } from "./governance-gate";
 import { recordGuardrailEventAsync } from "./guardrail-events";
 import { recordUsage } from "./metering";
 import { generate } from "./orchestration";
@@ -387,6 +388,9 @@ export async function startSymptomSession(
   const rate = checkAiRateLimit(actor.userId, "SYMPTOM_CHECKER");
   if (!rate.ok) return rate;
 
+  const allowed = await requireFeatureAi(actor.userId, "SYMPTOM_CHECKER");
+  if (!allowed.ok) return allowed;
+
   const budget = await checkBudget("SYMPTOM_CHECKER");
   if (!budget.ok) return budget;
 
@@ -528,6 +532,9 @@ export async function answerSymptomStep(
 ): Promise<PlatformResult<AnswerSymptomResult>> {
   const access = assertPatientAccess(actor);
   if (!access.ok) return access;
+
+  const allowed = await requireFeatureAi(actor.userId, "SYMPTOM_CHECKER");
+  if (!allowed.ok) return allowed;
 
   const answer = input.answer.trim();
   if (!answer || answer.length > 4000) {

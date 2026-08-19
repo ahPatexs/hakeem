@@ -30,10 +30,9 @@ async function countActiveAppointments() {
 async function revenueSummary() {
   const since = periodStart(30);
   const [paid, stuckCount] = await Promise.all([
-    prisma.paymentObligation.findMany({
+    prisma.paymentObligation.aggregate({
       where: { status: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] }, createdAt: { gte: since } },
-      select: { amountCents: true, refundedAmountCents: true },
-      take: 5000,
+      _sum: { amountCents: true, refundedAmountCents: true },
     }),
     prisma.paymentObligation.count({
       where: {
@@ -42,8 +41,8 @@ async function revenueSummary() {
       },
     }),
   ]);
-  const grossCents = paid.reduce((s, p) => s + p.amountCents, 0);
-  const refundCents = paid.reduce((s, p) => s + p.refundedAmountCents, 0);
+  const grossCents = paid._sum.amountCents ?? 0;
+  const refundCents = paid._sum.refundedAmountCents ?? 0;
   return { grossCents, refundCents, netCents: grossCents - refundCents, stuckCount };
 }
 
@@ -58,7 +57,7 @@ async function aiUsage() {
 
 async function platformStatus() {
   const snap = await prisma.systemHealthSnapshot.findFirst({ orderBy: { checkedAt: "desc" } });
-  return { overall: snap?.overall ?? "HEALTHY", checkedAt: snap?.checkedAt.toISOString() ?? null };
+  return { overall: snap?.overall ?? "UNKNOWN", checkedAt: snap?.checkedAt.toISOString() ?? null };
 }
 
 async function pendingDoctorApprovals() {

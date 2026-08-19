@@ -3,6 +3,7 @@ import { Link } from "@/i18n/routing";
 import { aiAdminListUsage } from "@/actions/ai/admin";
 import { AiAdminSubnav } from "@/components/ai/admin/ai-admin-subnav";
 import { UsageCharts, UsageTable } from "@/components/ai/admin/usage-charts";
+import { USAGE_PAGE_SIZE } from "@/lib/ai/ops";
 import type { AiFeatureKey, LocaleCode } from "@prisma/client";
 
 function defaultPeriod(days = 30) {
@@ -86,8 +87,11 @@ export default async function AdminAiUsagePage({
           [
             "PATIENT_ASSISTANT",
             "SYMPTOM_CHECKER",
+            "RECOMMENDATIONS",
             "DOCTOR_SOAP",
             "DOCTOR_SUMMARY",
+            "RX_ASSIST",
+            "CDS",
           ] as const
         ).map((f) => (
           <Link
@@ -105,41 +109,31 @@ export default async function AdminAiUsagePage({
       ) : (
         <>
           <UsageCharts
-            byFeature={aggregate(result.data.items, "feature")}
-            byRole={aggregate(result.data.items, "role")}
-            byLocale={aggregate(result.data.items, "locale")}
+            byFeature={result.data.byFeature}
+            byRole={result.data.byRole}
+            byLocale={result.data.byLocale}
           />
           <UsageTable
             items={result.data.items}
             total={result.data.total}
             totalCostUsd={result.data.totalCostUsd}
           />
-          {result.data.total > result.data.items.length ? (
+          {result.data.total > USAGE_PAGE_SIZE ? (
             <div className="flex gap-3 text-sm">
               {page > 1 ? (
                 <Link href={qs({ page: String(page - 1) })} className="text-med-green underline">
                   {t("prevPage")}
                 </Link>
               ) : null}
-              <Link href={qs({ page: String(page + 1) })} className="text-med-green underline">
-                {t("nextPage")}
-              </Link>
+              {page * USAGE_PAGE_SIZE < result.data.total ? (
+                <Link href={qs({ page: String(page + 1) })} className="text-med-green underline">
+                  {t("nextPage")}
+                </Link>
+              ) : null}
             </div>
           ) : null}
         </>
       )}
     </div>
   );
-}
-
-function aggregate(
-  items: Array<{ feature: string; role: string; locale: string }>,
-  key: "feature" | "role" | "locale",
-) {
-  const map = new Map<string, number>();
-  for (const item of items) {
-    const k = item[key];
-    map.set(k, (map.get(k) ?? 0) + 1);
-  }
-  return Array.from(map.entries()).map(([k, count]) => ({ key: k, count }));
 }

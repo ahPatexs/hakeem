@@ -108,12 +108,44 @@ export async function disableUserAi(input: unknown): Promise<AdminMutationResult
       body: "An administrator disabled AI for a user account.",
       href: `/admin/users/${parsed.data.userId}`,
     });
+    revalidatePath("/admin/ai");
+    revalidatePath("/admin/users");
     return { ok: true, message: "User AI disabled." };
   } catch (error) {
     const { isAuthDomainError } = await import("@/auth/errors");
     const { isAdminDomainError } = await import("@/domain/admin/errors");
     if (isAuthDomainError(error)) return { ok: false, code: error.code };
     if (isAdminDomainError(error)) return { ok: false, code: error.code };
+    return { ok: false, code: "UNKNOWN" };
+  }
+}
+
+export async function enableUserAi(input: unknown): Promise<AdminMutationResult> {
+  try {
+    const admin = await (await import("@/actions/admin/_helpers")).requireAdminPermission("admin:ai:ops");
+    const parsed = z.object({ userId: z.string().min(1) }).safeParse(input);
+    if (!parsed.success) return { ok: false, code: "VALIDATION_ERROR" };
+    await prisma.user.update({
+      where: { id: parsed.data.userId },
+      data: {
+        aiDisabledAt: null,
+        aiDisabledReason: null,
+        aiDisabledByUserId: null,
+      },
+    });
+    await adminAudit({
+      type: ADMIN_AUDIT_TYPES.aiUserEnable,
+      outcome: "SUCCESS",
+      actorUserId: admin.id,
+      targetUserId: parsed.data.userId,
+      ...(await requestMeta()),
+    });
+    revalidatePath("/admin/ai");
+    revalidatePath("/admin/users");
+    return { ok: true, message: "User AI enabled." };
+  } catch (error) {
+    const { isAuthDomainError } = await import("@/auth/errors");
+    if (isAuthDomainError(error)) return { ok: false, code: error.code };
     return { ok: false, code: "UNKNOWN" };
   }
 }
@@ -237,26 +269,24 @@ export async function getAnalyticsSeries(input: unknown): Promise<
     const parsed = z.object({ period: z.enum(["7d", "30d", "90d"]).default("30d") }).safeParse(input ?? {});
     if (!parsed.success) throw new Error("VALIDATION_ERROR");
     const since = periodStart(periodToDays(parsed.data.period));
-    const [users, doctors, appointments, payments, aiMessages] = await Promise.all([
+    const [users, doctors, appointments, paidSum, doctorMessages, patientMessages] = await Promise.all([
       prisma.user.count({ where: { role: "PATIENT", createdAt: { gte: since } } }),
       prisma.user.count({ where: { role: "DOCTOR", doctorApproval: "APPROVED", createdAt: { gte: since } } }),
       prisma.appointment.count({ where: { createdAt: { gte: since } } }),
-      prisma.paymentObligation.findMany({
+      prisma.paymentObligation.aggregate({
         where: { createdAt: { gte: since }, status: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] } },
-        select: { amountCents: true, refundedAmountCents: true },
-        take: 5000,
+        _sum: { amountCents: true, refundedAmountCents: true },
       }),
+      prisma.doctorAiMessage.count({ where: { createdAt: { gte: since } } }),
       prisma.aiMessage.count({ where: { createdAt: { gte: since } } }),
     ]);
-    const gross = payments.reduce((s, p) => s + p.amountCents, 0);
-    const refunds = payments.reduce((s, p) => s + p.refundedAmountCents, 0);
     return {
       period: parsed.data.period,
       users,
       doctors,
       appointments,
-      revenueNetCents: gross - refunds,
-      aiMessages,
+      revenueNetCents: (paidSum._sum.amountCents ?? 0) - (paidSum._sum.refundedAmountCents ?? 0),
+      aiMessages: patientMessages + doctorMessages,
     };
   });
 }

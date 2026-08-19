@@ -34,7 +34,7 @@ export function fallbackModelConfig(feature: AiFeatureKey): AiModelConfig {
   return {
     id: RUNTIME_MODEL_ID,
     feature,
-    provider: "STUB" as AiProviderKind,
+    provider: "OPENAI" as AiProviderKind,
     modelName,
     fallbackModel: "gemini-flash-latest",
     temperature: 0.3,

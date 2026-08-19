@@ -18,6 +18,7 @@ import {
   type GuardrailEventDto,
   type OpsDashboard,
   type UsageRowDto,
+  type UsageBucket,
   type CostBudgetRow,
 } from "@/lib/ai/ops";
 import {
@@ -78,7 +79,14 @@ export async function aiAdminGetOpsDashboard(
 export async function aiAdminListUsage(
   raw: unknown,
 ): Promise<
-  AiActionResult<{ items: UsageRowDto[]; total: number; totalCostUsd: number }>
+  AiActionResult<{
+    items: UsageRowDto[];
+    total: number;
+    totalCostUsd: number;
+    byFeature: UsageBucket[];
+    byRole: UsageBucket[];
+    byLocale: UsageBucket[];
+  }>
 > {
   const parsed = periodSchema
     .extend({

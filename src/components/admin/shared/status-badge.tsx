@@ -32,6 +32,6 @@ export function StatusBadge({
 
 export function HealthStatusPill({ status }: { status: string }) {
   const variant =
-    status === "HEALTHY" ? "success" : status === "DEGRADED" ? "warning" : "danger";
+    status === "HEALTHY" ? "success" : status === "DEGRADED" || status === "UNKNOWN" ? "warning" : "danger";
   return <StatusBadge label={status} variant={variant} />;
 }
